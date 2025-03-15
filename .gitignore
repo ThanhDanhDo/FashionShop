@@ -1,1 +1,41 @@
+# Ignore các thư mục build và biên dịch
+/target/
+/out/
+/build/
+
+# Ignore các file biên dịch Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Ignore môi trường và config nhạy cảm
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore Node.js dependencies (React)
+node_modules/
+npm-debug.log
+yarn.lock
+package-lock.json
+
+# Ignore hệ thống và IDE (VS Code, IntelliJ, Eclipse)
+.vscode/
+.idea/
+*.iml
+
+# Ignore log file và cache
+/logs/
+*.log
+/log/
+*.pid
+*.seed
+
+# Ignore database file (nếu có)
+*.db
+*.sqlite
+*.sql~  # Backup SQL files
 
