@@ -1,2 +1,9 @@
-/home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/controller/DatabaseController.java
-/home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/FashionShopApplication.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/enums/Role.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/FashionShopApplication.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/request/RegisterRequest.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/controller/AuthController.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/model/User.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/controller/DatabaseController.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/enums/Gender.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/model/Address.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/repository/UserRepository.java

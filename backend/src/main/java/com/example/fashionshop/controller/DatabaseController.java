@@ -14,7 +14,7 @@ public class DatabaseController {
 
     @GetMapping("/test")
     public String testConnection() {
-        String result = jdbcTemplate.queryForObject("SELECT NOW()", String.class);
+        String result = jdbcTemplate.queryForObject("SELECT NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh';", String.class);
         return "Database Time: " + result;
     }
 }

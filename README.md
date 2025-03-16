@@ -9,8 +9,11 @@ FashionShop/
 │   │   ├── main/
 │   │   │   ├── java/com/example/fashionshop/   # Code Java backend
 │   │   │   │   ├── controller/                 # Xử lý API request
+│   │   │   │   ├── enums/                      # Kiểu enum dùng cho kiểu dữ liệu trong model
 │   │   │   │   ├── service/                    # Business logic
 │   │   │   │   ├── repository/                 # Giao tiếp với MySQL
+│   │   │   │   ├── request/                    # Xác định kiểu request cho các request trong controller
+│   │   │   │   ├── response/                   # Xác định kiểu response cho các response trong controller
 │   │   │   │   ├── model/                      # Định nghĩa các entity
 │   │   │   │   ├── config/                     # Cấu hình ứng dụng
 │   │   │   ├── resources/                      # File cấu hình

@@ -1,2 +1,9 @@
 com/example/fashionshop/FashionShopApplication.class
+com/example/fashionshop/model/User.class
 com/example/fashionshop/controller/DatabaseController.class
+com/example/fashionshop/enums/Gender.class
+com/example/fashionshop/repository/UserRepository.class
+com/example/fashionshop/controller/AuthController.class
+com/example/fashionshop/enums/Role.class
+com/example/fashionshop/model/Address.class
+com/example/fashionshop/request/RegisterRequest.class
