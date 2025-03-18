@@ -22,4 +22,9 @@ public class Address {
     private String fullAddress;
 
     private String phone;
+
+    // Liên kết với User
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false) //khoá ngoại user_id -> User
+    private User user;
 }

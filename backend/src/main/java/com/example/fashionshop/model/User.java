@@ -36,8 +36,7 @@ public class User {
     private Gender gender = Gender.KHAC;
 
     // Một user có nhiều địa chỉ
-    @OneToMany(cascade = CascadeType.ALL) //xoá luôn dữ liệu bên bảng khoá ngoại
-    @JoinColumn(name = "user_id") // Thêm khóa ngoại vào bảng Address
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL) //user trong Address
     private Set<Address> addresses = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
