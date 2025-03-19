@@ -3,8 +3,8 @@ com/example/fashionshop/service/AuthService.class
 com/example/fashionshop/exception/GlobalException.class
 com/example/fashionshop/controller/DatabaseController.class
 com/example/fashionshop/config/JwtContant.class
-com/example/fashionshop/enums/Gender.class
 com/example/fashionshop/service/EmailService.class
+com/example/fashionshop/enums/Gender.class
 com/example/fashionshop/model/Address.class
 com/example/fashionshop/request/RegisterRequest.class
 com/example/fashionshop/request/LogInRequest.class
@@ -13,8 +13,8 @@ com/example/fashionshop/model/VerificationCode.class
 com/example/fashionshop/config/JwtTokenValidator.class
 com/example/fashionshop/config/AppConfig.class
 com/example/fashionshop/repository/verificationCodeRepository.class
-com/example/fashionshop/repository/UserRepository.class
 com/example/fashionshop/config/OtpGenerator.class
+com/example/fashionshop/repository/UserRepository.class
 com/example/fashionshop/controller/AuthController.class
 com/example/fashionshop/enums/Role.class
 com/example/fashionshop/config/JwtProvider.class
