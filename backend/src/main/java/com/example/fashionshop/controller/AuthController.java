@@ -1,9 +1,6 @@
 package com.example.fashionshop.controller;
 
-import com.example.fashionshop.enums.Gender;
 import com.example.fashionshop.enums.Role;
-import com.example.fashionshop.model.User;
-import com.example.fashionshop.repository.UserRepository;
 import com.example.fashionshop.request.LogInRequest;
 import com.example.fashionshop.request.RegisterRequest;
 import com.example.fashionshop.response.AuthResponse;
@@ -35,7 +32,7 @@ public class AuthController {
         String token = authService.createUser(otp, req);
         AuthResponse authResponse = new AuthResponse();
         authResponse.setJwt(token);
-        authResponse.setRole(Role.USER);
+        authResponse.setRole(Role.ROLE_USER);
         authResponse.setMessage("Đăng ký thành công!");
 
         return new ResponseEntity<>(authResponse, HttpStatus.OK);

@@ -24,7 +24,7 @@ public class AppConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/register", "/api/db/test").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/db/test", "/api/auth/login").permitAll()
 //                       .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()
                 )

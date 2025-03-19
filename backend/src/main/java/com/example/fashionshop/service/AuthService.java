@@ -75,9 +75,11 @@ public class AuthService {
         }
 
         //kiem tra otp
-        if (!verificationCode.getOtp().equals(otp) || verificationCode.getExpirationTime().isBefore(LocalDateTime.now())) {
+        if (!verificationCode.getOtp().equals(otp.trim()) ||
+                verificationCode.getExpirationTime().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("OTP không đúng hoặc đã hết hạn!");
         }
+
         // Xóa sau khi xác thực thành công
         verificationCodeRepository.delete(verificationCode);
 
@@ -86,12 +88,12 @@ public class AuthService {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(req.getPassword()));
         user.setGender(Gender.valueOf(req.getGender()));
-        user.setRole(Role.USER);
+        user.setRole(Role.ROLE_USER);
         userRepository.save(user);
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
-        authorities.add(new SimpleGrantedAuthority(Role.USER.toString()));
+        authorities.add(new SimpleGrantedAuthority(user.getRole().toString()));
 
         // Tạo token cho user
         Authentication authentication = new UsernamePasswordAuthenticationToken(req.getEmail(), null, authorities);
