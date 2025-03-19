@@ -1,7 +1,9 @@
 /home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/model/Product.java
-/home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/model/ProductType.java
 /home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/service/ProductService.java
-/home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/controller/DatabaseController.java
+/home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/model/Img.java
+/home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/model/Category.java
 /home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/controller/ProductController.java
 /home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/repository/ProductRepository.java
+/home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/repository/CategoryRepository.java
 /home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/FashionShopApplication.java
+/home/ippapi/Desktop/do_an_java/FashionShop/backend/src/main/java/com/example/fashionshop/repository/ImgRepository.java

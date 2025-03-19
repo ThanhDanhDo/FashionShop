@@ -1,0 +1,9 @@
+com/example/fashionshop/FashionShopApplication.class
+com/example/fashionshop/service/ProductService.class
+com/example/fashionshop/model/Img.class
+com/example/fashionshop/repository/ImgRepository.class
+com/example/fashionshop/repository/CategoryRepository.class
+com/example/fashionshop/repository/ProductRepository.class
+com/example/fashionshop/model/Product.class
+com/example/fashionshop/controller/ProductController.class
+com/example/fashionshop/model/Category.class
