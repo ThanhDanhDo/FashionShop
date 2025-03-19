@@ -15,17 +15,10 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name= "productTypes")
-public class ProductTypes {
+@Table(name= "categories")
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String name;
-    private String url;
-
-    @Column(nullable = false)
-    private long quantity;
-    @Column(nullable = false)
-    private long price;
-    private String discription;
 }
