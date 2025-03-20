@@ -2,10 +2,12 @@ com/example/fashionshop/FashionShopApplication.class
 com/example/fashionshop/repository/ProductRepository.class
 com/example/fashionshop/model/Product.class
 com/example/fashionshop/model/Category.class
+com/example/fashionshop/controller/UserController.class
 com/example/fashionshop/repository/CategoryRepository.class
 com/example/fashionshop/repository/verificationCodeRepository.class
 com/example/fashionshop/repository/UserRepository.class
 com/example/fashionshop/controller/AuthController.class
+com/example/fashionshop/service/UserService.class
 com/example/fashionshop/service/AuthService.class
 com/example/fashionshop/service/ProductService.class
 com/example/fashionshop/response/ApiResponse.class

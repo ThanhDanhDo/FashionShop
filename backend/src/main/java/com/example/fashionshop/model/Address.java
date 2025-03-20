@@ -20,8 +20,8 @@ public class Address {
     private String ward;
 
     private String fullAddress;
-
     private String phone;
+    private boolean isDefault;
 
     // Liên kết với User
     @ManyToOne
