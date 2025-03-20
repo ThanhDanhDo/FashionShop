@@ -116,6 +116,7 @@ public class AuthService {
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().toString()));
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(req.getEmail(), null, authorities);
+        // Thêm vào SecurityContext để lưu trạng thái đăng nhập
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // Set JWT vào Cookie

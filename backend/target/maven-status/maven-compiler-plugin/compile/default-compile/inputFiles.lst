@@ -1,13 +1,13 @@
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/service/CategoryService.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/request/RegisterRequest.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/config/JwtContant.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/response/ApiResponse.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/service/EmailService.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/repository/verificationCodeRepository.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/config/AppConfig.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/repository/UserRepository.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/model/Product.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/enums/Role.java
-/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/response/AuthResponse.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/model/Category.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/model/VerificationCode.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/repository/CategoryRepository.java
