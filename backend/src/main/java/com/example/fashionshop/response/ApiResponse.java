@@ -10,11 +10,11 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthResponse {
-
-    private String jwt;
+public class ApiResponse<T> {
 
     private String message;
 
-    private Role role;
+    private boolean success;
+
+    private T data;
 }

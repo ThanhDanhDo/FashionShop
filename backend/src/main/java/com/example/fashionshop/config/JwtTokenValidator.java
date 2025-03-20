@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,12 +26,21 @@ public class JwtTokenValidator extends OncePerRequestFilter {
     // This method will be called for every request, to validate the jwt token
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String jwt = request.getHeader(JwtContant.JWT_HEADER);
+        String jwt = null;
+
+        // Lấy token từ Cookie
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("jwt".equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    System.out.println("JWT từ Cookie: " + jwt);
+                    break;
+                }
+            }
+        }
 
         if (jwt!=null){
-
-            jwt = jwt.substring(7); //cắt tiền tố Bearer
-
             try {
                 // key để giải mã
                 SecretKey key = Keys.hmacShaKeyFor(JwtContant.SECRET_KEY.getBytes());
@@ -49,7 +59,6 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                 List<GrantedAuthority> auths= AuthorityUtils.commaSeparatedStringToAuthorityList(authorities);
                 //tạo đối tượng xác thực
                 Authentication athentication=new UsernamePasswordAuthenticationToken(email,null, auths);
-                //lưu vào SecurityContext
                 SecurityContextHolder.getContext().setAuthentication(athentication);
             } catch (Exception e) {
                 throw new BadCredentialsException("Invalid JWT token...");
