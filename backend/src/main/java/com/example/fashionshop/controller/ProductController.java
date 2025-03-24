@@ -1,12 +1,12 @@
 package com.example.fashionshop.controller;
 
 import com.example.fashionshop.model.Product;
+import com.example.fashionshop.model.Category;
 import com.example.fashionshop.service.ProductService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +22,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
-import java.util.Locale.Category;
 import java.util.List;
 import java.util.Map;
 @RestController
@@ -60,13 +59,13 @@ public class ProductController {
     }
 
     @GetMapping("type/{type}")
-    public ResponseEntity<Page<Product>> getProductByCate(
+    public ResponseEntity<Map<String, Page<Product>>> getProductByCate(
         @PathVariable Category cate,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ){
         Pageable pageable = PageRequest.of(page, size);
-        Page<Product> products = productService.getProductByCate(cate, pageable);
+        Map<String, Page<Product>> products = productService.getProductByCate(cate, pageable);
 
         if(products != null)
             return ResponseEntity.ok(products);
@@ -81,7 +80,7 @@ public class ProductController {
             Product savedProduct = productService.addProduct(product);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedProduct);
         }catch(RuntimeException e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving products");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving products: " + e);
         }
     }
 
@@ -113,7 +112,7 @@ public class ProductController {
     @PostMapping("/add_bulk")
     public ResponseEntity<?> addProducts(@RequestBody List<Product> products){
         try{
-            Map<String, List<Product>> response = productService.addProducts(products);
+            List<Product> response = productService.addProducts(products);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         }catch(RuntimeException e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving products");

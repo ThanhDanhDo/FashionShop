@@ -7,21 +7,71 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.example.fashionshop.model.Product;
+import com.example.fashionshop.model.Category;
 import com.example.fashionshop.repository.ProductRepository;
 
+import jakarta.transaction.Transactional;
+
+import com.example.fashionshop.repository.CategoryRepository;
+
+import java.util.function.Supplier;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.Locale.Category;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
 
+    @Transactional
+    private Category findOrCreateCategory(Long cateId, String name, Long parentId) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Category name cannot be empty");
+        }
+    
+        Optional<Category> existingCategory;
+    
+        if (cateId != null) {
+            existingCategory = categoryRepository.findById(cateId);
+        } else {
+            existingCategory = categoryRepository.findByName(name);
+        }
+    
+        if (existingCategory.isPresent()) {
+            return existingCategory.get();
+        }
+    
+        Category parentCategory = (parentId != null) 
+            ? categoryRepository.findById(parentId).orElse(null) 
+            : null;
+    
+        Category newCategory = new Category();
+        newCategory.setName(name);
+        newCategory.setParentCategory(parentCategory);
+    
+        return categoryRepository.save(newCategory);
+    }    
+
+    private Category processCategory(Category category) {
+        if (category == null) {
+            return null;
+        }
+    
+        Long categoryId = category.getId();
+        String name = category.getName();
+        Long parentCategoryId = (category.getParentCategory() != null) ? category.getParentCategory().getId() : null;
+    
+        return findOrCreateCategory(categoryId, name, parentCategoryId);
+    }
+    
     @Autowired
-    public ProductService(ProductRepository productRepository){
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository){
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     public Optional<Product> getProductById(Long id){
@@ -32,73 +82,98 @@ public class ProductService {
         return productRepository.findAll(pageable);
     }
 
-    public Page<Product> getProductByCate(Category category, Pageable pageable){
-        return productRepository.findByCategory(category, pageable);
+    public Map<String, Page<Product>> getProductByCate(Category category, Pageable pageable) {
+        Page<Product> mainCategoryProducts = productRepository.findByMainCategory(category, pageable);
+        Page<Product> subCategoryProducts = productRepository.findBySubCategory(category, pageable);
+
+        Map<String, Page<Product>> result = new HashMap<>();
+        result.put("mainCategory", mainCategoryProducts);
+        result.put("subCategories", subCategoryProducts);
+
+        return result;
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Transactional
     public Product addProduct(Product product){
-        Long productId = product.getId();
-        if(productId == null || productRepository.existsById(productId)){
-            throw new RuntimeException("Error in input, id is existed or null");
+        if (product.getMainCategory() != null) {
+            product.setMainCategory(processCategory(product.getMainCategory()));
+        }
+
+        if (product.getSubCategory() != null) {
+            product.setSubCategory(processCategory(product.getSubCategory()));
         }
 
         return productRepository.save(product);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Product updateProduct(Product product){
-        Long productId = product.getId();
-        if(productId == null || !productRepository.existsById(productId)){
-            throw new RuntimeException("Error in input, id is not exist or null");
+    @Transactional
+    public Product updateProduct(Product updatedProduct) {
+        Product existingProduct = productRepository.findById(updatedProduct.getId())
+            .orElseThrow(() -> new RuntimeException("Product not found"));
+    
+        if (updatedProduct.getName() != null) {
+            existingProduct.setName(updatedProduct.getName());
         }
-
-        return productRepository.save(product);
+    
+        if (updatedProduct.getPrice() != null) {
+            existingProduct.setPrice(updatedProduct.getPrice());
+        }
+    
+        if (updatedProduct.getMainCategory() != null) {
+            existingProduct.setMainCategory(processCategory(updatedProduct.getMainCategory()));
+        }
+    
+        if (updatedProduct.getSubCategory() != null) {
+            existingProduct.setSubCategory(processCategory(updatedProduct.getSubCategory()));
+        }
+    
+        return productRepository.save(existingProduct);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public void deleteProduct(Long id){
-        if(!productRepository.existsById(id)){
-            throw new RuntimeException("Product not found with ID: " + id);
-        }
+        Product product = getProductById(id)
+            .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
+
         productRepository.deleteById(id);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Map<String, List<Product>> addProducts(List<Product> products){
-        if(products == null || products.isEmpty()){
+    public List<Product> addProducts(List<Product> products) {
+        if (products == null || products.isEmpty()) {
             throw new RuntimeException("Product list is empty or null");
-        }  
+        }
 
-        Map<Boolean, List<Product>> partitioned = products.stream()
-            .collect(Collectors.partitioningBy(product -> 
-                product.getId() != null && !productRepository.existsById(product.getId()))
-            );
+        List<Product> addedProducts = new ArrayList<>();
+        for (Product product : products) {
+            addedProducts.add(addProduct(product));
+        }
 
-        List<Product> addedProducts = productRepository.saveAll(partitioned.get(true));
-        
-        return Map.of(
-            "updated", addedProducts,
-            "failed", partitioned.get(false)
-        );
+        return addedProducts;
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Map<String, List<Product>> updateProducts(List<Product> products){
-        if(products == null || products.isEmpty()){
+    public Map<String, List<Product>> updateProducts(List<Product> products) {
+        if (products == null || products.isEmpty()) {
             throw new RuntimeException("Product list is empty or null");
-        }  
-
-        Map<Boolean, List<Product>> partitioned = products.stream()
-            .collect(Collectors.partitioningBy(product -> 
-                product.getId() != null && productRepository.existsById(product.getId()))
-            );
-
-        List<Product> updatedProducts = productRepository.saveAll(partitioned.get(true));
-        
+        }
+    
+        List<Product> updatedProducts = new ArrayList<>();
+        List<Product> failedProducts = new ArrayList<>();
+    
+        for(Product product : products) {
+            try {
+                updatedProducts.add(updateProduct(product));
+            } catch (RuntimeException e) {
+                failedProducts.add(product);
+            }
+        }
+    
         return Map.of(
             "updated", updatedProducts,
-            "failed", partitioned.get(false)
+            "failed", failedProducts
         );
-    }
+    }    
 }
