@@ -14,9 +14,7 @@ import jakarta.transaction.Transactional;
 
 import com.example.fashionshop.repository.CategoryRepository;
 
-import java.util.function.Supplier;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -91,6 +89,14 @@ public class ProductService {
         result.put("subCategories", subCategoryProducts);
 
         return result;
+    }
+
+    public List<Product> getProductByName(String name){
+        if (name == null || name.isEmpty()) {
+            throw new RuntimeException("Product list is empty or null");
+        }
+
+        return productRepository.findByNameContainingIgnoreCase(name);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")

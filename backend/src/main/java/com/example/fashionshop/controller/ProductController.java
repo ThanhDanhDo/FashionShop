@@ -44,6 +44,16 @@ public class ProductController {
             return ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<Product>> getProductByName(@RequestParam String Name){
+        List<Product> product = productService.getProductByName(Name);
+
+        if(product != null)
+            return ResponseEntity.ok(product);
+        else
+            return ResponseEntity.notFound().build();
+    }
+
     @GetMapping("/all")
     public ResponseEntity<Page<Product>> getAllProduct(
         @RequestParam(defaultValue = "0") int page,

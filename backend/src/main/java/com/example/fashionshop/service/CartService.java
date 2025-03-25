@@ -10,6 +10,7 @@ import com.example.fashionshop.repository.ProductRepository;
 import com.example.fashionshop.enums.CartStatus;
 import com.example.fashionshop.model.Cart;
 import com.example.fashionshop.model.CartItem;
+import com.example.fashionshop.model.Product;
 
 import java.util.Optional;
 import java.util.List;
@@ -65,15 +66,41 @@ public class CartService {
     }
 
     @Transactional
-    public Cart updateStatusCart(Long cartId, CartStatus cartStatus) {
+    public void updateStatusCart(Long cartId, CartStatus cartStatus) {
         Cart cart = getCartById(cartId)
             .orElseThrow(() -> new RuntimeException("Cart not found"));
     
-        if (cart.getCartItems().isEmpty()) {
+        if (cart.getCartItems().isEmpty()){
             throw new RuntimeException("Cannot checkout an empty cart");
         }
 
+        if (cartStatus == CartStatus.ORDERED) {
+            List<CartItem> validItems = cart.getCartItems().stream()
+                .filter(item -> item.getQuantity() <= item.getProduct().getStock())
+                .toList();
+    
+            cart.setCartItems(validItems);
+            
+            validItems.forEach(item -> {
+                Product product = item.getProduct();
+                product.setStock(product.getStock() - item.getQuantity());
+            });
+    
+            if(validItems.isEmpty()){
+                throw new RuntimeException("Cannot place an order with no available items.");
+            }
+        }
+
+        if (cartStatus == CartStatus.CANCELED) {
+            cart.getCartItems().forEach(item -> 
+                item.getProduct().setStock(item.getProduct().getStock() + item.getQuantity())
+            );
+    
+            cartRepository.delete(cart);
+            return;
+        }
+
         cart.setStatus(cartStatus);
-        return cartRepository.save(cart);
+        cartRepository.save(cart);
     }
 }
