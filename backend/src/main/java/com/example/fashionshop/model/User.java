@@ -24,7 +24,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String fistName;
+    private String firstName;
     private String lastName;
 
     @Column(nullable = false, unique = true)
@@ -35,7 +35,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Gender gender = Gender.KHAC;
+    private Gender gender;
 
     // Một user có nhiều địa chỉ
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL) //user trong Address

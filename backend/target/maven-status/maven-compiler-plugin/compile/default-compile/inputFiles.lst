@@ -1,5 +1,8 @@
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/service/CategoryService.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/repository/AddressRepository.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/service/AddressService.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/request/RegisterRequest.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/request/OtpRequest.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/config/JwtContant.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/response/ApiResponse.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/service/EmailService.java
@@ -7,6 +10,7 @@
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/config/AppConfig.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/repository/UserRepository.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/model/Product.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/service/UserService.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/enums/Role.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/model/Category.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/model/VerificationCode.java
@@ -22,6 +26,7 @@
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/controller/AuthController.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/enums/Gender.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/config/OtpGenerator.java
+/Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/controller/UserController.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/model/User.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/repository/ProductRepository.java
 /Users/ngoquyen/IdeaProjects/FashionShop/backend/src/main/java/com/example/fashionshop/model/Address.java

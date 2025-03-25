@@ -1,5 +1,6 @@
 package com.example.fashionshop.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,5 +27,6 @@ public class Address {
     // Liên kết với User
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false) //khoá ngoại user_id -> User
+    @JsonIgnore
     private User user;
 }
