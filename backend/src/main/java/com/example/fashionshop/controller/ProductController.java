@@ -83,7 +83,7 @@ public class ProductController {
             return ResponseEntity.notFound().build();
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<?> addProduct(@RequestBody Product product){
         try{
@@ -94,7 +94,7 @@ public class ProductController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/update")
     public ResponseEntity<?> updateProduct(@RequestBody Product product){
         try{
@@ -105,7 +105,7 @@ public class ProductController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteProduct(
         @PathVariable long id
@@ -118,7 +118,7 @@ public class ProductController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/add_bulk")
     public ResponseEntity<?> addProducts(@RequestBody List<Product> products){
         try{
@@ -129,7 +129,7 @@ public class ProductController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/update_bulk")
     public ResponseEntity<?> updateProducts(@RequestBody List<Product> products){
         try{

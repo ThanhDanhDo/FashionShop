@@ -45,7 +45,7 @@ public class CategoryController {
             return ResponseEntity.notFound().build();
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/create")
     public ResponseEntity<?> createCategory(@RequestBody Category category) {
         try{
@@ -56,7 +56,7 @@ public class CategoryController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateCategory(@PathVariable Long id, @RequestBody Category category) {
         try{
@@ -67,7 +67,7 @@ public class CategoryController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
         try{
