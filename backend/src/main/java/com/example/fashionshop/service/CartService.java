@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.example.fashionshop.repository.CartItemRepository;
 import com.example.fashionshop.repository.CartRepository;
-import com.example.fashionshop.repository.ProductRepository;
 import com.example.fashionshop.enums.CartStatus;
 import com.example.fashionshop.model.Cart;
 import com.example.fashionshop.model.CartItem;
