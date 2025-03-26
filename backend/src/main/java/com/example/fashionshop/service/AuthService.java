@@ -9,9 +9,11 @@ import com.example.fashionshop.model.VerificationCode;
 import com.example.fashionshop.repository.UserRepository;
 import com.example.fashionshop.repository.verificationCodeRepository;
 import com.example.fashionshop.request.LogInRequest;
+import com.example.fashionshop.request.OtpRequest;
 import com.example.fashionshop.request.RegisterRequest;
-import com.example.fashionshop.response.AuthResponse;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,8 +46,6 @@ public class AuthService {
         String otp = OtpGenerator.generateOTP();
         LocalDateTime expirationTime = LocalDateTime.now().plusMinutes(5);
 
-
-
         // Xóa OTP cũ nếu có
         VerificationCode existingOtp = verificationCodeRepository.findByEmail(req.getEmail());
         if (existingOtp != null) {
@@ -56,6 +56,10 @@ public class AuthService {
         verificationCode.setEmail(req.getEmail());
         verificationCode.setOtp(otp);
         verificationCode.setExpirationTime(expirationTime);
+        verificationCode.setFirstName(req.getFirstName());
+        verificationCode.setLastName(req.getLastName());
+        verificationCode.setPassword(passwordEncoder.encode(req.getPassword())); // Mã hóa trước khi lưu
+        verificationCode.setGender(req.getGender());
         verificationCodeRepository.save(verificationCode);
 
         // Gửi email
@@ -66,8 +70,9 @@ public class AuthService {
         return "OTP đã được gửi tới email. Vui lòng xác thực để hoàn tất đăng ký!";
     }
 
-    public String createUser(String otp, RegisterRequest req) throws MessagingException{
+    public String createUser(OtpRequest req, HttpServletResponse response) throws MessagingException{
         String email = req.getEmail();
+        String otp = req.getOtp();
 
         VerificationCode verificationCode = verificationCodeRepository.findByEmail(email);
         if(verificationCode == null){
@@ -80,31 +85,35 @@ public class AuthService {
             throw new IllegalArgumentException("OTP không đúng hoặc đã hết hạn!");
         }
 
-        // Xóa sau khi xác thực thành công
-        verificationCodeRepository.delete(verificationCode);
-
         // Tạo user và lưu vào database
         User user = new User();
+        user.setFirstName(verificationCode.getFirstName());
+        user.setLastName(verificationCode.getLastName());
         user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
-        user.setGender(Gender.valueOf(req.getGender()));
-        user.setRole(Role.ROLE_USER);
+        user.setPassword(verificationCode.getPassword());
+        user.setGender(Gender.valueOf(verificationCode.getGender()));
+        user.setRole(Role.USER);
         userRepository.save(user);
+
+        // Xóa sau khi xác thực thành công
+        verificationCodeRepository.delete(verificationCode);
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
         authorities.add(new SimpleGrantedAuthority(user.getRole().toString()));
 
         // Tạo token cho user
-        Authentication authentication = new UsernamePasswordAuthenticationToken(req.getEmail(), null, authorities);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
 
         // Thêm vào SecurityContext để lưu trạng thái đăng nhập
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        // Set JWT vào Cookie
+        jwtProvider.generateToken(authentication, response);
 
-        return jwtProvider.generateToken(authentication);
+        return "Đăng ký thành công!";
     }
 
-    public AuthResponse logIn(LogInRequest req) {
+    public String logIn(LogInRequest req, HttpServletResponse response) {
         User user = userRepository.findByEmail(req.getEmail());
 
         if(user == null || !passwordEncoder.matches(req.getPassword(), user.getPassword())){
@@ -115,15 +124,24 @@ public class AuthService {
         List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole().toString()));
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(req.getEmail(), null, authorities);
+        // Thêm vào SecurityContext để lưu trạng thái đăng nhập
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        String token = jwtProvider.generateToken(authentication);
+        // Set JWT vào Cookie
+        jwtProvider.generateToken(authentication, response);
 
-        AuthResponse authResponse = new AuthResponse();
-        authResponse.setMessage("Đăng nhập thành công!");
-        authResponse.setJwt(token);
-        authResponse.setRole(user.getRole());
-
-        return authResponse;
+        return "Đăng nhập thành công!";
     }
+
+    public String logOut(HttpServletResponse response){
+        Cookie cookie = new Cookie("jwt", "");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+
+        return "Đăng xuất thành công!";
+    }
+
 }

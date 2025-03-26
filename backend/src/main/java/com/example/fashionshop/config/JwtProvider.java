@@ -2,6 +2,8 @@ package com.example.fashionshop.config;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,7 @@ public class JwtProvider {
     // key để mã hoá
     SecretKey key = Keys.hmacShaKeyFor(JwtContant.SECRET_KEY.getBytes());
 
-    public String generateToken(Authentication auth){
+    public void generateToken(Authentication auth, HttpServletResponse response){
         Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
 
         String roles = populateAuthorities(authorities);
@@ -30,7 +32,19 @@ public class JwtProvider {
                 .claim("authorities", roles)
                 .signWith(key)
                 .compact();
-        return jwt;
+
+        // Tạo cookie HttpOnly
+        ResponseCookie cookie = ResponseCookie.from("jwt", jwt)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(86400) // 1 ngày
+                .build();
+
+        // Thêm cookie vào response
+        response.addHeader("Set-Cookie", cookie.toString());
+        //return jwt;
     }
 
     //trả về String các quyền
@@ -41,5 +55,14 @@ public class JwtProvider {
             auths.add(authority.getAuthority());
         }
         return String.join(",",auths);
+    }
+
+    public String getEmailFromJwt(String jwt){
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(jwt)
+                .getBody()
+                .get("email",String.class);
     }
 }

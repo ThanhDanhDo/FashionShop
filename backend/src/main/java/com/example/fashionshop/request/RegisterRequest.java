@@ -13,6 +13,13 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequest {
+
+    @NotBlank(message = "Tên không được để trống")
+    private String firstName;
+
+    @NotBlank(message = "Họ không được để trống")
+    private String lastName;
+
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Email không hợp lệ")
     private String email;

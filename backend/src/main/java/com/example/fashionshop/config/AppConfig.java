@@ -24,8 +24,12 @@ public class AppConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/register", "/api/db/test", "/api/auth/login").permitAll()
-//                       .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/api/auth/register",
+                                        "/api/db/test",
+                                        "/api/auth/login",
+                                        "/api/auth/verify-otp").permitAll()
+//                        .requestMatchers("/api/products/all").hasAuthority("ADMIN") //chỉ admin mới qua link đc
+//                        .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)

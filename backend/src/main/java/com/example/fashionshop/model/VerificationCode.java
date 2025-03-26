@@ -19,4 +19,10 @@ public class VerificationCode {
     private String email;
     private String otp;
     private LocalDateTime expirationTime;
+
+    // Lưu thông tin đăng ký tạm thời
+    private String firstName;
+    private String lastName;
+    private String password;
+    private String gender;
 }
