@@ -1,6 +1,7 @@
 package com.example.fashionshop.controller;
 
 import com.example.fashionshop.request.LogInRequest;
+import com.example.fashionshop.request.OtpRequest;
 import com.example.fashionshop.request.RegisterRequest;
 import com.example.fashionshop.response.ApiResponse;
 import com.example.fashionshop.service.AuthService;
@@ -28,8 +29,8 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<ApiResponse> createUser(@RequestParam("otp") String otp, @RequestBody RegisterRequest req, HttpServletResponse response) throws MessagingException {
-        String message = authService.createUser(otp, req, response);
+    public ResponseEntity<ApiResponse> createUser(@RequestBody OtpRequest req, HttpServletResponse response) throws MessagingException {
+        String message = authService.createUser(req, response);
         return new ResponseEntity<>(new ApiResponse(message, true, null), HttpStatus.OK);
     }
 

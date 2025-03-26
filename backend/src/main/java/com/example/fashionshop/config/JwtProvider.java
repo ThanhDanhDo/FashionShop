@@ -56,4 +56,13 @@ public class JwtProvider {
         }
         return String.join(",",auths);
     }
+
+    public String getEmailFromJwt(String jwt){
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(jwt)
+                .getBody()
+                .get("email",String.class);
+    }
 }
