@@ -13,23 +13,35 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name= "products")
+@Table(name= "product")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
+    
+    @Column(nullable = false, length = 225)
     private String name;
-    private String discription;
-
+    
+    @Column(columnDefinition = "TEXT")
+    private String description;
+    
     @Column(nullable = false)
-    private long quantity;
+    private Double price;
+    
     @Column(nullable = false)
-    private long price;
-
-    @ElementCollection
-    private List<String> imgUrls = new ArrayList<>();
-
+    private Long stock;
+    
     @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    @JoinColumn(name = "main_category_id", nullable = false)
+    private Category mainCategory;
+    
+    @ManyToOne
+    @JoinColumn(name = "sub_category_id")
+    private Category subCategory;
+    
+    private List<String> size;
+    
+    private List<String> color;
+
+    private List<String> imgUrls;
 }

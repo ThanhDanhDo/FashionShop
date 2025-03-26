@@ -1,4 +1,3 @@
-com/example/fashionshop/FashionShopApplication.class
 com/example/fashionshop/repository/ProductRepository.class
 com/example/fashionshop/model/Product.class
 com/example/fashionshop/service/AddressService.class
@@ -22,13 +21,4 @@ com/example/fashionshop/service/EmailService.class
 com/example/fashionshop/controller/ProductController.class
 com/example/fashionshop/model/Address.class
 com/example/fashionshop/request/RegisterRequest.class
-com/example/fashionshop/controller/CategoryController.class
-com/example/fashionshop/request/LogInRequest.class
-com/example/fashionshop/model/User.class
-com/example/fashionshop/model/VerificationCode.class
 com/example/fashionshop/service/CategoryService.class
-com/example/fashionshop/config/JwtTokenValidator.class
-com/example/fashionshop/config/AppConfig.class
-com/example/fashionshop/config/OtpGenerator.class
-com/example/fashionshop/enums/Role.class
-com/example/fashionshop/config/JwtProvider.class
