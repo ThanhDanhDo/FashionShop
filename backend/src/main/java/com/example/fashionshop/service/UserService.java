@@ -5,11 +5,17 @@ import com.example.fashionshop.model.User;
 import com.example.fashionshop.repository.AddressRepository;
 import com.example.fashionshop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -17,6 +23,32 @@ import java.util.Set;
 public class UserService {
     final UserRepository userRepository;
     final AddressRepository addressRepository;
+
+    public Page<User> getAllUser(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    public Page<User> searchUser(String firstName, String email, Pageable pageable) {
+        return userRepository.searchUsers(firstName, email, pageable);
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public Long getCurrentUserId(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        return user.getId();
+    }
 
     public User getCurrentUserProfile(Authentication authentication) throws Exception{
         if (authentication == null || !authentication.isAuthenticated()) {

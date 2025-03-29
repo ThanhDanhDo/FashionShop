@@ -37,7 +37,7 @@ public class JwtProvider {
         ResponseCookie cookie = ResponseCookie.from("jwt", jwt)
                 .httpOnly(true)
                 .secure(true)
-                .sameSite("Strict")
+                .sameSite("Strict") //none
                 .path("/")
                 .maxAge(86400) // 1 ngày
                 .build();
