@@ -1,0 +1,9 @@
+
+
+.main {
+    background-color: #F2F7FB;
+    flex-grow: 1;
+    height: 100vh;
+    overflow: auto;
+    padding: 88px 24px 24px;
+}
