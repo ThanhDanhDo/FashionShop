@@ -33,9 +33,14 @@
   flex: 1;
   padding: 40px;
   display: flex;
-  flex-direction: column;
   justify-content: center;
+  align-items: center;
   order: 1;
+}
+
+.signup-form-wrapper {
+  width: 100%;
+  max-width: 400px;
 }
 
 .signup-form-section h2 {
@@ -43,6 +48,7 @@
   font-size: 24px;
   font-weight: bold;
   color: #333;
+  text-align: center;
 }
 
 .form-group {
@@ -101,29 +107,42 @@
 .gender-options {
   display: flex;
   gap: 20px;
+  align-items: center;
 }
 
 .radio-label {
   display: flex;
   align-items: center;
-  gap: 8px;
   cursor: pointer;
+  flex-direction: row;
 }
 
 .radio-label input[type="radio"] {
   margin: 0;
+  margin-right: 4px;
+  width: auto;
+  height: auto;
+  
 }
 
 .checkbox-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
 }
 
+.checkbox-label input[type="checkbox"] {
+  margin: 0;
+  width: auto;
+  height: auto;
+  margin-right: 4px;
+}
+
 .checkbox-label a {
   color: #0066ff;
   text-decoration: none;
+  display: inline;
 }
 
 .checkbox-label a:hover {
