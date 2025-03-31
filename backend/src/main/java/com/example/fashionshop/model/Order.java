@@ -39,7 +39,10 @@ public class Order {
     private int totalItems;
     private double totalOrderPrice;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
+
+    @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
     @CreationTimestamp
