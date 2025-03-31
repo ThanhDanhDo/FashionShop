@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findById(Long orderId);
     List<Order> findByUserId(Long userId);
-    Optional<Order> findByOrderId(Long orderId);
+//    Optional<Order> findByOrderId(Long orderId);
 
     Page<Order> findAll(Pageable pageable);
     Page<Order> findByUserId(Long userId, Pageable pageable);
