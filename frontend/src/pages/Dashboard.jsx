@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Grid, Paper, Typography, Box, Popover, MenuItem, Button, TextField } from '@mui/material';
+import { Grid, Paper, Typography, Box, Popover, Button, TextField } from '@mui/material';
 import {
   LineChart,
   Line,
