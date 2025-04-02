@@ -17,19 +17,18 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Routes>
-        <Route path="/home" element={<Home />} />
-      <Routes>
+         {/* Home sẽ chạy riêng mà không bị ảnh hưởng bởi Layout */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/" element={<Layout>
-      <Routes>
-            <Route index element={<Dashboard />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/users" element={<Users />} />
-            </Routes>
-          </Routes>
-        </Layout>} />
+        <Route path="/home" element={<Home />} />
+
+        {/* Các route khác sẽ nằm trong Layout */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/users" element={<Users />} />
+        </Route>
       </Routes>
     </ThemeProvider>
   );
