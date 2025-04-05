@@ -10,22 +10,25 @@ import Orders from './pages/Orders';
 import Users from './pages/Users';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Home from './pages/Home';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Routes>
+         {/* Home sẽ chạy riêng mà không bị ảnh hưởng bởi Layout */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/" element={<Layout>
-          <Routes>
-            <Route index element={<Dashboard />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/users" element={<Users />} />
-          </Routes>
-        </Layout>} />
+        <Route path="/home" element={<Home />} />
+
+        {/* Các route khác sẽ nằm trong Layout */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/users" element={<Users />} />
+        </Route>
       </Routes>
     </ThemeProvider>
   );
