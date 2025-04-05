@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar/Navbar';
 import '../styles/Signup.css';
+import { register, verifyOtp } from '../services/authService';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -23,12 +24,23 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // TODO: Implement signup logic here
-      console.log('Signup data:', formData);
-      // After successful signup, navigate to login page
+      const formDataWithUpperCaseGender = {
+        ...formData,
+        gender: formData.gender.toUpperCase(), // Chuyển gender thành chữ hoa
+      };
+
+      await register(formDataWithUpperCaseGender);
+      alert('OTP đã được gửi tới email của bạn. Vui lòng kiểm tra và xác thực.');
+
+      const otp = prompt('Nhập mã OTP:');
+
+      await verifyOtp(otp, formData.email);
+
+      alert('Đăng ký thành công!');
       navigate('/login');
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('Lỗi xác thực OTP:', error.message);
+      alert(error.message);
     }
   };
 
@@ -165,4 +177,4 @@ const Signup = () => {
   );
 };
 
-export default Signup; 
+export default Signup;

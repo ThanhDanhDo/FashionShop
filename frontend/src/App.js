@@ -20,11 +20,11 @@ function App() {
          {/* Home sẽ chạy riêng mà không bị ảnh hưởng bởi Layout */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Home />} />
 
         {/* Các route khác sẽ nằm trong Layout */}
         <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/products" element={<Products />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/users" element={<Users />} />
