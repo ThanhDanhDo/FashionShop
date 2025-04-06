@@ -25,13 +25,16 @@ public class CartItem {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    private String size;
+
     private int quantity;
 
     private double totalPrice;
 
-    public CartItem(Cart cart, Product product, int quantity) {
+    public CartItem(Cart cart, Product product, String size, int quantity) {
         this.cart = cart;
         this.product = product;
+        this.size = size;
         this.quantity = quantity;
         this.totalPrice = product.getPrice() * quantity;
     }

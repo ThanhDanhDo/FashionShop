@@ -86,7 +86,6 @@ public class OrderService {
 
         // Xóa giỏ hàng sau khi đặt hàng thành công
         cartService.clearCart(cart.getId());
-
         return savedOrder;
     }
 
