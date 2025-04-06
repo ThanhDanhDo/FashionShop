@@ -3,6 +3,7 @@ package com.example.fashionshop.model;
 import com.example.fashionshop.enums.CartStatus;
 import com.example.fashionshop.enums.OrderStatus;
 import com.example.fashionshop.enums.PaymentStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,6 +28,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)

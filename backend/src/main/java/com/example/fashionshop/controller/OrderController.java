@@ -6,8 +6,10 @@ import com.example.fashionshop.model.Address;
 import com.example.fashionshop.model.Cart;
 import com.example.fashionshop.model.Order;
 import com.example.fashionshop.model.User;
+import com.example.fashionshop.repository.AddressRepository;
 import com.example.fashionshop.repository.CartRepository;
 import com.example.fashionshop.repository.UserRepository;
+import com.example.fashionshop.service.AddressService;
 import com.example.fashionshop.service.CartService;
 import com.example.fashionshop.service.OrderService;
 import jakarta.validation.Valid;
@@ -21,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -29,6 +32,9 @@ public class OrderController {
     private final OrderService orderService;
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
+    private final CartService cartService;
+    private final AddressRepository addressRepository;
+    private final AddressService addressService;
 
     @GetMapping
     public ResponseEntity<Page<Order>> getAllOrders(
@@ -56,7 +62,7 @@ public class OrderController {
 
     @GetMapping("/status/{orderStatus}")
     public ResponseEntity<Page<Order>> getOrdersByStatus(
-            @PathVariable OrderStatus orderStatus,  // Tự động chuyển đổi từ String sang Enum
+            @PathVariable OrderStatus orderStatus,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -82,6 +88,25 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersOfCurrentUser(authentication, pageable));
     }
 
+    @PostMapping("/create")
+    public Order createOrder(Authentication authentication, @RequestBody Address addr) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+
+        Cart cart = cartService.getCartByUserId(user.getId());
+        if (cart == null || cart.getTotalItems() == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, user.getId() + " Cart is empty");
+        }
+        // Lấy địa chỉ giao hàng từ request
+        Address address = addressService.getAddressById(addr.getId());
+        if (address == null || !user.getAddresses().contains(address)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid shipping address");
+        }
+        return orderService.createOrder(user, cart, address);
+    }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{orderId}/status")

@@ -31,7 +31,7 @@ public class OrderService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public Order createOrder(User user, Cart cart, Address address) {
+    public Order createOrder(User user, Cart cart, Address shippingAddress) {
         if (user == null || cart == null || cart.getCartItems().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cart is empty or invalid user.");
         }
@@ -49,13 +49,13 @@ public class OrderService {
             throw new IllegalArgumentException("Email not found.");
         }
 
-        Address shippingAddress;
-        Optional<Address> optionalAddress = addressRepository.findById(address.getId());
-        if (optionalAddress.isEmpty() || !user.getAddresses().contains(address)) {
-            shippingAddress = addressService.addAddress(email, address);
-        } else {
-            shippingAddress = optionalAddress.get();
-        }
+//        Address shippingAddress;
+//        Optional<Address> optionalAddress = addressRepository.findById(address.getId());
+//        if (optionalAddress.isEmpty() || !user.getAddresses().contains(address)) {
+//            shippingAddress = addressService.addAddress(email, address);
+//        } else {
+//            shippingAddress = optionalAddress.get();
+//        }
 
         List<CartItem> cartItems = cart.getCartItems();
         double totalOrderPrice = cartItems.stream().mapToDouble( cartItem -> cartItem.getTotalPrice()).sum();
@@ -96,21 +96,26 @@ public class OrderService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found");
         }
         Order order = optionalOrder.get();
+        // Trừ kho khi đơn hàng được xác nhận
         if (orderStatus == OrderStatus.CONFIRMED) {
-            // Khi đơn hàng được xác nhận, trừ hàng trong kho
-            for (OrderItem orderItem : order.getOrderItems()) {
-                Product product = orderItem.getProduct();
-                product.setStock(product.getStock() - orderItem.getQuantity());
-                productRepository.save(product);
-
+            if (order.getOrderStatus() != OrderStatus.CONFIRMED) {
+                // Khi đơn hàng chưa được xác nhận, mới được trừ kho
+                for (OrderItem orderItem : order.getOrderItems()) {
+                    Product product = orderItem.getProduct();
+                    product.setStock(product.getStock() - orderItem.getQuantity());
+                    productRepository.save(product);
+                }
             }
         }
+        // Hoàn lại hàng vào kho khi huỷ đơn
         if (orderStatus == OrderStatus.CANCELLED) {
-            // Khi huỷ đơn, hoàn lại hàng vào kho
-            for (OrderItem orderItem : order.getOrderItems()) {
-                Product product = orderItem.getProduct();
-                product.setStock(product.getStock() + orderItem.getQuantity());
-                productRepository.save(product);
+            if (order.getOrderStatus() == OrderStatus.CONFIRMED) {
+                // Chỉ hoàn lại kho nếu đơn hàng đã được xác nhận
+                for (OrderItem orderItem : order.getOrderItems()) {
+                    Product product = orderItem.getProduct();
+                    product.setStock(product.getStock() + orderItem.getQuantity());
+                    productRepository.save(product);
+                }
             }
         }
         order.setOrderStatus(orderStatus);
@@ -140,10 +145,12 @@ public class OrderService {
         if (order.getOrderStatus() == OrderStatus.SHIPPED || order.getOrderStatus() == OrderStatus.DELIVERED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot cancel a shipped or delivered order.");
         }
-        // Hoàn lại hàng vào kho khi huỷ đơn
-        for (OrderItem orderItem : order.getOrderItems()) {
-            Product product = orderItem.getProduct();
-            product.setStock(product.getStock() + orderItem.getQuantity());
+        // Hoàn lại hàng vào kho khi huỷ đơn nếu đơn hàng đã xác nhận
+        if (order.getOrderStatus() == OrderStatus.CONFIRMED) {
+            for (OrderItem orderItem : order.getOrderItems()) {
+                Product product = orderItem.getProduct();
+                product.setStock(product.getStock() + orderItem.getQuantity());
+            }
         }
 
         order.setOrderStatus(OrderStatus.CANCELLED);

@@ -37,6 +37,11 @@ public class CartService {
         return cartItemRepository.findByCartId(cart.getId());
     }
 
+    public Cart getCartByUserId(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId);
+        return cart;
+    }
+
     @Transactional
     public Cart findUserCart(User user) {
         Cart cart = cartRepository.findByUserId(user.getId());
@@ -58,6 +63,7 @@ public class CartService {
         Cart cart = getCartById(cartId)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
+        cart.getCartItems().clear();
         cartItemRepository.deleteByCartId(cartId);
         cart.updateTotalPrice();
         cartRepository.save(cart);

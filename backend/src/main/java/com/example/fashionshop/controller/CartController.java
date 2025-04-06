@@ -60,8 +60,14 @@ public class CartController {
 
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     @GetMapping("/{cartId}")
-    public ResponseEntity<Cart> getCartById(@PathVariable Long cartId) {
-        Long userId = getCurrentUserId();
+    public ResponseEntity<Cart> getCartById(Authentication authentication,@PathVariable Long cartId) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+        Long userId = user.getId();
+
         Optional<Cart> cart = cartService.getCartById(cartId);
 
         if (cart.isEmpty()) {
@@ -76,8 +82,14 @@ public class CartController {
     
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     @GetMapping("/{cartId}/items")
-    public ResponseEntity<List<CartItem>> getCartItems(@PathVariable Long cartId) {
-        Long userId = getCurrentUserId();
+    public ResponseEntity<List<CartItem>> getCartItems(Authentication authentication, @PathVariable Long cartId) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+        Long userId = user.getId();
+
         Optional<Cart> cart = cartService.getCartById(cartId);
     
         if (cart.isEmpty()) {
@@ -139,23 +151,23 @@ public class CartController {
     }
 
     @PreAuthorize("hasAuthority('USER')")
-    @DeleteMapping("/cart/items/{cartItemId}")
-    public ResponseEntity<ApiResponse> deleteCartItem(Authentication authentication, @PathVariable Long cartItemId) throws Exception {
+    @DeleteMapping("{cartId}/items/{cartItemId}")
+    public ResponseEntity<ApiResponse> deleteCartItem(Authentication authentication, @PathVariable Long cartId, @PathVariable Long cartItemId) throws Exception {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
         String email = authentication.getName();
         User user = userRepository.findByEmail(email);
-        cartItemService.removeCartItem(user.getId(), cartItemId);
+        cartItemService.removeCartItem(user.getId(), cartId, cartItemId);
 
         ApiResponse res = new ApiResponse();
         res.setMessage("Item Remove From Cart");
-
+        res.setSuccess(true);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('USER')")
-    @PutMapping("/cart/items/{cartItemId}")
+    @PutMapping("/items/{cartItemId}")
     public ResponseEntity<CartItem> updateCartItem(Authentication authentication, @PathVariable Long cartItemId, @RequestBody CartItem cartItem) throws Exception {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");

@@ -2,6 +2,8 @@ package com.example.fashionshop.controller;
 
 import com.example.fashionshop.model.Product;
 import com.example.fashionshop.model.Category;
+import com.example.fashionshop.repository.CategoryRepository;
+import com.example.fashionshop.service.CategoryService;
 import com.example.fashionshop.service.ProductService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,10 +30,12 @@ import java.util.Map;
 @RequestMapping("/api/products")
 public class ProductController {
     private final ProductService productService;
+    private final CategoryRepository categoryRepository;
 
     @Autowired
-    public ProductController(ProductService productService){
+    public ProductController(ProductService productService, CategoryRepository categoryRepository) {
         this.productService = productService;
+        this.categoryRepository = categoryRepository;
     }
 
     @GetMapping("/id/{id}")
@@ -68,13 +72,14 @@ public class ProductController {
             return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("type/{type}")
+    @GetMapping("/type/{type}")
     public ResponseEntity<Map<String, Page<Product>>> getProductByCate(
-        @PathVariable Category cate,
+        @PathVariable String type,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
     ){
         Pageable pageable = PageRequest.of(page, size);
+        Category cate = categoryRepository.findByName(type).orElse(null);
         Map<String, Page<Product>> products = productService.getProductByCate(cate, pageable);
 
         if(products != null)
@@ -95,10 +100,10 @@ public class ProductController {
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @PutMapping("/update")
-    public ResponseEntity<?> updateProduct(@RequestBody Product product){
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Product product){
         try{
-            Product updatedProduct = productService.updateProduct(product);
+            Product updatedProduct = productService.updateProduct(id,product);
             return ResponseEntity.status(HttpStatus.OK).body(updatedProduct);
         }catch(RuntimeException e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No product found");
@@ -129,14 +134,14 @@ public class ProductController {
         }
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @PutMapping("/update_bulk")
-    public ResponseEntity<?> updateProducts(@RequestBody List<Product> products){
-        try{
-            Map<String, List<Product>> response = productService.updateProducts(products);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        }catch(RuntimeException e){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating products");
-        }
-    }
+//    @PreAuthorize("hasAuthority('ADMIN')")
+//    @PutMapping("/update_bulk")
+//    public ResponseEntity<?> updateProducts(@RequestBody List<Product> products){
+//        try{
+//            Map<String, List<Product>> response = productService.updateProducts(products);
+//            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+//        }catch(RuntimeException e){
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating products");
+//        }
+//    }
 }

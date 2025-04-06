@@ -32,8 +32,13 @@ public class CartItemService {
         User cartItemUser = item.getCart().getUser();
 
         if (cartItemUser.getId().equals(userId)) {
-            item.setQuantity(cartItem.getQuantity());
-            item.setSize(cartItem.getSize());
+            if (cartItem.getQuantity() != 0){
+                item.setQuantity(cartItem.getQuantity());
+            }
+            if (cartItem.getSize() != null){
+                item.setSize(cartItem.getSize());
+            }
+
             item.setTotalPrice(item.getQuantity()*item.getProduct().getPrice());
 
             item.getCart().updateTotalPrice();
@@ -47,17 +52,21 @@ public class CartItemService {
     }
 
     @Transactional
-    public void removeCartItem(Long userId, Long cartItemId) {
-        CartItem item = cartItemRepository.findById(cartItemId).orElseThrow(() -> new RuntimeException("CartItem not found in cart"));
+    public void removeCartItem(Long userId, Long cartId, Long cartItemId) {
+        CartItem item = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("CartItem not found in cart"));
         User cartItemUser = item.getCart().getUser();
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         if (cartItemUser.getId().equals(userId)) {
+            cart.getCartItems().remove(item);
             cartItemRepository.deleteById(item.getId());
-            item.getCart().updateTotalPrice();
-            cartRepository.save(item.getCart());
-        }
-        else {
-            throw new RuntimeException("you can't remove anothor users item");
+            cart.updateTotalPrice();
+            cartRepository.save(cart);
+        } else {
+
+            throw new RuntimeException("You can't remove another user's item");
         }
     }
 }

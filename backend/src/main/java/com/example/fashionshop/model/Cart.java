@@ -10,8 +10,6 @@ import lombok.Setter;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.example.fashionshop.enums.CartStatus;
-
 @Entity
 @Getter
 @Setter

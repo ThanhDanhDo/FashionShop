@@ -36,6 +36,7 @@ com/example/fashionshop/repository/CartItemRepository.class
 com/example/fashionshop/config/JwtContant.class
 com/example/fashionshop/enums/Gender.class
 com/example/fashionshop/service/EmailService.class
+com/example/fashionshop/request/AddProductRequest.class
 com/example/fashionshop/model/VerificationCode.class
 com/example/fashionshop/controller/AuthoritiesController.class
 com/example/fashionshop/config/OtpGenerator.class

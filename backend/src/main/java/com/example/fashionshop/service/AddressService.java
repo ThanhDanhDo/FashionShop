@@ -28,6 +28,19 @@ public class AddressService {
         return addressRepository.save(newAddress);
     }
 
+    public Address getAddressById(Long id) {
+        Optional<Address> address = addressRepository.findById(id);
+        if (address.isPresent()) {
+            return address.get();
+        }
+        return null;
+    }
+
+    public Address getAddressDefaultOfUser (User user) {
+        Address address = addressRepository.findByUserAndIsDefaultTrue(user).orElse(null);
+        return address;
+    }
+
     public Address updateAddress(String email, Long addressId, Address updatedAddress) {
         User user = userRepository.findByEmail(email);
 

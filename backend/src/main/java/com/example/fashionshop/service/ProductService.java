@@ -115,8 +115,8 @@ public class ProductService {
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Transactional
-    public Product updateProduct(Product updatedProduct) {
-        Product existingProduct = productRepository.findById(updatedProduct.getId())
+    public Product updateProduct(Long productId,Product updatedProduct) {
+        Product existingProduct = productRepository.findById(productId)
             .orElseThrow(() -> new RuntimeException("Product not found"));
     
         if (updatedProduct.getName() != null) {
@@ -160,26 +160,26 @@ public class ProductService {
         return addedProducts;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public Map<String, List<Product>> updateProducts(List<Product> products) {
-        if (products == null || products.isEmpty()) {
-            throw new RuntimeException("Product list is empty or null");
-        }
-    
-        List<Product> updatedProducts = new ArrayList<>();
-        List<Product> failedProducts = new ArrayList<>();
-    
-        for(Product product : products) {
-            try {
-                updatedProducts.add(updateProduct(product));
-            } catch (RuntimeException e) {
-                failedProducts.add(product);
-            }
-        }
-    
-        return Map.of(
-            "updated", updatedProducts,
-            "failed", failedProducts
-        );
-    }    
+//    @PreAuthorize("hasRole('ROLE_ADMIN')")
+//    public Map<String, List<Product>> updateProducts(List<Product> products) {
+//        if (products == null || products.isEmpty()) {
+//            throw new RuntimeException("Product list is empty or null");
+//        }
+//
+//        List<Product> updatedProducts = new ArrayList<>();
+//        List<Product> failedProducts = new ArrayList<>();
+//
+//        for(Product product : products) {
+//            try {
+//                updatedProducts.add(updateProduct(product));
+//            } catch (RuntimeException e) {
+//                failedProducts.add(product);
+//            }
+//        }
+//
+//        return Map.of(
+//            "updated", updatedProducts,
+//            "failed", failedProducts
+//        );
+//    }
 }
