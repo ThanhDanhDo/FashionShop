@@ -4,8 +4,9 @@
 }
 
 .breadcrumb {
-  padding: 20px;
+  padding: 10px; /* Giảm padding để giảm chiều cao */
   background-color: #f5f5f5;
+  font-size: 14px; /* Giảm kích thước chữ nếu cần */
 }
 
 .breadcrumb a {
@@ -129,4 +130,4 @@
   .login-form-section {
     padding: 20px;
   }
-} 
+}
