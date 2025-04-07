@@ -4,32 +4,35 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './styles/theme';
 import Layout from './components/Layout/Layout';
-import Dashboard from './pages/Dashboard';
-import Products from './pages/Products';
-import Orders from './pages/Orders';
-import Users from './pages/Users';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Home from './pages/Home';
+import Dashboard from './pages/Dashboard/Dashboard';
+import ProductsAdmin from './pages/Products-admin/Products-admin';
+import OrdersAdmin from './pages/Orders-admin/Orders-admin';
+import UsersAdmin from './pages/Users-admin/Users-admin';
+import Login from './pages/Login/Login';
+import Signup from './pages/SignUp/Signup';
+import Home from './pages/Home/Home';
+import { AuthProvider } from './context/AuthContext';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Routes>
-         {/* Home sẽ chạy riêng mà không bị ảnh hưởng bởi Layout */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/" element={<Home />} />
+      <AuthProvider>
+        <Routes>
+          {/* Home sẽ chạy riêng mà không bị ảnh hưởng bởi Layout */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/" element={<Home />} />
 
-        {/* Các route khác sẽ nằm trong Layout */}
-        <Route element={<Layout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/users" element={<Users />} />
-        </Route>
-      </Routes>
+          {/* Các route khác sẽ nằm trong Layout */}
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/products-admin" element={<ProductsAdmin />} />
+            <Route path="/orders-admin" element={<OrdersAdmin />} />
+            <Route path="/users-admin" element={<UsersAdmin />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

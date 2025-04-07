@@ -1,9 +1,13 @@
 const API_BASE_URL = '/api/user';
 
 export const getUserProfile = async () => {
+  const token = localStorage.getItem('token');
   const response = await fetch(`${API_BASE_URL}/profile`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`, // Thêm token vào header
+    },
   });
   if (!response.ok) throw new Error('Không thể lấy thông tin người dùng!');
   return response.json();
