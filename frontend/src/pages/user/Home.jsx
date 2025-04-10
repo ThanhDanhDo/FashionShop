@@ -4,7 +4,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-
+import { useNavigate, Link } from 'react-router-dom';
 
 const images = [
     "/images/Group1504.png",
@@ -18,32 +18,39 @@ const hotSalesImages = [
 ];
 
 const bestSellingProducts = [
-  {
-      name: 'Sản phẩm 1',
-      price: '100.000 VNĐ',
-      rating: '4.5 sao',
-      image: '/images/image1.png',
-  },
-  {
-      name: 'Sản phẩm 2',
-      price: '150.000 VNĐ',
-      rating: '4.0 sao',
-      image: '/images/image2.png',
-  },
-  {
-      name: 'Sản phẩm 3',
-      price: '200.000 VNĐ',
-      rating: '4.8 sao',
-      image: '/images/image3.png',
-  },
-  {
-      name: 'Sản phẩm 4',
-      price: '120.000 VNĐ',
-      rating: '4.2 sao',
-      image: '/images/image4.png',
-  },
-  
-];
+    {
+        id: '1',
+        name: 'Flannel Shirt | Checked',
+        price: '588.000 VNĐ',
+        rating: '4.5 sao',
+        image: '/images/image1.png',
+    },
+    {
+        id: '2',
+        name: 'UV Protection Half Zip T-Shirt',
+        price: '391.000 VNĐ',
+        rating: '4.0 sao',
+        image: '/images/image2.png',
+    },
+    {
+        id: '3',
+        name: 'Sản phẩm 3',
+        price: '200.000 VNĐ',
+        rating: '4.8 sao',
+        image: '/images/image3.png',
+    },
+    {
+        id: '4',
+        name: 'Sản phẩm 4',
+        price: '120.000 VNĐ',
+        rating: '4.2 sao',
+        image: '/images/image4.png',
+    },
+    
+    // ...
+  ];
+
+
 
 const Home = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -58,6 +65,8 @@ const Home = () => {
         }, 3000);
         return () => clearInterval(interval);
     }, []);
+
+    const navigate = useNavigate();
 
     return (
         <div>
@@ -87,7 +96,7 @@ const Home = () => {
                     alt="Banner"
                     style={{ width: "100%", maxHeight: "500px", borderRadius: "10px", objectFit: "cover" }}
                 />
-                <button
+                <button onClick={() => navigate("/product/1")}
                     style={{
                         position: "absolute",
                         bottom: "20px",
@@ -137,14 +146,15 @@ const Home = () => {
       <div style={{ textAlign: "center", margin: "40px 0" }}>
         <Typography variant="h6" gutterBottom>Sản phẩm bán chạy</Typography>
         <Grid container spacing={2} justifyContent="center">
-          {bestSellingProducts.map((product, index) => (
+        {bestSellingProducts.map((product, index) => (
             <Grid item key={index} xs={12} sm={6} md={3}>
-              <div 
-                style={{ position: "relative", padding: "10px", backgroundColor: "#f8f8f8", borderRadius: "10px" }}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-              >
-                <img src={product.image} alt={product.name} style={{ width: "100%" }} />
+            <Link to={`/product/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <div 
+            style={{ position: "relative", padding: "10px", backgroundColor: "#f8f8f8", borderRadius: "10px" }}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
+            >
+            <img src={product.image} alt={product.name} style={{ width: "100%" }} />
         {hoveredIndex === index && (
         <div
         style={{
@@ -198,7 +208,7 @@ const Home = () => {
                   <Typography variant="body2">{product.price}</Typography>
                   <Typography variant="body2">{product.rating}</Typography>
                 </div>
-              </div>
+              </div></Link>
             </Grid>
           ))}
         </Grid>
