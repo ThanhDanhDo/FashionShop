@@ -168,21 +168,68 @@ const ProductDetail = () => {
           <p>Sản phẩm được làm từ {product.material}</p>
 
           {/* Bộ đếm số lượng */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              border: '1px solid #ccc',
-              borderRadius: '8px',
-              width: '120px',
-              marginTop: '16px',
-            }}
-          >
-            <button onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}>-</button>
-            <span>{quantity}</span>
-            <button onClick={() => setQuantity(quantity + 1)}>+</button>
-          </div>
+<div
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    marginTop: '16px',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    overflow: 'hidden', /* Để bo tròn các nút */
+    width: '120px',
+  }}
+>
+  <button
+    onClick={() => setQuantity(quantity > 1 ? quantity - 1 : 1)}
+    style={{
+      background: 'none',
+      border: 'none',
+      padding: '8px 12px',
+      fontSize: '16px',
+      cursor: 'pointer',
+      flex: 1, /* Chia đều không gian */
+      textAlign: 'center',
+      fontWeight: 'bold',
+      color: '#555',
+      transition: 'background-color 0.2s ease',
+    }}
+    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0f0f0')}
+    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+  >
+    -
+  </button>
+  <span
+    style={{
+      padding: '8px 12px',
+      fontSize: '16px',
+      textAlign: 'center',
+      borderLeft: '1px solid #ddd',
+      borderRight: '1px solid #ddd',
+      minWidth: '40px', /* Đảm bảo số không bị co lại quá nhỏ */
+    }}
+  >
+    {quantity}
+  </span>
+  <button
+    onClick={() => setQuantity(quantity + 1)}
+    style={{
+      background: 'none',
+      border: 'none',
+      padding: '8px 12px',
+      fontSize: '16px',
+      cursor: 'pointer',
+      flex: 1,
+      textAlign: 'center',
+      fontWeight: 'bold',
+      color: '#555',
+      transition: 'background-color 0.2s ease',
+    }}
+    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0f0f0')}
+    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+  >
+    +
+  </button>
+</div>
 
           {/* Thêm vào giỏ hàng */}
           <button style={{ padding: '10px 20px', background: 'black', color: 'white', marginTop: '20px' }}>
