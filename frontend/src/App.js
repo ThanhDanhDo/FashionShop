@@ -11,6 +11,7 @@ import UsersAdmin from './pages/Users-admin/Users-admin';
 import Login from './pages/Login/Login';
 import Signup from './pages/SignUp/Signup';
 import Home from './pages/Home/Home';
+import Products from './pages/Products/Products';
 import { AuthProvider } from './context/AuthContext';
 
 function App() {
@@ -19,12 +20,20 @@ function App() {
       <CssBaseline />
       <AuthProvider>
         <Routes>
-          {/* Home sẽ chạy riêng mà không bị ảnh hưởng bởi Layout */}
+          {/* Authentication routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+
+          {/* Product routes */}
+          <Route path="/products" element={<Products />} />
+          <Route path="/men" element={<Products />} />
+          <Route path="/women" element={<Products />} />
+          <Route path="/products/:category" element={<Products />} />
+          
+          {/* Home route */}
           <Route path="/" element={<Home />} />
 
-          {/* Các route khác sẽ nằm trong Layout */}
+          {/* Admin routes */}
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products-admin" element={<ProductsAdmin />} />
