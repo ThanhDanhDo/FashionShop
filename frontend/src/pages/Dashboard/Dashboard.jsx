@@ -76,6 +76,8 @@ const StatCard = ({ title, value, icon: Icon }) => (
 );
 
 const Dashboard = () => {
+  console.log('Rendering Dashboard');
+
   const [userPopoverOpen, setUserPopoverOpen] = useState(false);
   const [timePopoverOpen, setTimePopoverOpen] = useState(false);
   const [anchorElUser, setAnchorElUser] = useState(null);

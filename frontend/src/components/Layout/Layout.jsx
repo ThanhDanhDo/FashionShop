@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import './Layout.css'; // Nhập file CSS
+import React, {useState} from 'react';
+import './Layout.css';
 import {
   Box,
   AppBar,
@@ -27,11 +27,11 @@ import {
   Chat as ChatIcon,
   ArrowDropDown as ArrowDropDownIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Outlet } from 'react-router-dom'; // Thêm Outlet
 
-const drawerWidth = 250; // Kích thước chiều ngang của Drawer
+const drawerWidth = 250;
 
-const Layout = ({ children }) => {
+const Layout = () => { // Không cần prop children
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -46,10 +46,10 @@ const Layout = ({ children }) => {
   const isPopoverOpen = Boolean(anchorEl);
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Products', icon: <InventoryIcon />, path: '/products' },
-    { text: 'Orders', icon: <ShoppingCartIcon />, path: '/orders' },
-    { text: 'Users', icon: <PeopleIcon />, path: '/users' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    { text: 'Products', icon: <InventoryIcon />, path: '/products-admin' },
+    { text: 'Orders', icon: <ShoppingCartIcon />, path: '/orders-admin' },
+    { text: 'Users', icon: <PeopleIcon />, path: '/users-admin' },
   ];
 
   return (
@@ -161,11 +161,20 @@ const Layout = ({ children }) => {
           ))}
         </List>
       </Drawer>
-      <Box component="main" className="main">
-        {children}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          ml: '0px', // Giảm khoảng cách giữa sidebar và nội dung
+          mt: 8,
+          minHeight: '100vh',
+        }}
+      >
+        <Outlet /> {/* Render các route con như Dashboard */}
       </Box>
     </Box>
   );
 };
 
-export default Layout; 
+export default Layout;
