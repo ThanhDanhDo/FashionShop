@@ -5,6 +5,8 @@ import com.example.fashionshop.request.OtpRequest;
 import com.example.fashionshop.request.RegisterRequest;
 import com.example.fashionshop.response.ApiResponse;
 import com.example.fashionshop.service.AuthService;
+import com.example.fashionshop.model.User;
+import com.example.fashionshop.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -21,6 +23,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse> sendOtp(@Valid @RequestBody RegisterRequest req) throws MessagingException {
@@ -29,7 +32,8 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otp")
-    public ResponseEntity<ApiResponse> createUser(@RequestBody OtpRequest req, HttpServletResponse response) throws MessagingException {
+    public ResponseEntity<ApiResponse> createUser(@RequestBody OtpRequest req, HttpServletResponse response)
+            throws MessagingException {
         String message = authService.createUser(req, response);
         return new ResponseEntity<>(new ApiResponse(message, true, null), HttpStatus.OK);
     }
@@ -37,7 +41,8 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse> logIn(@Valid @RequestBody LogInRequest req, HttpServletResponse response) {
         String message = authService.logIn(req, response);
-        return new ResponseEntity<>(new ApiResponse(message, true, null), HttpStatus.OK);
+        User user = userRepository.findByEmail(req.getEmail()); // Lấy thông tin user từ database
+        return new ResponseEntity<>(new ApiResponse(message, true, user), HttpStatus.OK);
     }
 
     @PostMapping("/logout")
