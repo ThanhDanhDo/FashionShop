@@ -4,7 +4,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import Navbar from '../../components/Navbar/Navbar'; // Import Navbar
+import Navbar from '../../../components/Navbar/Navbar'; // Import Navbar
 
 const images = [
     "/images/Group1504.png",

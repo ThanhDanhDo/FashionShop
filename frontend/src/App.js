@@ -4,15 +4,16 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './styles/theme';
 import Layout from './components/Layout/Layout';
-import Dashboard from './pages/Dashboard/Dashboard';
-import ProductsAdmin from './pages/Products-admin/Products-admin';
-import OrdersAdmin from './pages/Orders-admin/Orders-admin';
-import UsersAdmin from './pages/Users-admin/Users-admin';
+import Dashboard from './pages/Admin/Dashboard/Dashboard';
+import ProductsAdmin from './pages/Admin/Products-admin/Products-admin';
+import OrdersAdmin from './pages/Admin/Orders-admin/Orders-admin';
+import UsersAdmin from './pages/Admin/Users-admin/Users-admin';
 import Login from './pages/Login/Login';
 import Signup from './pages/SignUp/Signup';
-import Home from './pages/Home/Home';
-import Products from './pages/Products/Products';
+import Home from './pages/User/Home/Home';
+import Products from './pages/User/Products/Products';
 import { AuthProvider } from './context/AuthContext';
+import ProductDetail from './pages/User/ProductDetail/ProductDetail';
 
 function App() {
   return (
@@ -29,7 +30,7 @@ function App() {
           <Route path="/men" element={<Products />} />
           <Route path="/women" element={<Products />} />
           <Route path="/products/:category" element={<Products />} />
-          
+          <Route path="/product/:id" element={<ProductDetail />} />
           {/* Home route */}
           <Route path="/" element={<Home />} />
 
