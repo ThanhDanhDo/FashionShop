@@ -10,8 +10,8 @@ import Orders from './pages/Orders';
 import Users from './pages/Users';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import Home from './pages/user/Home';
-import ProductDetail from './pages/user/ProductDetail';
+import Home from './pages/Home';
+import ProductDetail from './pages/ProductDetail';
 
 function App() {
   return (
