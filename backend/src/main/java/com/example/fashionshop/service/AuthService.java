@@ -2,7 +2,6 @@ package com.example.fashionshop.service;
 
 import com.example.fashionshop.config.JwtProvider;
 import com.example.fashionshop.config.OtpGenerator;
-import com.example.fashionshop.enums.Gender;
 import com.example.fashionshop.enums.Role;
 import com.example.fashionshop.model.User;
 import com.example.fashionshop.model.VerificationCode;
@@ -91,7 +90,6 @@ public class AuthService {
         user.setLastName(verificationCode.getLastName());
         user.setEmail(email);
         user.setPassword(verificationCode.getPassword());
-        user.setGender(Gender.valueOf(verificationCode.getGender()));
         user.setRole(Role.USER);
         userRepository.save(user);
 

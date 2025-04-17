@@ -1,30 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useParams, Link, useNavigate } from 'react-router-dom';
-import { 
-  Container, 
-  Grid, 
-  IconButton,
-  Collapse,
-  Chip
-} from '@mui/material';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import CloseIcon from '@mui/icons-material/Close';
-import Navbar from '../../../components/Navbar/Navbar';
-import './Products.css';
+import React, { useState, useEffect, useCallback } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Container, Grid, IconButton, Collapse } from "@mui/material";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
+import CloseIcon from "@mui/icons-material/Close";
+import Navbar from "../../../components/Navbar/Navbar";
+import "./Products.css";
+import { filterProducts } from "../../../services/productService";
 
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { category } = useParams();
+  const [searchParams] = useSearchParams();
+  const genderParam = searchParams.get("gender") || "all";
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
-    gender: '',
-    categories: [],
+    gender: genderParam,
     selectedTitles: [],
-    selectedItems: {}
+    selectedItems: {},
   });
   const [expandedSections, setExpandedSections] = useState({
     status: true,
@@ -33,75 +30,133 @@ const Products = () => {
     price: true,
     collection: true,
     material: true,
-    color: true
+    color: true,
   });
-
   const [favorites, setFavorites] = useState({});
+  const [categoryMap, setCategoryMap] = useState({});
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 
-  // Product titles for each gender
+  // Đồng bộ gender từ searchParams
+  useEffect(() => {
+    const genderFromUrl = searchParams.get("gender") || "all";
+    setFilters((prev) => {
+      if (prev.gender !== genderFromUrl) {
+        console.log("Syncing gender from URL:", genderFromUrl);
+        return { ...prev, gender: genderFromUrl };
+      }
+      return prev;
+    });
+  }, [searchParams]);
+
+  // Fetch main categories from API
+  const fetchMainCategories = async (retries = 3, delay = 1000) => {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch("/api/categories/main", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        if (!response.ok) throw new Error("Không thể lấy danh sách main categories!");
+        const categories = await response.json();
+        console.log("Fetched main categories:", categories);
+        return categories.map((cat) => ({
+          ...cat,
+          name: /dress/i.test(cat.name.trim().toLowerCase()) ? "Dresses" : cat.name,
+        }));
+      } catch (error) {
+        console.error(`Lỗi khi lấy main categories (thử ${i + 1}/${retries}):`, error);
+        if (i < retries - 1) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+        setError("Không thể tải danh sách danh mục!");
+        return [];
+      }
+    }
+  };
+
+  // Fetch subCategoryId from subCategory name
+  const getSubCategoryId = async (subCategoryName) => {
+    try {
+      const response = await fetch(`/api/categories/name/${subCategoryName}`);
+      if (!response.ok) throw new Error("Không thể lấy subCategory!");
+      const subCategories = await response.json();
+      const subCategoryId = subCategories[0]?.id || null;
+      console.log(`Fetched subCategoryId for ${subCategoryName}:`, subCategoryId);
+      return subCategoryId;
+    } catch (error) {
+      console.error("Lỗi khi lấy subCategoryId:", error);
+      return null;
+    }
+  };
+
+  // Load main categories on mount
+  useEffect(() => {
+    const loadCategories = async () => {
+      const categories = await fetchMainCategories();
+      const map = {};
+      categories.forEach((cat) => {
+        map[cat.name] = cat.id;
+      });
+      console.log("Category map created:", map);
+      setCategoryMap(map);
+      setCategoriesLoaded(true);
+    };
+    loadCategories();
+  }, []);
+
+  // Product titles using IDs
   const productTitles = {
-    all: [
-      'Outerwear | Áo khoác ngoài',
-      'T-shirt | Áo thun',
-      'Shirt | Áo sơ mi',
-      'Dresses | Váy',
-      'Bottoms | Nửa dưới',
-      'Accessories | Phụ kiện'
-    ],
-    nam: [
-      'Outerwear | Áo khoác ngoài',
-      'T-shirt | Áo thun',
-      'Shirt | Áo sơ mi',
-      'Bottoms | Nửa dưới',
-      'Accessories | Phụ kiện'
-    ],
-    nữ: [
-      'Outerwear | Áo khoác ngoài',
-      'T-shirt | Áo thun',
-      'Shirt | Áo sơ mi',
-      'Dresses | Váy',
-      'Bottoms | Nửa dưới',
-      'Accessories | Phụ kiện'
-    ]
+    all: Object.keys(categoryMap).map((name) => ({ name, id: categoryMap[name] })),
+    Men: Object.keys(categoryMap)
+      .filter((name) => !/dress/i.test(name))
+      .map((name) => ({ name, id: categoryMap[name] })),
+    Women: Object.keys(categoryMap).map((name) => ({ name, id: categoryMap[name] })),
+    Unisex: Object.keys(categoryMap)
+      .filter((name) => !/dress/i.test(name))
+      .map((name) => ({ name, id: categoryMap[name] })),
   };
 
-  // Product line items for each category
-  const productLineItems = {
-    'Outerwear | Áo khoác ngoài': ['Jackets & Blazers', 'Coats'],
-    'T-shirt | Áo thun': ['Short-sleeve', 'Long-sleeve'],
-    'Shirt | Áo sơ mi': ['Short-sleeve', 'Long-sleeve'],
-    'Dresses | Váy': ['Skirts', 'Dresses'],
-    'Bottoms | Nửa dưới': ['Long', 'Short'],
-    'Accessories | Phụ kiện': ['Bags', 'Belts']
-  };
+  const currentTitles = productTitles[filters.gender] || productTitles.all;
 
   // Filter sections
   const getFilterSections = () => {
     const baseSections = [
       {
-        id: 'price',
-        title: 'GIÁ',
-        items: ['Dưới 500.000đ', '500.000đ - 1.000.000đ', 'Trên 1.000.000đ']
+        id: "price",
+        title: "PRICE",
+        items: ["Under 500.000đ", "500.000đ - 1.000.000đ", "Above 1.000.000đ"],
       },
       {
-        id: 'size',
-        title: 'KÍCH CỠ',
-        items: ['XS', 'S', 'M', 'L', 'XL']
+        id: "size",
+        title: "SIZE",
+        items: ["XS", "S", "M", "L", "XL"],
       },
       {
-        id: 'color',
-        title: 'MÀU SẮC',
-        items: ['Đen', 'Trắng', 'Nâu', 'Natural', 'Xanh lá', 'Navy', 'Xám', 'Olive', 'Xanh dương', 'Cam']
-      }
+        id: "color",
+        title: "COLOR",
+        items: [
+          "Black",
+          "White",
+          "Brown",
+          "Natural",
+          "Green",
+          "Navy",
+          "Grey",
+          "Olive",
+          "Blue",
+          "Orange",
+        ],
+      },
     ];
 
-    // Nếu có category được chọn, thêm section DÒNG SẢN PHẨM
     if (filters.selectedTitles.length > 0) {
-      const selectedCategory = filters.selectedTitles[0];
+      const selectedCategory = currentTitles.find((title) => title.id === filters.selectedTitles[0])?.name;
+      console.log("Selected category for productLine:", selectedCategory);
       const productLineSection = {
-        id: 'productLine',
-        title: 'DÒNG SẢN PHẨM',
-        items: productLineItems[selectedCategory] || []
+        id: "productLine",
+        title: "DÒNG SẢN PHẨM",
+        items: productLineItems[selectedCategory] || [],
       };
       return [productLineSection, ...baseSections];
     }
@@ -109,174 +164,154 @@ const Products = () => {
     return baseSections;
   };
 
-  // Mock products data
-  const mockProducts = [
-    {
-      id: 1,
-      name: 'Áo khoác gì đó',
-      price: '650.000 VND',
-      size: 'M',
-      image: '/images/product1.jpg',
-      category: 'Outerwear | Áo khoác ngoài',
-      productLine: 'Jackets & Blazers',
-      gender: 'nam',
-      color: 'Đen',
-    },
-    {
-      id: 2,
-      name: 'Áo sơ mi gì đó',
-      price: '650.000 VND',
-      size: 'XL',
-      image: '/images/product2.jpg',
-      category: 'Shirt | Áo sơ mi',
-      productLine: 'Short-sleeve',
-      gender: 'nữ',
-      color: 'Cam',
-    },
-    {
-      id: 3,
-      name: 'Phụ kiện gì đó',
-      price: '69.000 VND',
-      size: 'S',
-      image: '/images/product3.jpg',
-      category: 'Accessories | Phụ kiện',
-      productLine: 'Bags',
-      gender: 'all',
-      color: 'Olive',
-    },
-  ];
+  // Product line items for each category
+  const productLineItems = {
+    Outerwear: ["Jackets & Blazers", "Coats"],
+    "T-shirt": ["Short-sleeve", "Long-sleeve"],
+    Shirt: ["Short-sleeve", "Long-sleeve"],
+    Dresses: ["Skirts", "Dresses"],
+    Bottoms: ["Long", "Short"],
+    Accessories: ["Bags", "Belts"],
+  };
 
-  useEffect(() => {
-    setProducts(mockProducts);
-    
-    let currentGender = 'all';
-    if (location.pathname === '/men') {
-      currentGender = 'nam';
-    } else if (location.pathname === '/women') {
-      currentGender = 'nữ';
-    }
-    
-    setFilters(prev => ({ ...prev, gender: currentGender }));
+  // Apply all filters
+  const applyFilters = useCallback(
+    async (currentFilters) => {
+      if (!categoriesLoaded) {
+        console.log("Skipping applyFilters: categories not loaded");
+        return;
+      }
+      console.log("Starting applyFilters with filters:", currentFilters);
+      setLoading(true);
+      setError(null);
+      try {
+        const selectedSizes = Object.entries(currentFilters.selectedItems.size || {})
+          .filter(([_, isSelected]) => isSelected)
+          .map(([size]) => size);
+        const selectedColors = Object.entries(currentFilters.selectedItems.color || {})
+          .filter(([_, isSelected]) => isSelected)
+          .map(([color]) => color);
+        const selectedPriceRanges = Object.entries(currentFilters.selectedItems.price || {})
+          .filter(([_, isSelected]) => isSelected)
+          .map(([range]) => range);
+        const selectedProductLine = Object.entries(currentFilters.selectedItems.productLine || {})
+          .filter(([_, isSelected]) => isSelected)
+          .map(([line]) => line);
 
-    if (category) {
-      setFilters(prev => ({
-        ...prev,
-        categories: [category]
-      }));
-    }
-  }, [location.pathname, category]);
-
-  const handleGenderChange = (gender) => {
-    if (gender === 'nam') {
-      navigate('/men');
-    } else if (gender === 'nữ') {
-      navigate('/women');
-    } else {
-      navigate('/products');
-    }
-
-    // Kiểm tra nếu category đang được chọn không còn trong danh sách mới
-    const currentSelectedTitle = filters.selectedTitles[0];
-    if (currentSelectedTitle && !productTitles[gender].includes(currentSelectedTitle)) {
-      setFilters(prev => ({
-        ...prev,
-        selectedTitles: [],
-        selectedItems: {
-          ...prev.selectedItems,
-          productLine: {}
+        let subCategoryId = null;
+        if (selectedProductLine.length > 0) {
+          subCategoryId = await getSubCategoryId(selectedProductLine[0]);
         }
-      }));
+
+        const filterParams = {
+          gender: currentFilters.gender === "all" ? null : currentFilters.gender,
+          mainCategoryId: currentFilters.selectedTitles[0] || null,
+          subCategoryId,
+          sizes: selectedSizes.length > 0 ? selectedSizes : [],
+          colors: selectedColors.length > 0 ? selectedColors : [],
+          priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges : [],
+        };
+
+        console.log("Applying filters with params:", filterParams);
+        console.log("selectedProductLine:", selectedProductLine);
+        console.log("subCategoryId:", subCategoryId);
+        console.log("selectedPriceRanges:", selectedPriceRanges);
+
+        const data = await filterProducts(filterParams);
+
+        console.log("Filtered products:", data);
+        if (data.content.length === 0) {
+          setError("Không tìm thấy sản phẩm nào phù hợp với bộ lọc!");
+        }
+        setProducts(data.content || []);
+      } catch (error) {
+        console.error("Lỗi khi lọc sản phẩm:", error);
+        setError(error.message || "Không thể tải sản phẩm. Vui lòng thử lại!");
+        setProducts([]);
+      } finally {
+        setLoading(false);
+        console.log("Finished applyFilters");
+      }
+    },
+    [categoriesLoaded]
+  );
+
+  // Load initial products when categories are loaded
+  useEffect(() => {
+    if (categoriesLoaded) {
+      console.log("Initial load: calling applyFilters with filters:", filters);
+      applyFilters(filters);
     }
+  }, [categoriesLoaded, filters]);
+
+  const handleGenderChange = async (gender) => {
+    const standardizedGender = gender === "all" ? "all" : gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
+    console.log("Changing gender to:", standardizedGender);
+    const newFilters = {
+      ...filters,
+      gender: standardizedGender,
+      selectedTitles: [],
+      selectedItems: {},
+    };
+    setFilters(newFilters);
+    navigate(`/products?gender=${standardizedGender}`);
+    await applyFilters(newFilters);
   };
 
   const toggleFavorite = (productId) => {
-    setFavorites(prev => ({
+    setFavorites((prev) => ({
       ...prev,
-      [productId]: !prev[productId]
+      [productId]: !prev[productId],
     }));
   };
 
   const handleSectionExpand = (sectionId) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [sectionId]: !prev[sectionId]
+      [sectionId]: !prev[sectionId],
     }));
   };
 
-  const handleTitleSelect = (title) => {
-    setFilters(prev => ({
-      ...prev,
-      selectedTitles: prev.selectedTitles.includes(title)
-        ? []
-        : [title],
+  const handleTitleSelect = async (titleId) => {
+    const isSelecting = !filters.selectedTitles.includes(titleId);
+    console.log("Selecting title:", titleId, "isSelecting:", isSelecting);
+    const newFilters = {
+      ...filters,
+      selectedTitles: isSelecting ? [titleId] : [],
+      selectedItems: { ...filters.selectedItems, productLine: {} },
+    };
+    setFilters(newFilters);
+    console.log("Updated filters for title select:", newFilters);
+    await applyFilters(newFilters);
+  };
+
+  const handleItemSelect = async (sectionId, item) => {
+    console.log(`Handling item select: ${sectionId} - ${item}`);
+    const currentSectionItems = filters.selectedItems[sectionId] || {};
+    let newSectionItems;
+    if (currentSectionItems[item]) {
+      console.log(`Deselecting ${sectionId}:`, item);
+      newSectionItems = { ...currentSectionItems, [item]: false };
+    } else {
+      console.log(`Selecting ${sectionId}:`, item);
+      newSectionItems = {};
+      Object.keys(currentSectionItems).forEach((key) => {
+        newSectionItems[key] = false;
+      });
+      newSectionItems[item] = true;
+    }
+
+    const newFilters = {
+      ...filters,
       selectedItems: {
-        ...prev.selectedItems,
-        productLine: {}
-      }
-    }));
+        ...filters.selectedItems,
+        [sectionId]: newSectionItems,
+      },
+    };
+    setFilters(newFilters);
+    console.log("Updated filters for item select:", newFilters);
+    await applyFilters(newFilters);
   };
-
-  const handleItemSelect = (sectionId, item) => {
-    setFilters(prev => ({
-      ...prev,
-      selectedItems: {
-        ...prev.selectedItems,
-        [sectionId]: {
-          ...(prev.selectedItems[sectionId] || {}),
-          [item]: !(prev.selectedItems[sectionId]?.[item] || false)
-        }
-      }
-    }));
-  };
-
-  const filteredProducts = products.filter(product => {
-    if (filters.gender && filters.gender !== 'all' && product.gender !== filters.gender) {
-      return false;
-    }
-    if (filters.selectedTitles.length > 0 && !filters.selectedTitles.includes(product.category)) {
-      return false;
-    }
-    
-    // Add filtering based on selected items
-    for (const [sectionId, selectedItems] of Object.entries(filters.selectedItems)) {
-      const selectedValues = Object.entries(selectedItems)
-        .filter(([_, isSelected]) => isSelected)
-        .map(([value]) => value);
-      
-      if (selectedValues.length > 0) {
-        switch (sectionId) {
-          case 'productLine':
-            if (!selectedValues.includes(product.productLine)) return false;
-            break;
-          case 'price':
-            const productPrice = parseInt(product.price.replace(/[^\d]/g, ''));
-            const matchesPrice = selectedValues.some(range => {
-              if (range.includes('Dưới')) {
-                return productPrice < 500000;
-              } else if (range.includes('Trên')) {
-                return productPrice > 1000000;
-              } else {
-                return productPrice >= 500000 && productPrice <= 1000000;
-              }
-            });
-            if (!matchesPrice) return false;
-            break;
-          case 'size':
-            if (!selectedValues.includes(product.size)) return false;
-            break;
-          case 'color':
-            if (!selectedValues.includes(product.color)) return false;
-            break;
-          default:
-            break;
-        }
-      }
-    }
-    
-    return true;
-  });
-
-  const currentTitles = productTitles[filters.gender || 'all'];
 
   return (
     <div>
@@ -289,75 +324,84 @@ const Products = () => {
               {/* Gender Filter */}
               <div className="gender-filter">
                 <div className="gender-options">
-                  <span 
-                    className={`gender-option ${filters.gender === 'all' ? 'active' : ''}`}
-                    onClick={() => handleGenderChange('all')}
+                  <span
+                    className={`gender-option ${filters.gender === "all" ? "active" : ""}`}
+                    onClick={() => handleGenderChange("all")}
                   >
-                    TẤT CẢ
+                    ALL
                   </span>
-                  <span 
-                    className={`gender-option ${filters.gender === 'nam' ? 'active' : ''}`}
-                    onClick={() => handleGenderChange('nam')}
+                  <span
+                    className={`gender-option ${filters.gender === "Men" ? "active" : ""}`}
+                    onClick={() => handleGenderChange("Men")}
                   >
-                    NAM
+                    MEN
                   </span>
-                  <span 
-                    className={`gender-option ${filters.gender === 'nữ' ? 'active' : ''}`}
-                    onClick={() => handleGenderChange('nữ')}
+                  <span
+                    className={`gender-option ${filters.gender === "Women" ? "active" : ""}`}
+                    onClick={() => handleGenderChange("Women")}
                   >
-                    NỮ
+                    WOMEN
+                  </span>
+                  <span
+                    className={`gender-option ${filters.gender === "Unisex" ? "active" : ""}`}
+                    onClick={() => handleGenderChange("Unisex")}
+                  >
+                    UNISEX
                   </span>
                 </div>
               </div>
 
               {/* Product Titles Section */}
-              <div className="category-section product-titles">
-                {currentTitles.map((title) => (
-                  <div 
-                    key={title}
-                    className={`category-item ${filters.selectedTitles.includes(title) ? 'selected' : ''}`}
-                    onClick={() => handleTitleSelect(title)}
-                  >
-                    {title}
-                    {filters.selectedTitles.includes(title) && (
-                      <CloseIcon className="remove-icon" />
-                    )}
-                  </div>
-                ))}
-              </div>
+              {categoriesLoaded ? (
+                <div className="category-section product-titles">
+                  {currentTitles.map((title) => (
+                    <div
+                      key={title.id}
+                      className={`category-item ${filters.selectedTitles.includes(title.id) ? "selected" : ""}`}
+                      onClick={() => handleTitleSelect(title.id)}
+                    >
+                      {title.name}
+                      {filters.selectedTitles.includes(title.id) && <CloseIcon className="remove-icon" />}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div>Đang tải danh mục...</div>
+              )}
 
               {/* Filter Sections */}
-              {getFilterSections().map((section) => (
-                <div key={section.id} className="category-section">
-                  <div 
-                    className="category-header"
-                    onClick={() => handleSectionExpand(section.id)}
-                  >
-                    <span className="category-title">{section.title}</span>
-                    {expandedSections[section.id] ? <ExpandLess /> : <ExpandMore />}
-                  </div>
-                  <Collapse in={expandedSections[section.id]}>
-                    <div className="category-list">
-                      {section.items.map((item) => (
-                        <div 
-                          key={item} 
-                          className={`category-item ${filters.selectedItems[section.id]?.[item] ? 'selected' : ''}`}
-                          onClick={() => handleItemSelect(section.id, item)}
-                        >
-                          <span>{item}</span>
-                          <CloseIcon 
-                            className="remove-icon"
-                            style={{ 
-                              opacity: filters.selectedItems[section.id]?.[item] ? 1 : 0,
-                              visibility: filters.selectedItems[section.id]?.[item] ? 'visible' : 'hidden'
-                            }}
-                          />
-                        </div>
-                      ))}
+              {categoriesLoaded &&
+                getFilterSections().map((section) => (
+                  <div key={section.id} className="category-section">
+                    <div
+                      className="category-header"
+                      onClick={() => handleSectionExpand(section.id)}
+                    >
+                      <span className="category-title">{section.title}</span>
+                      {expandedSections[section.id] ? <ExpandLess /> : <ExpandMore />}
                     </div>
-                  </Collapse>
-                </div>
-              ))}
+                    <Collapse in={expandedSections[section.id]}>
+                      <div className="category-list">
+                        {section.items.map((item) => (
+                          <div
+                            key={item}
+                            className={`category-item ${filters.selectedItems[section.id]?.[item] ? "selected" : ""}`}
+                            onClick={() => handleItemSelect(section.id, item)}
+                          >
+                            <span>{item}</span>
+                            <CloseIcon
+                              className="remove-icon"
+                              style={{
+                                opacity: filters.selectedItems[section.id]?.[item] ? 1 : 0,
+                                visibility: filters.selectedItems[section.id]?.[item] ? "visible" : "hidden",
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </Collapse>
+                  </div>
+                ))}
             </div>
           </Grid>
 
@@ -365,46 +409,58 @@ const Products = () => {
           <Grid item xs={12} md={9}>
             {/* Free Shipping Banner */}
             <div className="free-shipping-banner">
-              <img 
-                src="/images/free-shipping-banner.svg" 
+              <img
+                src="/images/free-shipping-banner.svg"
                 alt="Ảnh và lời quảng cáo"
                 style={{
-                  filter: 'brightness(0) invert(1)', // Chuyển màu thành trắng
-                  opacity: 0.9
+                  filter: "brightness(0) invert(1)",
+                  opacity: 0.9,
                 }}
               />
             </div>
 
             {/* Product Grid */}
             <div className="product-grid">
-              {filteredProducts.map((product) => (
-                <div key={product.id} className="product-card">
-                  <div className="product-image-container">
-                    <img 
-                      src={product.image}
-                      alt={product.name}
-                      className="product-image"
-                    />
-                    <IconButton
-                      className="favorite-button"
-                      onClick={() => toggleFavorite(product.id)}
-                    >
-                      {favorites[product.id] ? (
-                        <FavoriteIcon color="error" />
-                      ) : (
-                        <FavoriteBorderIcon />
+              {loading ? (
+                <div>Đang tải sản phẩm...</div>
+              ) : error ? (
+                <div style={{ color: "red", textAlign: "center" }}>{error}</div>
+              ) : products.length > 0 ? (
+                products.map((product) => (
+                  <div key={product.id} className="product-card">
+                    <div className="product-image-container">
+                      <img
+                        src={
+                          product.imgurls && product.imgurls.length > 0
+                            ? product.imgurls[0]
+                            : "/images/default-product.jpg"
+                        }
+                        alt={product.name}
+                        className="product-image"
+                      />
+                      <IconButton
+                        className="favorite-button"
+                        onClick={() => toggleFavorite(product.id)}
+                      >
+                        {favorites[product.id] ? (
+                          <FavoriteIcon color="error" />
+                        ) : (
+                          <FavoriteBorderIcon />
+                        )}
+                      </IconButton>
+                    </div>
+                    <div className="product-info">
+                      {product.tag && (
+                        <div className="product-tag">{product.tag}</div>
                       )}
-                    </IconButton>
+                      <div className="product-name">{product.name}</div>
+                      <div className="product-price">{product.price.toLocaleString("vi-VN")}đ</div>
+                    </div>
                   </div>
-                  <div className="product-info">
-                    {product.tag && (
-                      <div className="product-tag">{product.tag}</div>
-                    )}
-                    <div className="product-name">{product.name}</div>
-                    <div className="product-price">{product.price}</div>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div>Không có sản phẩm nào.</div>
+              )}
             </div>
           </Grid>
         </Grid>
