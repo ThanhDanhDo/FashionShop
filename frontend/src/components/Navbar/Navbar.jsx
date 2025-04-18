@@ -239,11 +239,13 @@ const Navbar = () => {
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
+            <Link to="/cart" className="cart-link">
               <IconButton>
                 <Badge badgeContent={2} color="error">
                   <ShoppingCartIcon />
                 </Badge>
               </IconButton>
+            </Link>
               <IconButton>
                 <Badge badgeContent={5} color="error">
                   <FavoriteIcon />

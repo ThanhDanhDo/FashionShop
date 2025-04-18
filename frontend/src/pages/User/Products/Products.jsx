@@ -48,14 +48,14 @@ const Products = () => {
       'Bottoms | Nửa dưới',
       'Accessories | Phụ kiện'
     ],
-    nam: [
+    Men: [
       'Outerwear | Áo khoác ngoài',
       'T-shirt | Áo thun',
       'Shirt | Áo sơ mi',
       'Bottoms | Nửa dưới',
       'Accessories | Phụ kiện'
     ],
-    nữ: [
+    Women: [
       'Outerwear | Áo khoác ngoài',
       'T-shirt | Áo thun',
       'Shirt | Áo sơ mi',
@@ -91,7 +91,8 @@ const Products = () => {
       {
         id: 'color',
         title: 'MÀU SẮC',
-        items: ['Đen', 'Trắng', 'Nâu', 'Natural', 'Xanh lá', 'Navy', 'Xám', 'Olive', 'Xanh dương', 'Cam']
+        items: ['White', 'Natural', 'Beige', 'Gray', 'Dark Gray', 'Black', 'Pink', 'Red', 'Brown', 'Olive', 'Green', 'Dark Green', 'Navy', 'Blue', 'Yellow', 'Orange', 'Wine'
+      ]
       }
     ];
 
@@ -119,7 +120,7 @@ const Products = () => {
       image: '/images/product1.jpg',
       category: 'Outerwear | Áo khoác ngoài',
       productLine: 'Jackets & Blazers',
-      gender: 'nam',
+      gender: 'Men',
       color: 'Đen',
     },
     {
@@ -130,7 +131,7 @@ const Products = () => {
       image: '/images/product2.jpg',
       category: 'Shirt | Áo sơ mi',
       productLine: 'Short-sleeve',
-      gender: 'nữ',
+      gender: 'Women',
       color: 'Cam',
     },
     {
@@ -150,10 +151,10 @@ const Products = () => {
     setProducts(mockProducts);
     
     let currentGender = 'all';
-    if (location.pathname === '/men') {
-      currentGender = 'nam';
-    } else if (location.pathname === '/women') {
-      currentGender = 'nữ';
+    if (location.pathname === '/Men') {
+      currentGender = 'Men';
+    } else if (location.pathname === '/Women') {
+      currentGender = 'Women';
     }
     
     setFilters(prev => ({ ...prev, gender: currentGender }));
@@ -167,10 +168,10 @@ const Products = () => {
   }, [location.pathname, category]);
 
   const handleGenderChange = (gender) => {
-    if (gender === 'nam') {
-      navigate('/men');
-    } else if (gender === 'nữ') {
-      navigate('/women');
+    if (gender === 'Men') {
+      navigate('/Men');
+    } else if (gender === 'Women') {
+      navigate('/Women');
     } else {
       navigate('/products');
     }
@@ -296,16 +297,16 @@ const Products = () => {
                     TẤT CẢ
                   </span>
                   <span 
-                    className={`gender-option ${filters.gender === 'nam' ? 'active' : ''}`}
-                    onClick={() => handleGenderChange('nam')}
+                    className={`gender-option ${filters.gender === 'Men' ? 'active' : ''}`}
+                    onClick={() => handleGenderChange('Men')}
                   >
-                    NAM
+                    Men
                   </span>
                   <span 
-                    className={`gender-option ${filters.gender === 'nữ' ? 'active' : ''}`}
-                    onClick={() => handleGenderChange('nữ')}
+                    className={`gender-option ${filters.gender === 'Women' ? 'active' : ''}`}
+                    onClick={() => handleGenderChange('Women')}
                   >
-                    NỮ
+                    Women
                   </span>
                 </div>
               </div>

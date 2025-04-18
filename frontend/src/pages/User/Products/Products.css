@@ -91,7 +91,7 @@
 
 .gender-option:not(:last-child)::after {
   content: "|";
-  margin: 0 10px;
+  margin: 0 5px;
   color: #e0e0e0;
 }
 
