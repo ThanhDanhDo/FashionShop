@@ -14,6 +14,8 @@ import Home from './pages/User/Home/Home';
 import Products from './pages/User/Products/Products';
 import { AuthProvider } from './context/AuthContext';
 import ProductDetail from './pages/User/ProductDetail/ProductDetail';
+import OrderList from './pages/User/Orders-user/OrderList';
+
 
 function App() {
   return (
@@ -33,7 +35,8 @@ function App() {
           <Route path="/product/:id" element={<ProductDetail />} />
           {/* Home route */}
           <Route path="/" element={<Home />} />
-
+          {/* User routes */}
+          <Route path="/orders" element={<OrderList />} />
           {/* Admin routes */}
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
