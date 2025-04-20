@@ -19,20 +19,24 @@ const orders = [
     address: "123 Nguyễn Văn Cừ, Long Biên, Hà Nội",
     paymentMethod: "Thanh toán khi nhận hàng",
     total: 890000,
-    products: [
-      {
-        id: 1,
-        name: "Áo thun xanh",
-        image: "/images/image1.png",
-        quantity: 2,
-        price: 570000,
-      },
+      products: [
+        {
+          id: 1,
+          name: "Áo thun xanh",
+          image: "/images/image1.png",
+          quantity: 2,
+          price: 570000,
+          size: "M",
+          color: "Xanh dương",
+        },
       {
         id: 2,
         name: "Quần dài",
         image: "/images/image4.png",
         quantity: 1,
         price: 320000,
+        size: "X:",
+        color: "Xanh dương",
       },
     ],
   },
@@ -50,6 +54,8 @@ const orders = [
         image: "/images/image2.png",
         quantity: 1,
         price: 320000,
+        size: "L",
+        color: "Xanh dương",
       },
     ],
   },
@@ -67,6 +73,8 @@ const orders = [
         image: "/images/image3.png",
         quantity: 1,
         price: 250000,
+        size: "M",
+        color: "Xanh dương",
       },
       {
         id: 5,
@@ -74,6 +82,8 @@ const orders = [
         image: "/images/image1.png",
         quantity: 1,
         price: 360000,
+        size: "M",
+        color: "Xanh dương",
       },
     ],
   },
@@ -91,6 +101,8 @@ const orders = [
         image: "/images/image2.png",
         quantity: 1,
         price: 300000,
+        size: "M",
+        color: "Xanh dương",
       },
     ],
   },
@@ -108,6 +120,8 @@ const orders = [
         image: "/images/image3.png",
         quantity: 1,
         price: 450000,
+        size: "M",
+        color: "Xanh dương",
       },
     ],
   },
@@ -121,22 +135,22 @@ const OrderList = () => {
         <a href="/">Trang chủ</a> {'>'} <span>Orders</span>
       </div>
       <div className="order-list-container">
-        <h1 className="order-list-title">Lịch sử đơn hàng</h1>
+        <h1 className="order-list-title">ORDER HISTORY</h1>
 
         {orders.map((order) => (
           <div key={order.orderId} className="order-block">
             <div className="order-header">
   <         div className="order-info">
             <div className="order-id-date">
-              <p><strong>Mã đơn:</strong> {order.orderId}</p>
-              <p><strong>Ngày đặt:</strong> {order.date}</p>
+              <p><strong>Order ID:</strong> {order.orderId}</p>
+              <p><strong>Order Date:</strong> {order.date}</p>
             </div>
     
-              <p><strong>Địa chỉ:</strong> {order.address}</p>
+              <p><strong>Address:</strong> {order.address}</p>
 
             <div className="order-total-payment">
-              <p><strong>Tổng tiền:</strong> {order.total.toLocaleString()} VND</p>
-              <p><strong>Phương thức:</strong> {order.paymentMethod}</p>
+              <p><strong>Total:</strong> {order.total.toLocaleString()} VND</p>
+              <p><strong>Payment:</strong> {order.paymentMethod}</p>
             </div>
             </div>
   
@@ -145,17 +159,22 @@ const OrderList = () => {
             </span>
             </div>
             <div className="order-products">
-              {order.products.map((product) => (
-                <div key={product.id} className="order-item">
-                  <img src={product.image} alt={product.name} className="order-image" />
-                  <div className="order-details">
-                    <h2 className="order-name">{product.name}</h2>
-                    <p>Số lượng: {product.quantity}</p>
-                    <p>Giá: {product.price.toLocaleString()} VND</p>
-                  </div>
-                </div>
-              ))}
+  {order.products.map((product) => (
+    <div key={product.id} className="order-item">
+      <img src={product.image} alt={product.name} className="order-image" />
+        <div className="order-details">
+          <h2 className="order-name">{product.name}</h2>
+            <div className="product-variant">
+              <span>Size: {product.size}</span> | <span>Color: {product.color}</span>
             </div>
+            <div className="product-price-qty">
+              <span>Quantity: {product.quantity}</span>
+              <span>Price: {product.price.toLocaleString()} VND</span>
+            </div>
+            </div>
+            </div>
+            ))}
+          </div>
           </div>
         ))}
       </div>
