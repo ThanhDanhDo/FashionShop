@@ -9,17 +9,16 @@ import CloseIcon from "@mui/icons-material/Close";
 import Navbar from "../../../components/Navbar/Navbar";
 import "./Products.css";
 import { filterProducts } from "../../../services/productService";
+import { getCategoryById } from "../../../services/categoryService";
 
 const Products = () => {
-  const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const genderParam = searchParams.get("gender") || "all";
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
-    gender: genderParam,
+    gender: "all",
     selectedTitles: [],
     selectedItems: {},
   });
@@ -36,19 +35,7 @@ const Products = () => {
   const [categoryMap, setCategoryMap] = useState({});
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 
-  // Đồng bộ gender từ searchParams
-  useEffect(() => {
-    const genderFromUrl = searchParams.get("gender") || "all";
-    setFilters((prev) => {
-      if (prev.gender !== genderFromUrl) {
-        console.log("Syncing gender from URL:", genderFromUrl);
-        return { ...prev, gender: genderFromUrl };
-      }
-      return prev;
-    });
-  }, [searchParams]);
-
-  // Fetch main categories from API
+  // Lấy danh mục chính từ API
   const fetchMainCategories = async (retries = 3, delay = 1000) => {
     for (let i = 0; i < retries; i++) {
       try {
@@ -56,15 +43,17 @@ const Products = () => {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
-        if (!response.ok) throw new Error("Không thể lấy danh sách main categories!");
+        if (!response.ok) throw new Error("Không thể lấy danh sách danh mục chính!");
         const categories = await response.json();
-        console.log("Fetched main categories:", categories);
+        console.log("Danh mục chính đã lấy:", categories);
         return categories.map((cat) => ({
           ...cat,
-          name: /dress/i.test(cat.name.trim().toLowerCase()) ? "Dresses" : cat.name,
+          name: /dress/i.test(cat.name.trim().toLowerCase()) ? "Dresses" : 
+                /bottom/i.test(cat.name.trim().toLowerCase()) ? "Bottoms" : 
+                cat.name.trim(),
         }));
       } catch (error) {
-        console.error(`Lỗi khi lấy main categories (thử ${i + 1}/${retries}):`, error);
+        console.error(`Lỗi khi lấy danh mục chính (thử ${i + 1}/${retries}):`, error);
         if (i < retries - 1) {
           await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
@@ -75,22 +64,7 @@ const Products = () => {
     }
   };
 
-  // Fetch subCategoryId from subCategory name
-  const getSubCategoryId = async (subCategoryName) => {
-    try {
-      const response = await fetch(`/api/categories/name/${subCategoryName}`);
-      if (!response.ok) throw new Error("Không thể lấy subCategory!");
-      const subCategories = await response.json();
-      const subCategoryId = subCategories[0]?.id || null;
-      console.log(`Fetched subCategoryId for ${subCategoryName}:`, subCategoryId);
-      return subCategoryId;
-    } catch (error) {
-      console.error("Lỗi khi lấy subCategoryId:", error);
-      return null;
-    }
-  };
-
-  // Load main categories on mount
+  // Tải danh mục chính khi khởi động
   useEffect(() => {
     const loadCategories = async () => {
       const categories = await fetchMainCategories();
@@ -98,22 +72,60 @@ const Products = () => {
       categories.forEach((cat) => {
         map[cat.name] = cat.id;
       });
-      console.log("Category map created:", map);
+      console.log("Bản đồ danh mục đã tạo:", map);
       setCategoryMap(map);
       setCategoriesLoaded(true);
     };
     loadCategories();
   }, []);
 
-  // Product titles using IDs
+  // Khởi tạo bộ lọc từ tham số truy vấn URL
+  useEffect(() => {
+    const genderFromUrl = searchParams.get("gender") || "all";
+    const mainCategoryId = searchParams.get("mainCategoryId");
+    const subCategoryId = searchParams.get("subCategoryId");
+
+    const initializeFilters = async () => {
+      const newFilters = {
+        gender: genderFromUrl,
+        selectedTitles: mainCategoryId ? [parseInt(mainCategoryId)] : [],
+        selectedItems: {},
+      };
+
+      if (subCategoryId && categoriesLoaded) {
+        try {
+          const subCategory = await getCategoryById(subCategoryId);
+          if (subCategory && subCategory.name) {
+            newFilters.selectedItems.productLine = {
+              [subCategory.name]: true,
+            };
+            console.log(`Đã lấy danh mục phụ: ${subCategory.name} cho ID: ${subCategoryId}`);
+          } else {
+            console.warn(`Không tìm thấy danh mục phụ cho ID: ${subCategoryId}`);
+          }
+        } catch (error) {
+          console.error("Lỗi khi lấy danh mục phụ để khởi tạo:", error);
+        }
+      }
+
+      console.log("Khởi tạo bộ lọc từ URL:", newFilters);
+      setFilters(newFilters);
+    };
+
+    if (categoriesLoaded) {
+      initializeFilters();
+    }
+  }, [searchParams, categoriesLoaded]);
+
+  // Tiêu đề sản phẩm sử dụng ID, lọc "Dresses" cho Men và Unisex
   const productTitles = {
     all: Object.keys(categoryMap).map((name) => ({ name, id: categoryMap[name] })),
     Men: Object.keys(categoryMap)
-      .filter((name) => !/dress/i.test(name))
+      .filter((name) => name !== "Dresses")
       .map((name) => ({ name, id: categoryMap[name] })),
     Women: Object.keys(categoryMap).map((name) => ({ name, id: categoryMap[name] })),
     Unisex: Object.keys(categoryMap)
-      .filter((name) => !/dress/i.test(name))
+      .filter((name) => name !== "Dresses")
       .map((name) => ({ name, id: categoryMap[name] })),
   };
 
@@ -153,6 +165,11 @@ const Products = () => {
     if (filters.selectedTitles.length > 0) {
       const selectedCategory = currentTitles.find((title) => title.id === filters.selectedTitles[0])?.name;
       console.log("Selected category for productLine:", selectedCategory);
+      console.log("Product line items:", productLineItems[selectedCategory]);
+      if (!selectedCategory || !productLineItems[selectedCategory]) {
+        console.warn("Không tìm thấy danh mục hoặc productLineItems cho:", selectedCategory);
+        return baseSections;
+      }
       const productLineSection = {
         id: "productLine",
         title: "DÒNG SẢN PHẨM",
@@ -167,8 +184,8 @@ const Products = () => {
   // Product line items for each category
   const productLineItems = {
     Outerwear: ["Jackets & Blazers", "Coats"],
-    "T-shirt": ["Short-sleeve", "Long-sleeve"],
-    Shirt: ["Short-sleeve", "Long-sleeve"],
+    "T-shirt": ["Short-sleeve T-shirt", "Long-sleeve T-shirt"],
+    Shirt: ["Short-sleeve Shirt", "Long-sleeve Shirt"],
     Dresses: ["Skirts", "Dresses"],
     Bottoms: ["Long", "Short"],
     Accessories: ["Bags", "Belts"],
@@ -200,7 +217,28 @@ const Products = () => {
 
         let subCategoryId = null;
         if (selectedProductLine.length > 0) {
-          subCategoryId = await getSubCategoryId(selectedProductLine[0]);
+          const normalizedProductLine = selectedProductLine[0].trim();
+          try {
+            const response = await fetch(`/api/categories/name/${encodeURIComponent(normalizedProductLine)}`);
+            if (response.ok) {
+              const subCategories = await response.json();
+              if (subCategories.length === 0) {
+                console.warn(`Không tìm thấy danh mục phụ cho tên: ${normalizedProductLine}`);
+                setError(`Danh mục phụ "${normalizedProductLine}" không tồn tại!`);
+                setLoading(false);
+                return;
+              }
+              subCategoryId = subCategories[0]?.id || null;
+              console.log(`Đã lấy subCategoryId cho ${normalizedProductLine}:`, subCategoryId);
+            } else {
+              throw new Error(`Lỗi khi lấy danh mục phụ ${normalizedProductLine}: ${response.statusText}`);
+            }
+          } catch (error) {
+            console.error("Lỗi khi lấy danh mục phụ:", error);
+            setError(`Không thể lấy thông tin danh mục phụ "${normalizedProductLine}"!`);
+            setLoading(false);
+            return;
+          }
         }
 
         const filterParams = {
@@ -213,10 +251,6 @@ const Products = () => {
         };
 
         console.log("Applying filters with params:", filterParams);
-        console.log("selectedProductLine:", selectedProductLine);
-        console.log("subCategoryId:", subCategoryId);
-        console.log("selectedPriceRanges:", selectedPriceRanges);
-
         const data = await filterProducts(filterParams);
 
         console.log("Filtered products:", data);
@@ -282,6 +316,12 @@ const Products = () => {
     };
     setFilters(newFilters);
     console.log("Updated filters for title select:", newFilters);
+
+    const queryParams = new URLSearchParams();
+    if (filters.gender && filters.gender !== "all") queryParams.append("gender", filters.gender);
+    if (isSelecting) queryParams.append("mainCategoryId", titleId);
+    navigate(`/products?${queryParams.toString()}`);
+
     await applyFilters(newFilters);
   };
 
@@ -310,6 +350,29 @@ const Products = () => {
     };
     setFilters(newFilters);
     console.log("Updated filters for item select:", newFilters);
+
+    const queryParams = new URLSearchParams();
+    if (filters.gender && filters.gender !== "all") queryParams.append("gender", filters.gender);
+    if (filters.selectedTitles[0]) queryParams.append("mainCategoryId", filters.selectedTitles[0]);
+    if (sectionId === "productLine" && newSectionItems[item]) {
+      try {
+        const response = await fetch(`/api/categories/name/${encodeURIComponent(item)}`);
+        if (response.ok) {
+          const subCategories = await response.json();
+          const subCategoryId = subCategories[0]?.id || null;
+          if (subCategoryId) {
+            queryParams.append("subCategoryId", subCategoryId);
+          } else {
+            console.warn(`Không tìm thấy subCategoryId cho ${item}`);
+          }
+        } else {
+          console.error(`Lỗi khi lấy danh mục phụ ${item}:`, response.statusText);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy subCategoryId:", error);
+      }
+    }
+    navigate(`/products?${queryParams.toString()}`);
     await applyFilters(newFilters);
   };
 
@@ -331,16 +394,16 @@ const Products = () => {
                     ALL
                   </span>
                   <span
-                    className={`gender-option ${filters.gender === "Men" ? "active" : ""}`}
-                    onClick={() => handleGenderChange("Men")}
-                  >
-                    MEN
-                  </span>
-                  <span
                     className={`gender-option ${filters.gender === "Women" ? "active" : ""}`}
                     onClick={() => handleGenderChange("Women")}
                   >
                     WOMEN
+                  </span>
+                  <span
+                    className={`gender-option ${filters.gender === "Men" ? "active" : ""}`}
+                    onClick={() => handleGenderChange("Men")}
+                  >
+                    MEN
                   </span>
                   <span
                     className={`gender-option ${filters.gender === "Unisex" ? "active" : ""}`}
@@ -354,19 +417,23 @@ const Products = () => {
               {/* Product Titles Section */}
               {categoriesLoaded ? (
                 <div className="category-section product-titles">
-                  {currentTitles.map((title) => (
-                    <div
-                      key={title.id}
-                      className={`category-item ${filters.selectedTitles.includes(title.id) ? "selected" : ""}`}
-                      onClick={() => handleTitleSelect(title.id)}
-                    >
-                      {title.name}
-                      {filters.selectedTitles.includes(title.id) && <CloseIcon className="remove-icon" />}
-                    </div>
-                  ))}
+                  {currentTitles.length > 0 ? (
+                    currentTitles.map((title) => (
+                      <div
+                        key={title.id}
+                        className={`category-item ${filters.selectedTitles.includes(title.id) ? "selected" : ""}`}
+                        onClick={() => handleTitleSelect(title.id)}
+                      >
+                        {title.name}
+                        {filters.selectedTitles.includes(title.id) && <CloseIcon className="remove-icon" />}
+                      </div>
+                    ))
+                  ) : (
+                    <div>Không có danh mục nào để hiển thị.</div>
+                  )}
                 </div>
               ) : (
-                <div>Đang tải danh mục...</div>
+                <div>Loading categories...</div>
               )}
 
               {/* Filter Sections */}
@@ -422,7 +489,7 @@ const Products = () => {
             {/* Product Grid */}
             <div className="product-grid">
               {loading ? (
-                <div>Đang tải sản phẩm...</div>
+                <div>Loading products...</div>
               ) : error ? (
                 <div style={{ color: "red", textAlign: "center" }}>{error}</div>
               ) : products.length > 0 ? (

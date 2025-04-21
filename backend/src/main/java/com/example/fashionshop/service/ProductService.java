@@ -16,9 +16,9 @@ import jakarta.transaction.Transactional;
 import java.util.Optional;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -36,7 +36,15 @@ public class ProductService {
         if (cateId != null) {
             existingCategory = categoryRepository.findById(cateId);
         } else {
-            existingCategory = categoryRepository.findByName(name);
+            List<Category> categories = categoryRepository.findByName(name);
+            if (parentId != null) {
+                existingCategory = categories.stream()
+                        .filter(cat -> cat.getParentCategory() != null
+                                && cat.getParentCategory().getId().equals(parentId))
+                        .findFirst();
+            } else {
+                existingCategory = categories.isEmpty() ? Optional.empty() : Optional.of(categories.get(0));
+            }
         }
 
         if (existingCategory.isPresent()) {
@@ -44,7 +52,8 @@ public class ProductService {
         }
 
         Category parentCategory = (parentId != null)
-                ? categoryRepository.findById(parentId).orElse(null)
+                ? categoryRepository.findById(parentId)
+                        .orElseThrow(() -> new IllegalArgumentException("Parent category not found: " + parentId))
                 : null;
 
         Category newCategory = new Category();
@@ -89,10 +98,15 @@ public class ProductService {
             List<String> priceRanges,
             Pageable pageable) {
         // Validate and normalize gender
-        String genderValue = null;
+        String[] genderValues = new String[0]; // Default to empty array instead of null
         if (gender != null && !gender.equalsIgnoreCase("all")) {
-            genderValue = gender;
-            if (!Arrays.asList("Women", "Men", "Unisex").contains(genderValue)) {
+            if (gender.equalsIgnoreCase("Men")) {
+                genderValues = new String[] { "Men", "Unisex" };
+            } else if (gender.equalsIgnoreCase("Women")) {
+                genderValues = new String[] { "Women", "Unisex" };
+            } else if (gender.equalsIgnoreCase("Unisex")) {
+                genderValues = new String[] { "Unisex" };
+            } else {
                 throw new IllegalArgumentException("Invalid gender value: " + gender);
             }
         }
@@ -131,11 +145,16 @@ public class ProductService {
         String[] sizesArray = sizes != null && !sizes.isEmpty() ? sizes.toArray(new String[0]) : new String[0];
         String[] colorsArray = colors != null && !colors.isEmpty() ? colors.toArray(new String[0]) : new String[0];
 
-        System.out.println("Filter params: gender=" + genderValue + ", sizes=" + Arrays.toString(sizesArray)
-                + ", colors=" + Arrays.toString(colorsArray));
+        System.out.println("Filter params: gender=" + Arrays.toString(genderValues) +
+                ", mainCategoryId=" + mainCategoryId +
+                ", subCategoryId=" + subCategoryId +
+                ", sizes=" + Arrays.toString(sizesArray) +
+                ", colors=" + Arrays.toString(colorsArray) +
+                ", priceMin=" + priceMin +
+                ", priceMax=" + priceMax);
 
-        return productRepository.findByFilters(
-                genderValue,
+        Page<Product> result = productRepository.findByFilters(
+                genderValues,
                 mainCategoryId,
                 subCategoryId,
                 sizesArray,
@@ -143,6 +162,16 @@ public class ProductService {
                 priceMin,
                 priceMax,
                 pageable);
+
+        if (result.isEmpty()) {
+            System.out.println("No products found for filters: gender=" + Arrays.toString(genderValues) +
+                    ", mainCategoryId=" + mainCategoryId +
+                    ", subCategoryId=" + subCategoryId);
+        } else {
+            System.out.println("Found " + result.getTotalElements() + " products for filters");
+        }
+
+        return result;
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
