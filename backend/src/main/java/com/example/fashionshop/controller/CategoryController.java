@@ -18,6 +18,7 @@ import com.example.fashionshop.service.CategoryService;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -32,19 +33,29 @@ public class CategoryController {
     @GetMapping
     public ResponseEntity<List<Category>> getAllCate() {
         List<Category> categories = categoryService.getAllCate();
-        if (categories != null)
-            return ResponseEntity.ok(categories);
-        else
-            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(categories != null ? categories : Collections.emptyList());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getCateById(@PathVariable Long id) {
+        Optional<Category> category = categoryService.getCateById(id);
+        if (category.isPresent()) {
+            return ResponseEntity.ok(category.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No category found with id: " + id);
+        }
     }
 
     @GetMapping("/name/{name}")
     public ResponseEntity<?> getCateByName(@PathVariable String name) {
         List<Category> categories = categoryService.getCateByName(name);
-        if (categories != null)
+        if (categories != null && !categories.isEmpty()) {
             return ResponseEntity.ok(categories);
-        else
-            return ResponseEntity.notFound().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("No categories found with name: " + name);
+        }
     }
 
     @GetMapping("/main")
@@ -61,7 +72,7 @@ public class CategoryController {
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error adding products with error: " + e);
+                    .body("Error adding category: " + e.getMessage());
         }
     }
 
@@ -70,10 +81,10 @@ public class CategoryController {
     public ResponseEntity<?> updateCategory(@PathVariable Long id, @RequestBody Category category) {
         try {
             Category response = categoryService.updateCategory(id, category);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error updating products with id: " + id + ", Error: " + e);
+                    .body("Error updating category with id: " + id + ", Error: " + e.getMessage());
         }
     }
 
@@ -82,9 +93,9 @@ public class CategoryController {
     public ResponseEntity<?> deleteCategory(@PathVariable Long id) {
         try {
             categoryService.deleteCategory(id);
-            return ResponseEntity.ok("Product deleted successfully");
+            return ResponseEntity.ok("Category deleted successfully");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No category found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No category found with id: " + id);
         }
     }
 }
