@@ -14,6 +14,7 @@ import Home from './pages/User/Home/Home';
 import Products from './pages/User/Products/Products';
 import { AuthProvider } from './context/AuthContext';
 import ProductDetail from './pages/User/ProductDetail/ProductDetail';
+import WishList from './pages/User/WishList/WishList';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="/women" element={<Products />} />
           <Route path="/products/:category" element={<Products />} />
           <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/WishList" element={<WishList />} />
           {/* Home route */}
           <Route path="/" element={<Home />} />
 
