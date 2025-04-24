@@ -39,13 +39,10 @@ public class ProductController {
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<Optional<Product>> getProductById(@PathVariable Long id) {
+    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         Optional<Product> product = productService.getProductById(id);
-
-        if (product != null)
-            return ResponseEntity.ok(product);
-        else
-            return ResponseEntity.notFound().build();
+        return product.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // @GetMapping("/search")
@@ -71,48 +68,6 @@ public class ProductController {
         else
             return ResponseEntity.notFound().build();
     }
-
-    // @GetMapping("type/{type}")
-    // public ResponseEntity<Map<String, Page<Product>>> getProductByCate(
-    // @PathVariable Category cate,
-    // @RequestParam(defaultValue = "0") int page,
-    // @RequestParam(defaultValue = "10") int size) {
-    // Pageable pageable = PageRequest.of(page, size);
-    // Map<String, Page<Product>> products = productService.getProductByCate(cate,
-    // pageable);
-
-    // if (products != null)
-    // return ResponseEntity.ok(products);
-    // else
-    // return ResponseEntity.notFound().build();
-    // }
-
-    // @GetMapping("/gender/{gender}")
-    // public ResponseEntity<List<Product>> getProductByGender(@PathVariable String
-    // gender) {
-    // try {
-    // List<Product> products = productService.getProductByGender(gender);
-    // if (products.isEmpty()) {
-    // return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-    // }
-    // return ResponseEntity.ok(products);
-    // } catch (IllegalArgumentException e) {
-    // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-    // }
-    // }
-
-    // @GetMapping("/gender/{gender}/category/{categoryId}")
-    // public ResponseEntity<Page<Product>> getProductsByGenderAndMainCategory(
-    // @PathVariable String gender,
-    // @PathVariable Long categoryId,
-    // @PageableDefault(page = 0, size = 30) Pageable pageable) {
-    // System.out.println("API request: GET /api/products/gender/" + gender +
-    // "/category/" + categoryId);
-    // Page<Product> products =
-    // productService.getProductsByGenderAndMainCategory(gender, categoryId,
-    // pageable);
-    // return ResponseEntity.ok(products);
-    // }
 
     @GetMapping("/filter")
     public ResponseEntity<Page<Product>> filterProducts(
