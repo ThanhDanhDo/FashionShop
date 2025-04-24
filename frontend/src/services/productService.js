@@ -14,46 +14,6 @@ export const getAllProducts = async (page = 0, size = 100) => {
   return data;
 };
 
-// Lấy sản phẩm theo main_category
-export const getProductsByMainCategory = async (
-  categoryId,
-  page = 0,
-  size = 10
-) => {
-  const response = await fetch(
-    `${API_BASE_URL}/type/${categoryId}?page=${page}&size=${size}`,
-    {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    }
-  );
-  if (!response.ok)
-    throw new Error("Không thể lấy sản phẩm theo main_category!");
-  const data = await response.json();
-  console.log("getProductsByMainCategory response:", data);
-  return data; // Trả về toàn bộ Map để frontend xử lý
-};
-
-// Lấy sản phẩm theo sub_category
-export const getProductsBySubCategory = async (
-  subCategoryId,
-  page = 0,
-  size = 10
-) => {
-  const response = await fetch(
-    `${API_BASE_URL}/type/${subCategoryId}?page=${page}&size=${size}`,
-    {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    }
-  );
-  if (!response.ok)
-    throw new Error("Không thể lấy sản phẩm theo sub_category!");
-  const data = await response.json();
-  console.log("getProductsBySubCategory response:", data);
-  return data; // Trả về Map để lấy subCategories
-};
-
 export const searchProducts = async (name) => {
   const response = await fetch(`${API_BASE_URL}/search?Name=${name}`, {
     method: "GET",
@@ -65,31 +25,6 @@ export const searchProducts = async (name) => {
   return data;
 };
 
-export const getProductsByGender = async (gender, page = 0, size = 50) => {
-  const response = await fetch(
-    `/api/products/gender/${gender}?page=${page}&size=${size}`,
-    {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    }
-  );
-  if (!response.ok) throw new Error("Không thể lấy sản phẩm theo gender!");
-  const data = await response.json();
-  console.log("getProductsByGender response:", data);
-  return data; // Trả về mảng List<Product>
-};
-
-export const getProductsByGenderAndMainCategory = async (gender, categoryId, page = 0, size = 20) => {
-  const url = `/api/products/gender/${gender}/category/${categoryId}?page=${page}&size=${size}`;
-  const response = await fetch(url, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
-  if (!response.ok) throw new Error("Không thể lấy sản phẩm theo gender và main_category!");
-  const data = await response.json();
-  console.log("getProductsByGenderAndMainCategory response:", data);
-  return data;
-};
 
 export const filterProducts = async ({
   gender,
@@ -129,5 +64,16 @@ export const filterProducts = async ({
 
   const data = await response.json();
   console.log("filterProducts response:", data);
+  return data;
+};
+
+export const getProductById = async (id) => {
+  const response = await fetch(`${API_BASE_URL}/id/${id}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!response.ok) throw new Error(`Không thể lấy thông tin sản phẩm với ID ${id}!`);
+  const data = await response.json();
+  console.log("getProductById response:", data);
   return data;
 };

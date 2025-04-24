@@ -494,7 +494,12 @@ const Products = () => {
                 <div style={{ color: "red", textAlign: "center" }}>{error}</div>
               ) : products.length > 0 ? (
                 products.map((product) => (
-                  <div key={product.id} className="product-card">
+                  <div
+                    key={product.id}
+                    className="product-card"
+                    onClick={() => navigate(`/product/${product.id}`)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div className="product-image-container">
                       <img
                         src={
@@ -507,7 +512,10 @@ const Products = () => {
                       />
                       <IconButton
                         className="favorite-button"
-                        onClick={() => toggleFavorite(product.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(product.id);
+                        }}
                       >
                         {favorites[product.id] ? (
                           <FavoriteIcon color="error" />

@@ -26,3 +26,12 @@ export const getCategoryById = async (id) => {
   if (!response.ok) throw new Error(`Không thể tìm danh mục với id ${id}!`);
   return response.json();
 };
+
+export const getMainCategories = async () => {
+  const response = await fetch(`${API_BASE_URL}/main`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) throw new Error('Không thể lấy danh mục chính!');
+  return response.json();
+};
