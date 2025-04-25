@@ -1,5 +1,5 @@
 # Ignore các thư mục build và biên dịch
-/target/
+/backend/target/
 /out/
 /build/
 
