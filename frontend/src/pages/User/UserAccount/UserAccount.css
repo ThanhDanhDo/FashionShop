@@ -1,0 +1,121 @@
+.user-account {
+    padding: 40px;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4f7ff;
+    min-height: 100vh;
+  }
+  
+  .title {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 30px;
+    color: #222;
+    text-align: center;
+  }
+  
+  .account-forms {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .form-box {
+    flex: 1;
+    min-width: 350px;
+    background-color: #fff;
+    padding: 30px 25px;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+  }
+  
+  .form-box:hover {
+    transform: scale(1.01);
+  }
+  
+  .form-box h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .input-group {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  
+  .input-group input {
+    width: 100%;
+    padding: 12px 40px 12px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+  }
+  
+  .input-group span {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    cursor: pointer;
+    color: #999;
+    font-size: 18px;
+  }
+  
+  .form-box input:not(.input-group input) {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+  }
+  
+  .blue-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #2563eb;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .blue-btn:hover {
+    background-color: #1d4ed8;
+  }
+
+  .info-container {
+    border: 2px solid #ccc; /* Đường viền lớn */
+    border-radius: 12px; /* Bo góc */
+    padding: 20px; /* Khoảng cách bên trong */
+    margin-bottom: 20px; /* Khoảng cách với các phần khác */
+    background-color: #fff; /* Màu nền nhạt */
+  }
+
+  .info-group {
+    display: flex;
+    align-items: center; /* Căn giữa theo chiều dọc */
+    margin-bottom: 16px;
+  }
+  
+  .info-group label {
+    font-weight: bold;
+    margin-right: 10px; /* Khoảng cách giữa label và nội dung */
+    color: #333;
+    min-width: 100px; /* Đảm bảo label có độ rộng cố định */
+  }
+  
+  .info-group p {
+    padding: 8px 12px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #000000;
+    flex: 1; /* Để nội dung chiếm hết không gian còn lại nếu cần */
+  }

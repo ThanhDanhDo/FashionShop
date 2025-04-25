@@ -14,6 +14,7 @@ import Home from './pages/User/Home/Home';
 import Products from './pages/User/Products/Products';
 import { AuthProvider } from './context/AuthContext';
 import ProductDetail from './pages/User/ProductDetail/ProductDetail';
+import UserAccount from './pages/User/UserAccount/UserAccount';
 
 function App() {
   return (
@@ -34,6 +35,9 @@ function App() {
           <Route path="/products/:categoryType/:categoryId" element={<Products />} />
           {/* Home route */}
           <Route path="/" element={<Home />} />
+
+          {/* User Account route */}
+          <Route path="/user-account" element={<UserAccount />} />
 
           {/* Admin routes */}
           <Route element={<Layout />}>
