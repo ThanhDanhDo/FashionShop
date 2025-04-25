@@ -2,7 +2,6 @@ package com.example.fashionshop.service;
 
 import com.example.fashionshop.config.JwtProvider;
 import com.example.fashionshop.config.OtpGenerator;
-import com.example.fashionshop.enums.Gender;
 import com.example.fashionshop.enums.Role;
 import com.example.fashionshop.model.User;
 import com.example.fashionshop.model.VerificationCode;
@@ -38,7 +37,7 @@ public class AuthService {
     private final JwtProvider jwtProvider;
 
     public String sendOtp(RegisterRequest req) throws MessagingException {
-        if(userRepository.findByEmail(req.getEmail()) !=null ){
+        if (userRepository.findByEmail(req.getEmail()) != null) {
             throw new IllegalArgumentException("Email đã được sử dụng!");
         }
 
@@ -70,16 +69,16 @@ public class AuthService {
         return "OTP đã được gửi tới email. Vui lòng xác thực để hoàn tất đăng ký!";
     }
 
-    public String createUser(OtpRequest req, HttpServletResponse response) throws MessagingException{
+    public String createUser(OtpRequest req, HttpServletResponse response) throws MessagingException {
         String email = req.getEmail();
         String otp = req.getOtp();
 
         VerificationCode verificationCode = verificationCodeRepository.findByEmail(email);
-        if(verificationCode == null){
+        if (verificationCode == null) {
             throw new IllegalArgumentException("Không thấy email!");
         }
 
-        //kiem tra otp
+        // Kiểm tra OTP
         if (!verificationCode.getOtp().equals(otp.trim()) ||
                 verificationCode.getExpirationTime().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("OTP không đúng hoặc đã hết hạn!");
@@ -91,23 +90,17 @@ public class AuthService {
         user.setLastName(verificationCode.getLastName());
         user.setEmail(email);
         user.setPassword(verificationCode.getPassword());
-        user.setGender(Gender.valueOf(verificationCode.getGender()));
         user.setRole(Role.USER);
         userRepository.save(user);
 
-        // Xóa sau khi xác thực thành công
+        // Xóa OTP sau khi xác thực thành công
         verificationCodeRepository.delete(verificationCode);
 
-        List<GrantedAuthority> authorities = new ArrayList<>();
-
-        authorities.add(new SimpleGrantedAuthority(user.getRole().toString()));
-
         // Tạo token cho user
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(user.getRole().toString()));
         Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
-
-        // Thêm vào SecurityContext để lưu trạng thái đăng nhập
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        // Set JWT vào Cookie
         jwtProvider.generateToken(authentication, response);
 
         return "Đăng ký thành công!";
@@ -116,7 +109,7 @@ public class AuthService {
     public String logIn(LogInRequest req, HttpServletResponse response) {
         User user = userRepository.findByEmail(req.getEmail());
 
-        if(user == null || !passwordEncoder.matches(req.getPassword(), user.getPassword())){
+        if (user == null || !passwordEncoder.matches(req.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Thông tin đăng nhập không đúng!");
         }
 
@@ -133,7 +126,7 @@ public class AuthService {
         return "Đăng nhập thành công!";
     }
 
-    public String logOut(HttpServletResponse response){
+    public String logOut(HttpServletResponse response) {
         Cookie cookie = new Cookie("jwt", "");
         cookie.setHttpOnly(true);
         cookie.setSecure(true);

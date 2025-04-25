@@ -4,32 +4,46 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './styles/theme';
 import Layout from './components/Layout/Layout';
-import Dashboard from './pages/Dashboard';
-import Products from './pages/Products';
-import Orders from './pages/Orders';
-import Users from './pages/Users';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Home from './pages/Home';
+import Dashboard from './pages/Admin/Dashboard/Dashboard';
+import ProductsAdmin from './pages/Admin/Products-admin/Products-admin';
+import OrdersAdmin from './pages/Admin/Orders-admin/Orders-admin';
+import UsersAdmin from './pages/Admin/Users-admin/Users-admin';
+import Login from './pages/Login/Login';
+import Signup from './pages/SignUp/Signup';
+import Home from './pages/User/Home/Home';
+import Products from './pages/User/Products/Products';
+import { AuthProvider } from './context/AuthContext';
+import ProductDetail from './pages/User/ProductDetail/ProductDetail';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Routes>
-         {/* Home sẽ chạy riêng mà không bị ảnh hưởng bởi Layout */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/home" element={<Home />} />
+      <AuthProvider>
+        <Routes>
+          {/* Authentication routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
-        {/* Các route khác sẽ nằm trong Layout */}
-        <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
+          {/* Product routes */}
           <Route path="/products" element={<Products />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/users" element={<Users />} />
-        </Route>
-      </Routes>
+          <Route path="/men" element={<Products />} />
+          <Route path="/women" element={<Products />} />
+          <Route path="/products/:category" element={<Products />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/products/:categoryType/:categoryId" element={<Products />} />
+          {/* Home route */}
+          <Route path="/" element={<Home />} />
+
+          {/* Admin routes */}
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/products-admin" element={<ProductsAdmin />} />
+            <Route path="/orders-admin" element={<OrdersAdmin />} />
+            <Route path="/users-admin" element={<UsersAdmin />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

@@ -18,7 +18,7 @@ public class UserService {
     final UserRepository userRepository;
     final AddressRepository addressRepository;
 
-    public User getCurrentUserProfile(Authentication authentication) throws Exception{
+    public User getCurrentUserProfile(Authentication authentication) throws Exception {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
@@ -30,31 +30,31 @@ public class UserService {
         return user;
     }
 
-    public User updateCurrentUserProfile(Authentication authentication, User updatedUser) throws Exception{
-        if (authentication == null || !authentication.isAuthenticated()){
+    public User updateCurrentUserProfile(Authentication authentication, User updatedUser) throws Exception {
+        if (authentication == null || !authentication.isAuthenticated()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
         String email = authentication.getName();
         User currentUser = userRepository.findByEmail(email);
-        if (updatedUser == null){
+        if (updatedUser == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
         }
 
-        //update
-        if (updatedUser.getEmail()!=null){
+        // update
+        if (updatedUser.getEmail() != null) {
             currentUser.setEmail(updatedUser.getEmail());
         }
-        if (updatedUser.getGender()!=null){
-            currentUser.setGender(updatedUser.getGender());
-        }
-        if (updatedUser.getFirstName()!=null){
+        // if (updatedUser.getGender()!=null){
+        // currentUser.setGender(updatedUser.getGender());
+        // }
+        if (updatedUser.getFirstName() != null) {
             currentUser.setFirstName(updatedUser.getFirstName());
         }
-        if (updatedUser.getLastName()!=null){
+        if (updatedUser.getLastName() != null) {
             currentUser.setLastName(updatedUser.getLastName());
         }
 
-        //địa chỉ
+        // địa chỉ
         Set<Address> updatedAddresses = updatedUser.getAddresses();
         if (updatedAddresses != null && !updatedAddresses.isEmpty()) {
             Address newAddress = updatedAddresses.iterator().next(); // Chỉ lấy một địa chỉ
