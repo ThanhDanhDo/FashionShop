@@ -10,6 +10,7 @@ import com.example.fashionshop.repository.ProductRepository;
 import com.example.fashionshop.model.Cart;
 import com.example.fashionshop.model.CartItem;
 import com.example.fashionshop.model.Product;
+import java.util.ArrayList;
 
 @Service
 public class CartItemService {
@@ -22,7 +23,6 @@ public class CartItemService {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
-
     }
 
     @Transactional
@@ -33,25 +33,50 @@ public class CartItemService {
         Product product = productRepository.findById(cartItem.getProduct().getId())
             .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        CartItem newCartItem = cartItemRepository.findByCartIdAndProductId(cartItem.getCart().getId(), cartItem.getProduct().getId())
-            .orElse(new CartItem(cartItem.getCart(), cartItem.getProduct(), 0));
+        // Kiểm tra cartItem đã tồn tại
+        CartItem existingItem = cartItemRepository.findByCartIdAndProductIdAndSizeAndColor(
+            cart.getId(), 
+            product.getId(),
+            cartItem.getSize(),
+            cartItem.getColor()
+        ).orElse(null);
 
-        if(newCartItem.getQuantity() + cartItem.getQuantity() > product.getStock()) {
-            newCartItem.setQuantity(product.getStock().intValue());
-        }else if(newCartItem.getQuantity() + cartItem.getQuantity() <= 0){
-            cartItemRepository.delete(newCartItem);
-            return null;
+        CartItem newCartItem;
+        if (existingItem == null) {
+            // Tạo mới nếu chưa tồn tại
+            newCartItem = new CartItem();
+            newCartItem.setCart(cart);
+            newCartItem.setProduct(product);
+            newCartItem.setSize(cartItem.getSize());
+            newCartItem.setColor(cartItem.getColor());
+            newCartItem.setQuantity(0);
         } else {
-            newCartItem.setQuantity(newCartItem.getQuantity() + cartItem.getQuantity());
+            newCartItem = existingItem;
         }
+
+        // Cập nhật số lượng
+        int newQuantity = newCartItem.getQuantity() + cartItem.getQuantity();
+        if (newQuantity > product.getStock()) {
+            newQuantity = product.getStock().intValue();
+        } else if (newQuantity <= 0) {
+            if (existingItem != null) {
+                cartItemRepository.delete(existingItem);
+            }
+            return null;
+        }
+        newCartItem.setQuantity(newQuantity);
         
         return cartItemRepository.save(newCartItem);
     }
 
     @Transactional
     public void deleteCartItem(CartItem cartItem) {
-        CartItem existItem = cartItemRepository.findByCartIdAndProductId(cartItem.getCart().getId(), cartItem.getProduct().getId())
-            .orElseThrow(() -> new RuntimeException("CartItem not found in cart"));
+        CartItem existItem = cartItemRepository.findByCartIdAndProductIdAndSizeAndColor(
+            cartItem.getCart().getId(), 
+            cartItem.getProduct().getId(),
+            cartItem.getSize(),
+            cartItem.getColor()
+        ).orElseThrow(() -> new RuntimeException("CartItem not found in cart"));
 
         cartItemRepository.delete(existItem);
     }

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Getter
@@ -17,22 +18,35 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", nullable = false)
+    @JsonIgnoreProperties({"cartItems"})
     private Cart cart;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
     private int quantity;
 
+    private String size;
+    
+    private String color;
+
     private double totalPrice;
 
-    public CartItem(Cart cart, Product product, int quantity) {
+    public CartItem(Cart cart, Product product, int quantity, String size, String color) {
         this.cart = cart;
         this.product = product;
+        this.size = size;
+        this.color = color;
+        setQuantity(quantity);
+    }
+
+    public void setQuantity(int quantity) {
         this.quantity = quantity;
-        this.totalPrice = product.getPrice() * quantity;
+        this.totalPrice = (product != null && product.getPrice() != null) 
+            ? product.getPrice() * quantity 
+            : 0.0;
     }
 }

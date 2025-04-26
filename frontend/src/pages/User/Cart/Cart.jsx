@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { getCartItems, removeFromCart, getActiveCart } from '../../../services/cartService';
+import { AuthContext } from '../../../context/AuthContext';
 import './Cart.css'; // Import file CSS
 import Navbar from '../../../components/Navbar/Navbar';
+import { useNavigate } from 'react-router-dom';
 
 // Dữ liệu mẫu cho giỏ hàng - Thêm color và size
 const initialCartItems = [
@@ -14,8 +17,34 @@ const formatCurrency = (value) => {
 };
 
 function Cart() {
-  const [cartItems, setCartItems] = useState(initialCartItems);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { isLoggedIn } = useContext(AuthContext);
+  const navigate = useNavigate();
   const placeholderImage = "/images/image1.png";
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    fetchCartItems();
+  }, [isLoggedIn]);
+
+  const fetchCartItems = async () => {
+    try {
+      const activeCart = await getActiveCart();
+      if (activeCart && activeCart.id) {
+        const items = await getCartItems(activeCart.id);
+        setCartItems(items);
+      }
+    } catch (error) {
+      setError('Không thể lấy thông tin giỏ hàng: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Hàm xử lý thay đổi số lượng (cập nhật cho select)
   const handleQuantityChange = (itemId, newQuantity) => {
@@ -30,19 +59,27 @@ function Cart() {
   };
 
   // Hàm xử lý xóa sản phẩm
-  const handleRemoveItem = (itemId) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
+  const handleRemoveItem = async (cartItem) => {
+    try {
+      await removeFromCart(cartItem);
+      await fetchCartItems(); // Refresh cart items
+    } catch (error) {
+      setError('Không thể xóa sản phẩm: ' + error.message);
+    }
   };
 
   // Hàm tính tổng giá trị từng sản phẩm
   const calculateItemTotal = (item) => {
-    return item.price * item.quantity;
+    return item.product.price * item.quantity;
   };
 
   // Hàm tính tổng giá trị giỏ hàng
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
   };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Lỗi: {error}</div>;
 
   const subtotal = calculateSubtotal();
   const tax = subtotal * 0.1; // Ví dụ thuế 10%
@@ -67,18 +104,18 @@ function Cart() {
                 <div key={item.id} className="cart-item-card">
                   <div className="item-image-wrapper">
                     <img
-                      src={item.image || placeholderImage}
-                      alt={item.name}
+                      src={item.product.imgurls[0]}
+                      alt={item.product.name}
                       className="product-image-cart"
                     />
                   </div>
                   <div className="item-details-wrapper">
                     <div className="item-info">
-                      <p className="item-name">{item.name}</p>
+                      <p className="item-name">{item.product.name}</p>
                       <p className="item-attribute">Color: {item.color}</p>
                       <p className="item-attribute">Size: {item.size}</p>
                       {/* Thêm các thuộc tính khác nếu có */}
-                      <p className="item-price">{formatCurrency(item.price)}</p>
+                      <p className="item-price">{formatCurrency(item.product.price)}</p>
                     </div>
                     <div className="item-actions">
                       <div className="quantity-section">
@@ -104,8 +141,8 @@ function Cart() {
                    <div className="item-remove-wrapper">
                      <button
                         className="remove-button-x"
-                        onClick={() => handleRemoveItem(item.id)}
-                        aria-label={`Xóa ${item.name}`}
+                        onClick={() => handleRemoveItem(item)}
+                        aria-label={`Xóa ${item.product.name}`}
                       >
                         {'×'}
                       </button>

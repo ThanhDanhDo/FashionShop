@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Typography, Grid, Container } from "@mui/material";
 import Navbar from "../../../components/Navbar/Navbar";
 import { getProductById } from "../../../services/productService";
+import { addToCart, createCart } from '../../../services/cartService';
+import { AuthContext } from '../../../context/AuthContext';
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -14,6 +16,8 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { isLoggedIn, cartId, updateCartId } = useContext(AuthContext);
+  const [cartMessage, setCartMessage] = useState('');
 
   // Mock data cho relatedProducts (có thể thay bằng API sau này)
   const relatedProducts = [
@@ -76,6 +80,49 @@ const ProductDetail = () => {
     };
     fetchProduct();
   }, [id]);
+
+  const handleAddToCart = async () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+
+    if (!selectedSize || !selectedColor) {
+      setCartMessage('Vui lòng chọn size và màu sắc');
+      return;
+    }
+
+    if (!product.price || product.price <= 0) {
+      setCartMessage('Sản phẩm này hiện không có giá bán');
+      return;
+    }
+
+    if (!product.stock || product.stock <= 0) {
+      setCartMessage('Sản phẩm này đã hết hàng');
+      return;
+    }
+
+    try {
+      let cart = await createCart();
+      
+      const cartItem = {
+        cart: {
+          id: cart.id
+        },
+        product: {
+          id: product.id
+        },
+        quantity: quantity,
+        size: selectedSize,
+        color: selectedColor
+      };
+
+      await addToCart(cartItem);
+      setCartMessage('Đã thêm vào giỏ hàng thành công!');
+    } catch (error) {
+      setCartMessage('Không thể thêm vào giỏ hàng: ' + error.message);
+    }
+  };
 
   if (loading) return <div>Đang tải...</div>;
   if (error) return <div>Lỗi: {error}</div>;
@@ -358,6 +405,7 @@ const ProductDetail = () => {
             {/* Thêm vào giỏ hàng */}
             <div style={{ display: "flex", justifyContent: "flex-start" }}>
               <button
+                onClick={handleAddToCart}
                 style={{
                   padding: "12px 48px",
                   background: "black",
@@ -367,12 +415,13 @@ const ProductDetail = () => {
                   fontWeight: "bold",
                   cursor: "pointer",
                   fontSize: "18px",
-                  width: "300px", // Tăng chiều ngang nút
+                  width: "300px",
                 }}
               >
                 ADD TO CART
               </button>
             </div>
+            {cartMessage && <p style={{ color: 'red', marginTop: '10px' }}>{cartMessage}</p>}
           </div>
         </div>
         {/* Sản phẩm liên quan */}
