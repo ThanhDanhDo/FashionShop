@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 import { Avatar, Popover, MenuItem, IconButton, Badge } from '@mui/material';
@@ -7,15 +7,17 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import SearchIcon from '@mui/icons-material/Search';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { AuthContext } from '../../context/AuthContext';
+import { getCartItems } from '../../services/cartService';
 
 const Navbar = () => {
-  const { isLoggedIn, userName, logout } = useContext(AuthContext);
+  const { isLoggedIn, userName, logout, cartId } = useContext(AuthContext);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [isProductHovered, setIsProductHovered] = useState(false);
   const [isWomenHovered, setIsWomenHovered] = useState(false);
   const [isMenHovered, setIsMenHovered] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
 
   // Static category map (aligned with Products.jsx)
   const categoryMap = {
@@ -42,6 +44,24 @@ const Navbar = () => {
     Bags: 17,
     Belts: 18,
     Hats: 19,
+  };
+
+  useEffect(() => {
+    if (isLoggedIn && cartId) {
+      fetchCartItemCount();
+    } else {
+      setCartItemCount(0);
+    }
+  }, [isLoggedIn, cartId]);
+
+  const fetchCartItemCount = async () => {
+    try {
+      const items = await getCartItems(cartId);
+      setCartItemCount(items.length);
+    } catch (error) {
+      console.error('Không thể lấy số lượng sản phẩm trong giỏ hàng:', error);
+      setCartItemCount(0);
+    }
   };
 
   const handleAvatarClick = (event) => {
@@ -487,7 +507,7 @@ const Navbar = () => {
             <>
             <Link to="/cart" className="cart-link">
               <IconButton>
-                <Badge badgeContent={2} color="error">
+                <Badge badgeContent={cartItemCount} color="error">
                   <ShoppingCartIcon />
                 </Badge>
               </IconButton>

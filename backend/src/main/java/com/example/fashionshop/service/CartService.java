@@ -13,6 +13,7 @@ import com.example.fashionshop.model.Product;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class CartService {
@@ -30,22 +31,20 @@ public class CartService {
     }
 
     public List<CartItem> getCartItems(Long cartId) {
-        Cart cart = getCartById(cartId)
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
-
-        return cartItemRepository.findByCartId(cart.getId());
+        return cartItemRepository.findByCartId(cartId);
     }
 
     @Transactional
-    public Cart createCart(Long userId){
-        if(userId == null){
-            throw new IllegalArgumentException("Must fill in userId");
+    public Cart createCart(Long userId) {
+        if(userId == null) {
+            throw new IllegalArgumentException("UserId không được để trống");
         }
 
-        Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
-            .orElse(new Cart(userId, CartStatus.ACTIVE));
-        
-        return cartRepository.save(cart);
+        return cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
+            .orElseGet(() -> {
+                Cart newCart = new Cart(userId, CartStatus.ACTIVE);
+                return cartRepository.save(newCart);
+            });
     }
 
     @Transactional
@@ -101,5 +100,23 @@ public class CartService {
 
         cart.setStatus(cartStatus);
         cartRepository.save(cart);
+    }
+
+    @Transactional
+    public void updateCartTotals(Cart cart) {
+        if (cart.getCartItems() == null) {
+            cart.setCartItems(new ArrayList<>());
+        }
+        cart.calculateTotalPrice();
+        cart.updateTotalItems();
+        cartRepository.save(cart);
+    }
+
+    public Cart getActiveCart(Long userId) {
+        return cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
+            .orElseGet(() -> {
+                Cart newCart = new Cart(userId, CartStatus.ACTIVE);
+                return cartRepository.save(newCart);
+            });
     }
 }
