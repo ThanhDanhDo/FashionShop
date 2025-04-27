@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
 
+
 import java.util.List;
 
 import com.example.fashionshop.enums.Gender;
@@ -52,6 +53,6 @@ public class Product {
     private List<String> imgurls;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "gender", nullable = false, columnDefinition = "gender_type")
+    @Column(name = "gender", nullable = false) //, columnDefinition = "gender_type"
     private Gender gender;
 }

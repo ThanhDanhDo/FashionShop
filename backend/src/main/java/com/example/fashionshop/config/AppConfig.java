@@ -3,6 +3,7 @@ package com.example.fashionshop.config;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,6 +19,7 @@ import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity // Quan trọng! Kích hoạt @PreAuthorize
 public class AppConfig {
 
     @Bean
@@ -25,11 +27,10 @@ public class AppConfig {
         http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(authorize -> authorize
                         .requestMatchers("/api/auth/register",
-                                        "/api/db/test",
                                         "/api/auth/login",
                                         "/api/auth/verify-otp").permitAll()
-//                        .requestMatchers("/api/products/all").hasAuthority("ADMIN") //chỉ admin mới qua link đc
-//                        .requestMatchers("/api/**").authenticated()
+//                      .requestMatchers("/api/admin/**").hasAuthority("ADMIN") // Chỉ admin mới truy cập được
+                        .requestMatchers("/api/user/**").authenticated() // Người dùng nào cũng được, nhưng cần đăng nhập
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)

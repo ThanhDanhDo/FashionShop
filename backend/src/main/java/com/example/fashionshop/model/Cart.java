@@ -1,5 +1,6 @@
 package com.example.fashionshop.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,8 +9,6 @@ import lombok.Setter;
 
 import java.util.List;
 import java.util.ArrayList;
-
-import com.example.fashionshop.enums.CartStatus;
 
 @Entity
 @Getter
@@ -21,23 +20,23 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    private Long userId;
 
-    private CartStatus status;
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User user;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> cartItems;
+    private List<CartItem> cartItems = new ArrayList<>();
 
-    public Cart(Long userId, CartStatus status){
-        this.userId = userId;
-        this.status = status;
-        this.cartItems = new ArrayList<>();
-    }
+    private int totalItems;
 
-    public double calculateTotalPrice() {
-        return cartItems.stream()
-            .mapToDouble(cartItem -> cartItem.getProduct().getPrice() * cartItem.getQuantity())
-            .sum();
+    private double totalCartPrice;
+
+    public void updateTotalPrice() {
+        this.totalItems = this.cartItems.size();
+        this.totalCartPrice = this.cartItems.stream()
+                .mapToDouble(cartItem -> cartItem.getProduct().getPrice() * cartItem.getQuantity())
+                .sum();
     }
 }

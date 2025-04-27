@@ -9,6 +9,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import com.example.fashionshop.model.Product;
 import com.example.fashionshop.model.Category;
 import com.example.fashionshop.repository.ProductRepository;
+
+import jakarta.transaction.Transactional;
+
 import com.example.fashionshop.repository.CategoryRepository;
 
 import jakarta.transaction.Transactional;
@@ -16,6 +19,7 @@ import jakarta.transaction.Transactional;
 import java.util.Optional;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,7 +29,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
 
-    @Transactional
+//    @Transactional
     private Category findOrCreateCategory(Long cateId, String name, Long parentId) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Category name cannot be empty");
@@ -174,7 +178,7 @@ public class ProductService {
         return result;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     public Product addProduct(Product product) {
         if (product.getMainCategory() != null) {
@@ -188,8 +192,8 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Transactional
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional //Hàm này update được có 4 thuộc tính à, size color hông được
     public Product updateProduct(Product updatedProduct) {
         Product existingProduct = productRepository.findById(updatedProduct.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -213,7 +217,7 @@ public class ProductService {
         return productRepository.save(existingProduct);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public void deleteProduct(Long id) {
         Product product = getProductById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
@@ -221,7 +225,7 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<Product> addProducts(List<Product> products) {
         if (products == null || products.isEmpty()) {
             throw new RuntimeException("Product list is empty or null");
@@ -235,7 +239,7 @@ public class ProductService {
         return addedProducts;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Map<String, List<Product>> updateProducts(List<Product> products) {
         if (products == null || products.isEmpty()) {
             throw new RuntimeException("Product list is empty or null");

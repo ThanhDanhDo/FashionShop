@@ -2,6 +2,8 @@ package com.example.fashionshop.controller;
 
 import com.example.fashionshop.model.Product;
 import com.example.fashionshop.model.Category;
+import com.example.fashionshop.repository.CategoryRepository;
+import com.example.fashionshop.service.CategoryService;
 import com.example.fashionshop.service.ProductService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,10 +34,12 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class ProductController {
     private final ProductService productService;
+    private final CategoryRepository categoryRepository;
 
     @Autowired
-    public ProductController(ProductService productService) {
+    public ProductController(ProductService productService, CategoryRepository categoryRepository) {
         this.productService = productService;
+        this.categoryRepository = categoryRepository;
     }
 
     @GetMapping("/id/{id}")
