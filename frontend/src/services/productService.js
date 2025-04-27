@@ -50,7 +50,6 @@ export const filterProducts = async ({
 
   const url = `${API_BASE_URL}/filter?${queryParams.toString()}`;
   console.log("Filter products URL:", url);
-  console.log("Filter params:", { gender, mainCategoryId, subCategoryId, sizes, colors, priceRanges });
 
   const response = await fetch(url, {
     method: "GET",

@@ -26,20 +26,20 @@ const Signup = () => {
     try {
       const formDataWithUpperCaseGender = {
         ...formData,
-        gender: formData.gender.toUpperCase(), // Chuyển gender thành chữ hoa
+        gender: formData.gender,
       };
 
       await register(formDataWithUpperCaseGender);
-      alert('OTP đã được gửi tới email của bạn. Vui lòng kiểm tra và xác thực.');
+      alert('OTP has been sent to your email. Please check and verify.');
 
-      const otp = prompt('Nhập mã OTP:');
+      const otp = prompt('Input OTP:');
 
       await verifyOtp(otp, formData.email);
 
-      alert('Đăng ký thành công!');
+      alert('Registration successful!');
       navigate('/login');
     } catch (error) {
-      console.error('Lỗi xác thực OTP:', error.message);
+      console.error('OTP authentication error:', error.message);
       alert(error.message);
     }
   };
@@ -49,32 +49,32 @@ const Signup = () => {
       <Navbar isLoggedIn={false} />
       <div className="page-container">
         <div className="breadcrumb">
-          <Link to="/">Trang chủ</Link>
+          <Link to="/">Home</Link>
           <span> {'>'} </span>
-          <span>Đăng ký</span>
+          <span>Register</span>
         </div>
 
         <div className="signup-container">
           <div className="signup-form-section">
             <div className="signup-form-wrapper">
-              <h2>ĐĂNG KÝ TÀI KHOẢN MỚI</h2>
+              <h2>REGISTER NEW ACCOUNT</h2>
             
               <form onSubmit={handleSubmit} className="signup-form">
                 <div className="form-group">
-                  <label htmlFor="email">ĐỊA CHỈ EMAIL<span className="required">*</span></label>
+                  <label htmlFor="email">EMAIL ADDRESS<span className="required">*</span></label>
                   <input
                     type="email"
                     id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Nhập email hợp lệ"
+                    placeholder="Enter a valid email"
                     required
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="password">MẬT KHẨU<span className="required">*</span></label>
+                  <label htmlFor="password">PASSWORD<span className="required">*</span></label>
                   <div className="password-input">
                     <input
                       type="password"
@@ -82,26 +82,25 @@ const Signup = () => {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder="Nhập mật khẩu"
+                      placeholder="Enter password"
                       required
                     />
                     <span className="password-toggle">👁️</span>
                   </div>
                   <p className="password-hint">
-                    Mật khẩu phải có từ 8 đến 20 ký tự bao gồm cả chữ và số. Có thể sử dụng các 
-                    ký hiệu sau {"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"}
+                  Password must be between 8 and 20 characters including letters and numbers. The following symbols can be used {"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"}
                   </p>
                 </div>
 
                 <div className="form-group">
-                  <label>TÊN NGƯỜI DÙNG<span className="required">*</span></label>
+                  <label>USER NAME<span className="required">*</span></label>
                   <div className="name-inputs">
                     <input
                       type="text"
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      placeholder="Họ"
+                      placeholder="Last Name"
                       required
                     />
                     <input
@@ -109,7 +108,7 @@ const Signup = () => {
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      placeholder="Tên"
+                      placeholder="First Name"
                       required
                     />
                   </div>
@@ -117,36 +116,36 @@ const Signup = () => {
 
                 <div className="form-group">
                   <div className="gender-options">
-                    <label>GIỚI TÍNH</label>
+                    <label>GENDER</label>
                     <label className="radio-label">
                       <input
                         type="radio"
                         name="gender"
-                        value="nam"
-                        checked={formData.gender === 'nam'}
+                        value="Men"
+                        checked={formData.gender === 'Men'}
                         onChange={handleChange}
                       />
-                      Nam
+                      Men
                     </label>
                     <label className="radio-label">
                       <input
                         type="radio"
                         name="gender"
-                        value="nu"
-                        checked={formData.gender === 'nu'}
+                        value="Women"
+                        checked={formData.gender === 'Women'}
                         onChange={handleChange}
                       />
-                      Nữ
+                      Women
                     </label>
                     <label className="radio-label">
                       <input
                         type="radio"
                         name="gender"
-                        value="other"
-                        checked={formData.gender === 'other'}
+                        value="Unisex"
+                        checked={formData.gender === 'Unisex'}
                         onChange={handleChange}
                       />
-                      Bỏ chọn
+                      Other
                     </label>
                   </div>
                 </div>
@@ -154,16 +153,16 @@ const Signup = () => {
                 <div className="form-group terms">
                   <label className="checkbox-label">
                     <input type="checkbox" required />
-                    <span>Tôi đồng ý với <Link to="/terms">Điều khoản dịch vụ</Link> và <Link to="/privacy">Chính sách bảo mật</Link></span>
+                    <span>I agree with <Link to="/terms">Terms of Service</Link> và <Link to="/privacy">Privacy Policy</Link></span>
                   </label>
                 </div>
 
                 <button type="submit" className="signup-button">
-                  ĐĂNG KÝ
+                  REGISTER
                 </button>
 
                 <p className="login-link">
-                  Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
+                  Already have an account? <Link to="/login">Log in</Link>
                 </p>
               </form>
             </div>

@@ -29,7 +29,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
 
-//    @Transactional
+    // @Transactional
     private Category findOrCreateCategory(Long cateId, String name, Long parentId) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Category name cannot be empty");
@@ -101,33 +101,20 @@ public class ProductService {
             List<String> colors,
             List<String> priceRanges,
             Pageable pageable) {
-        // Validate and normalize gender
-        String[] genderValues = new String[0]; // Default to empty array instead of null
+
+        String gendersCsv = "";
         if (gender != null && !gender.equalsIgnoreCase("all")) {
             if (gender.equalsIgnoreCase("Men")) {
-                genderValues = new String[] { "Men", "Unisex" };
+                gendersCsv = "Men,Unisex";
             } else if (gender.equalsIgnoreCase("Women")) {
-                genderValues = new String[] { "Women", "Unisex" };
+                gendersCsv = "Women,Unisex";
             } else if (gender.equalsIgnoreCase("Unisex")) {
-                genderValues = new String[] { "Unisex" };
+                gendersCsv = "Unisex";
             } else {
                 throw new IllegalArgumentException("Invalid gender value: " + gender);
             }
         }
 
-        // Validate mainCategoryId
-        if (mainCategoryId != null) {
-            categoryRepository.findById(mainCategoryId)
-                    .orElseThrow(() -> new IllegalArgumentException("Main category not found: " + mainCategoryId));
-        }
-
-        // Validate subCategoryId
-        if (subCategoryId != null) {
-            categoryRepository.findById(subCategoryId)
-                    .orElseThrow(() -> new IllegalArgumentException("Sub category not found: " + subCategoryId));
-        }
-
-        // Normalize priceRanges
         Double priceMin = null;
         Double priceMax = null;
         if (priceRanges != null && !priceRanges.isEmpty()) {
@@ -145,35 +132,19 @@ public class ProductService {
             }
         }
 
-        // Convert sizes and colors to arrays, default to empty array if null or empty
-        String[] sizesArray = sizes != null && !sizes.isEmpty() ? sizes.toArray(new String[0]) : new String[0];
-        String[] colorsArray = colors != null && !colors.isEmpty() ? colors.toArray(new String[0]) : new String[0];
-
-        System.out.println("Filter params: gender=" + Arrays.toString(genderValues) +
-                ", mainCategoryId=" + mainCategoryId +
-                ", subCategoryId=" + subCategoryId +
-                ", sizes=" + Arrays.toString(sizesArray) +
-                ", colors=" + Arrays.toString(colorsArray) +
-                ", priceMin=" + priceMin +
-                ", priceMax=" + priceMax);
+        // Chuyển sizes và colors thành CSV String
+        String sizesCsv = (sizes != null && !sizes.isEmpty()) ? String.join(",", sizes) : "";
+        String colorsCsv = (colors != null && !colors.isEmpty()) ? String.join(",", colors) : "";
 
         Page<Product> result = productRepository.findByFilters(
-                genderValues,
+                gendersCsv,
                 mainCategoryId,
                 subCategoryId,
-                sizesArray,
-                colorsArray,
+                sizesCsv,
+                colorsCsv,
                 priceMin,
                 priceMax,
                 pageable);
-
-        if (result.isEmpty()) {
-            System.out.println("No products found for filters: gender=" + Arrays.toString(genderValues) +
-                    ", mainCategoryId=" + mainCategoryId +
-                    ", subCategoryId=" + subCategoryId);
-        } else {
-            System.out.println("Found " + result.getTotalElements() + " products for filters");
-        }
 
         return result;
     }
@@ -193,7 +164,7 @@ public class ProductService {
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @Transactional //Hàm này update được có 4 thuộc tính à, size color hông được
+    @Transactional // Hàm này update được có 4 thuộc tính à, size color hông được
     public Product updateProduct(Product updatedProduct) {
         Product existingProduct = productRepository.findById(updatedProduct.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
