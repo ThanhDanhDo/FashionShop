@@ -1,5 +1,6 @@
 package com.example.fashionshop.model;
 
+import com.example.fashionshop.enums.Gender;
 import com.example.fashionshop.enums.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -34,6 +35,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    private Gender gender;
 
     // Một user có nhiều địa chỉ
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL) // user trong Address

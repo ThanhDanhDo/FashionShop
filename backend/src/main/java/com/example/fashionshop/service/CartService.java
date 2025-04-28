@@ -1,19 +1,19 @@
 package com.example.fashionshop.service;
 
+import com.example.fashionshop.model.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import com.example.fashionshop.repository.CartItemRepository;
 import com.example.fashionshop.repository.CartRepository;
-import com.example.fashionshop.enums.CartStatus;
 import com.example.fashionshop.model.Cart;
 import com.example.fashionshop.model.CartItem;
 import com.example.fashionshop.model.Product;
 
 import java.util.Optional;
 import java.util.List;
-import java.util.ArrayList;
 
 @Service
 public class CartService {
@@ -21,7 +21,7 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
 
     @Autowired
-    public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository){
+    public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
     }
@@ -31,92 +31,72 @@ public class CartService {
     }
 
     public List<CartItem> getCartItems(Long cartId) {
-        return cartItemRepository.findByCartId(cartId);
+        Cart cart = getCartById(cartId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        return cartItemRepository.findByCartId(cart.getId());
+    }
+
+    public Cart getCartByUserId(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId);
+        return cart;
     }
 
     @Transactional
-    public Cart createCart(Long userId) {
-        if(userId == null) {
-            throw new IllegalArgumentException("UserId không được để trống");
-        }
+    public Cart findUserCart(User user) {
+        Cart cart = cartRepository.findByUserId(user.getId());
 
-        return cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
-            .orElseGet(() -> {
-                Cart newCart = new Cart(userId, CartStatus.ACTIVE);
-                return cartRepository.save(newCart);
-            });
+        int totalItems = 0;
+        int totalCartPrice = 0;
+        for (CartItem cartItem : cart.getCartItems()) {
+            totalItems += cartItem.getQuantity();
+            totalCartPrice += cartItem.getTotalPrice();
+        }
+        cart.setTotalItems(totalItems);
+        cart.setTotalCartPrice(totalCartPrice);
+
+        return cartRepository.save(cart);
     }
 
     @Transactional
     public void clearCart(Long cartId) {
         Cart cart = getCartById(cartId)
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        cart.getCartItems().clear();
         cartItemRepository.deleteByCartId(cartId);
-    }
-
-    @Transactional
-    public void deleteCart(Long cartId) {
-        Cart cart = getCartById(cartId)
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
-
-        cartItemRepository.deleteByCartId(cartId);
-        cartRepository.delete(cart);
-    }
-
-    @Transactional
-    public void updateStatusCart(Long cartId, CartStatus cartStatus) {
-        Cart cart = getCartById(cartId)
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
-    
-        if (cart.getCartItems().isEmpty()){
-            throw new RuntimeException("Cannot checkout an empty cart");
-        }
-
-        if (cartStatus == CartStatus.ORDERED) {
-            List<CartItem> validItems = cart.getCartItems().stream()
-                .filter(item -> item.getQuantity() <= item.getProduct().getStock())
-                .toList();
-    
-            cart.setCartItems(validItems);
-            
-            validItems.forEach(item -> {
-                Product product = item.getProduct();
-                product.setStock(product.getStock() - item.getQuantity());
-            });
-    
-            if(validItems.isEmpty()){
-                throw new RuntimeException("Cannot place an order with no available items.");
-            }
-        }
-
-        if (cartStatus == CartStatus.CANCELED) {
-            cart.getCartItems().forEach(item -> 
-                item.getProduct().setStock(item.getProduct().getStock() + item.getQuantity())
-            );
-    
-            cartRepository.delete(cart);
-            return;
-        }
-
-        cart.setStatus(cartStatus);
+        cart.updateTotalPrice();
         cartRepository.save(cart);
     }
 
     @Transactional
-    public void updateCartTotals(Cart cart) {
-        if (cart.getCartItems() == null) {
-            cart.setCartItems(new ArrayList<>());
+    public CartItem addCartItem(User user, Product product, int quantity, String size, String color) {
+        Cart cart = findUserCart(user);
+
+        CartItem existingCartItem = cartItemRepository.findByCartAndProductAndSizeAndColor(cart, product, size, color);
+
+        if (existingCartItem == null) {
+            CartItem cartItem = new CartItem();
+            cartItem.setCart(cart);
+            cartItem.setProduct(product);
+            cartItem.setQuantity(quantity);
+            cartItem.setSize(size);
+            cartItem.setColor(color);
+            double totalPrice = quantity * product.getPrice();
+            cartItem.setTotalPrice(totalPrice);
+            cartItemRepository.save(cartItem);
+
+            cart.getCartItems().add(cartItem);
+            cartRepository.save(cart);
+
+            return cartItem;
+        } else {
+            int newQuantity = existingCartItem.getQuantity() + quantity;
+            existingCartItem.setQuantity(newQuantity);
+            existingCartItem.setTotalPrice(newQuantity * product.getPrice());
+
+            return cartItemRepository.save(existingCartItem);
         }
-        cart.calculateTotalPrice();
-        cart.updateTotalItems();
-        cartRepository.save(cart);
     }
 
-    public Cart getActiveCart(Long userId) {
-        return cartRepository.findByUserIdAndStatus(userId, CartStatus.ACTIVE)
-            .orElseGet(() -> {
-                Cart newCart = new Cart(userId, CartStatus.ACTIVE);
-                return cartRepository.save(newCart);
-            });
-    }
 }

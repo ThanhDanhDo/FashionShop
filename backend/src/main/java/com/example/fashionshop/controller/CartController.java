@@ -3,143 +3,199 @@ package com.example.fashionshop.controller;
 import com.example.fashionshop.enums.CartStatus;
 import com.example.fashionshop.model.Cart;
 import com.example.fashionshop.model.CartItem;
+import com.example.fashionshop.model.Product;
 import com.example.fashionshop.model.User;
+import com.example.fashionshop.repository.CartRepository;
 import com.example.fashionshop.repository.UserRepository;
-import com.example.fashionshop.repository.CartItemRepository;
+import com.example.fashionshop.request.AddProductRequest;
+import com.example.fashionshop.response.ApiResponse;
+import com.example.fashionshop.service.CartItemService;
 import com.example.fashionshop.service.CartService;
+import com.example.fashionshop.service.ProductService;
+import com.example.fashionshop.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/cart")
+@RequestMapping("/api/cart")
 public class CartController {
     private final CartService cartService;
+    private final UserService userService;
     private final UserRepository userRepository;
-    private final CartItemRepository cartItemRepository;
+    private final ProductService productService;
+    private final CartItemService cartItemService;
+    private final CartRepository cartRepository;
 
-    public CartController(CartService cartService, UserRepository userRepository, CartItemRepository cartItemRepository) {
+    public CartController(
+            CartService cartService,
+            UserService userService,
+            UserRepository userRepository,
+            ProductService productService,
+            CartItemService cartItemService,
+            CartRepository cartRepository) {
         this.cartService = cartService;
+        this.userService = userService;
         this.userRepository = userRepository;
-        this.cartItemRepository = cartItemRepository;
+        this.productService = productService;
+        this.cartItemService = cartItemService;
+        this.cartRepository = cartRepository;
     }
 
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
-        return user.getId();
+        return Long.parseLong(authentication.getName()); // Assumes username is userId
     }
 
     private boolean hasRole(String role) {
         return SecurityContextHolder.getContext().getAuthentication().getAuthorities()
-               .stream()
-               .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(role));
+                .stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals(role));
     }
-    
 
     @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     @GetMapping("/{cartId}")
-    public ResponseEntity<Cart> getCartById(@PathVariable Long cartId) {
-        Long userId = getCurrentUserId();
+    public ResponseEntity<Cart> getCartById(Authentication authentication, @PathVariable Long cartId) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+        Long userId = user.getId();
+
         Optional<Cart> cart = cartService.getCartById(cartId);
-    
+
         if (cart.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-    
-        // Allow ADMIN to view any cart
-        if (hasRole("ADMIN") || cart.get().getUserId().equals(userId)) {
+        if (hasRole("ADMIN") || cart.get().getUser().getId().equals(userId)) {
             return ResponseEntity.ok(cart.get());
         }
-    
+
         return ResponseEntity.status(403).build(); // 403 Forbidden
     }
-    
-    @PreAuthorize("hasAuthority('USER')")
+
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
     @GetMapping("/{cartId}/items")
-    public ResponseEntity<List<CartItem>> getCartItems(@PathVariable Long cartId) {
-        Long userId = getCurrentUserId();
-        Cart cart = cartService.getCartById(cartId)
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
+    public ResponseEntity<List<CartItem>> getCartItems(Authentication authentication, @PathVariable Long cartId) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+        Long userId = user.getId();
 
-        // Kiểm tra quyền truy cập
-        if (!cart.getUserId().equals(userId)) {
-            return ResponseEntity.status(403).build();
+        Optional<Cart> cart = cartService.getCartById(cartId);
+
+        if (cart.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
 
-        // Lấy danh sách cart items với đầy đủ thông tin product
-        List<CartItem> items = cartItemRepository.findByCartId(cartId);
-        return ResponseEntity.ok(items);
-    }
-    
+        if (hasRole("ADMIN") || cart.get().getUser().getId().equals(userId)) {
+            return ResponseEntity.ok(cartService.getCartItems(cartId));
+        }
 
-    @PreAuthorize("hasAuthority('USER')")
-    @PostMapping
-    public ResponseEntity<Cart> createCart() {
-        Long userId = getCurrentUserId();
-        return ResponseEntity.ok(cartService.createCart(userId));
+        return ResponseEntity.status(403).build();
     }
 
     @PreAuthorize("hasAuthority('USER')")
-    @DeleteMapping("/{cartId}/clear")
-    public ResponseEntity<Void> clearCart(@PathVariable Long cartId) {
-        Long userId = getCurrentUserId();
-        Optional<Cart> cart = cartService.getCartById(cartId);
-
-        if (cart.isEmpty() || !cart.get().getUserId().equals(userId)) {
-            return ResponseEntity.status(403).build();
+    @GetMapping
+    public ResponseEntity<Cart> findUserCartHandler(Authentication authentication) throws Exception {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
-
-        cartService.clearCart(cartId);
-        return ResponseEntity.ok().build();
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+        Cart cart = cartService.findUserCart(user);
+        return ResponseEntity.ok(cart);
     }
 
-    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
-    @DeleteMapping("/{cartId}")
-    public ResponseEntity<Void> deleteCart(@PathVariable Long cartId) {
-        Long userId = getCurrentUserId();
-        Optional<Cart> cart = cartService.getCartById(cartId);
+    @PreAuthorize("hasAuthority('USER')")
+    @DeleteMapping("/clear")
+    public ResponseEntity<Void> clearCart(Authentication authentication) throws Exception {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
 
-        if (cart.isEmpty() || !cart.get().getUserId().equals(userId)) {
+        Cart cart = cartRepository.findByUserId(user.getId());
+        if (cart == null) {
+            throw new RuntimeException("Cart not found for user");
+        }
+        Optional<Cart> cartAfterClear = cartService.getCartById(cart.getId());
+
+        if (cartAfterClear.isEmpty() || !cartAfterClear.get().getUser().getId().equals(user.getId())) {
             return ResponseEntity.status(403).build();
         }
 
-        cartService.deleteCart(cartId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
-    @PutMapping("/{cartId}/status")
-    public ResponseEntity<Cart> updateStatusCart(@PathVariable Long cartId, @RequestParam CartStatus status) {
-        Long userId = getCurrentUserId();
-        Optional<Cart> cart = cartService.getCartById(cartId);
-
-        if (cart.isEmpty() || !cart.get().getUserId().equals(userId)) {
-            return ResponseEntity.status(403).build();
-        }
-
+        cartService.clearCart(cart.getId());
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasAuthority('USER')")
-    @GetMapping("/active")
-    public ResponseEntity<Cart> getActiveCart() {
-        try {
-            Long userId = getCurrentUserId();
-            Cart activeCart = cartService.getActiveCart(userId);
-            return ResponseEntity.ok(activeCart);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+    @PutMapping("/add")
+    public ResponseEntity<CartItem> addCartItemToCart(Authentication authentication, @RequestBody AddProductRequest req)
+            throws Exception {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email);
+        Product product = productService.getProductById(req.getProductId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+
+        CartItem item = cartService.addCartItem(user, product, req.getQuantity(), req.getSize(), req.getColor());
+
+        return new ResponseEntity<>(item, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('USER')")
+    @DeleteMapping("/items/{cartItemId}")
+    public ResponseEntity<ApiResponse> deleteCartItem(Authentication authentication, @PathVariable Long cartItemId)
+            throws Exception {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+
+        Cart cart = cartRepository.findByUserId(user.getId());
+        if (cart == null) {
+            throw new RuntimeException("Cart not found for user");
+        }
+
+        cartItemService.removeCartItem(user.getId(), cart.getId(), cartItemId);
+
+        ApiResponse res = new ApiResponse();
+        res.setMessage("Item Remove From Cart");
+        res.setSuccess(true);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasAuthority('USER')")
+    @PutMapping("/items/{cartItemId}")
+    public ResponseEntity<CartItem> updateCartItem(Authentication authentication, @PathVariable Long cartItemId,
+            @RequestBody CartItem cartItem) throws Exception {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+
+        CartItem updatedCartItem = null;
+        if (cartItem.getQuantity() > 0) {
+            updatedCartItem = cartItemService.updateCartItem(user.getId(), cartItemId, cartItem);
+        }
+        return new ResponseEntity<>(updatedCartItem, HttpStatus.OK);
     }
 }

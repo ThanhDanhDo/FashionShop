@@ -45,7 +45,7 @@ public class CategoryService {
         return categoryRepository.findByParentCategoryIsNull();
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     public Category addCategory(Category category) {
         if (category.getName() == null || category.getName().trim().isEmpty()) {
@@ -54,7 +54,7 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     public Category updateCategory(Long id, Category updatedCategory) {
         Category existingCategory = categoryRepository.findById(id)
@@ -64,7 +64,7 @@ public class CategoryService {
         return categoryRepository.save(existingCategory);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
             throw new RuntimeException("Category not found with id: " + id);
