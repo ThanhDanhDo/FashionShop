@@ -1,16 +1,13 @@
 package com.example.fashionshop.controller;
 
 import com.example.fashionshop.enums.OrderStatus;
-import com.example.fashionshop.model.Address;
-import com.example.fashionshop.model.Cart;
-import com.example.fashionshop.model.Order;
-import com.example.fashionshop.model.User;
+import com.example.fashionshop.model.*;
 import com.example.fashionshop.repository.AddressRepository;
 import com.example.fashionshop.repository.CartRepository;
+import com.example.fashionshop.repository.PaymentOrderRepository;
 import com.example.fashionshop.repository.UserRepository;
-import com.example.fashionshop.service.AddressService;
-import com.example.fashionshop.service.CartService;
-import com.example.fashionshop.service.OrderService;
+import com.example.fashionshop.response.PaymentLinkResponse;
+import com.example.fashionshop.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,6 +31,9 @@ public class OrderController {
     private final CartService cartService;
     private final AddressRepository addressRepository;
     private final AddressService addressService;
+    private final RevenueService revenueService;
+    private final PaymentService paymentService;
+    private final PaymentOrderRepository paymentOrderRepository;
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
@@ -97,24 +97,40 @@ public class OrderController {
 
     @PreAuthorize("hasAuthority('USER')")
     @PostMapping("/create")
-    public Order createOrder(Authentication authentication, @RequestBody Address addr) {
+    public ResponseEntity<PaymentLinkResponse> createOrderHandler(
+            Authentication authentication, @RequestBody Address shippingAddress) throws Exception{
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
         }
         String email = authentication.getName();
         User user = userRepository.findByEmail(email);
-
         Cart cart = cartService.getCartByUserId(user.getId());
         if (cart == null || cart.getTotalItems() == 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, user.getId() + " Cart is empty");
         }
         // Lấy địa chỉ giao hàng từ request
-        Address address = addressService.getAddressById(addr.getId());
-        if (address == null || !user.getAddresses().contains(address)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid shipping address");
+        Address address;
+        if (shippingAddress.getId() == null) {
+            // Chưa có id => đây là địa chỉ mới, cần addAddress
+            address = addressService.addAddress(email, shippingAddress);
+        } else {
+            // Có id => lấy địa chỉ cũ ra
+            address = addressService.getAddressById(shippingAddress.getId());
+            if (address == null || !user.getAddresses().contains(address)) {
+                address = addressService.addAddress(email, shippingAddress);
+            }
         }
-        return orderService.createOrder(user, cart, address);
+
+        Order order = orderService.createOrder(user, cart, address);
+        PaymentOrder paymentOrder = paymentService.createOrder(user, order);
+        PaymentLinkResponse res = new PaymentLinkResponse();
+        String paypalPaymentLink = paymentService.createPaypalPaymentLink(user, paymentOrder.getAmount() ,order);
+        res.setPayment_link_url(paypalPaymentLink);
+        paymentOrderRepository.save(paymentOrder);
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
+
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{orderId}/status")
@@ -126,9 +142,14 @@ public class OrderController {
 
     @PreAuthorize("hasAuthority('USER')")
     @PutMapping("/{orderId}/cancel")
-    public ResponseEntity<Order> cancelOrder(
-            Authentication authentication,
-            @PathVariable Long orderId) {
-        return ResponseEntity.ok(orderService.cancelOrder(authentication, orderId));
+    public ResponseEntity<Order> cancelOrder(Authentication authentication, @PathVariable Long orderId) {
+        Order order = orderService.cancelOrder(authentication, orderId);
+        Report report = revenueService.getReport();
+        report.setCanceledOrders(report.getCanceledOrders() + 1);
+        report.setTotalRefunds(report.getTotalRefunds() + order.getTotalOrderPrice());
+        revenueService.updateReport(report);
+        return ResponseEntity.ok(order);
     }
+
+
 }
