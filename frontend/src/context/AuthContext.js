@@ -1,30 +1,38 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { getUserProfile } from '../services/userService'; // Import API lấy thông tin user
+import { getUserProfile } from '../services/userService';
+import { getActiveCart, getCartItems } from '../services/cartService';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Thêm trạng thái loading
-  const [cartId, setCartId] = useState(null); // Thêm state để lưu cartId
+  const [loading, setLoading] = useState(true);
+  const [cartId, setCartId] = useState(null);
+  const [cartItemCount, setCartItemCount] = useState(0); // Thêm state cho cartItemCount
 
-  // Kiểm tra JWT token khi khởi động
   useEffect(() => {
     const jwt = document.cookie.split('; ').find(row => row.startsWith('jwt='));
     if (jwt) {
       const token = jwt.split('=')[1];
-      // Lưu token vào localStorage để sử dụng cho các API calls
       localStorage.setItem('jwt', token);
-      
-      // Gọi API để lấy thông tin user dựa trên token
+  
       getUserProfile()
         .then((userData) => {
           setUser(userData);
-          // Có thể thêm logic để lấy cartId của user ở đây nếu cần
+          return getActiveCart();
+        })
+        .then((cartData) => {
+          if (cartData && cartData.id) {
+            setCartId(cartData.id);
+            return getCartItems(cartData.id);
+          }
+          return [];
+        })
+        .then((items) => {
+          setCartItemCount(items.length);
         })
         .catch((error) => {
-          console.error('Không thể khôi phục trạng thái đăng nhập:', error);
-          // Xóa token nếu không hợp lệ
+          console.error('Không thể khôi phục trạng thái đăng nhập hoặc giỏ hàng:', error);
           localStorage.removeItem('jwt');
           document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         })
@@ -35,24 +43,37 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
-
+  
   const login = (userData) => {
     if (userData) {
       setUser(userData);
-      // Lấy JWT token từ cookie sau khi đăng nhập
       const jwt = document.cookie.split('; ').find(row => row.startsWith('jwt='));
       if (jwt) {
         const token = jwt.split('=')[1];
         localStorage.setItem('jwt', token);
       }
+      getActiveCart()
+        .then((cartData) => {
+          if (cartData && cartData.id) {
+            setCartId(cartData.id);
+            return getCartItems(cartData.id);
+          }
+          return [];
+        })
+        .then((items) => {
+          setCartItemCount(items.length);
+        })
+        .catch((error) => {
+          console.error('Không thể lấy giỏ hàng sau khi đăng nhập:', error);
+        });
     }
   };
 
   const logout = () => {
     setUser(null);
-    setCartId(null); // Reset cartId khi logout
+    setCartId(null);
+    setCartItemCount(0); // Reset số lượng giỏ hàng
     localStorage.removeItem('jwt');
-    // Xóa cookie JWT
     document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
   };
 
@@ -60,24 +81,39 @@ export const AuthProvider = ({ children }) => {
     setCartId(newCartId);
   };
 
+  const refreshCartItemCount = async () => {
+    if (cartId) {
+      try {
+        const items = await getCartItems(cartId);
+        setCartItemCount(items.length);
+      } catch (error) {
+        console.error('Không thể làm mới số lượng giỏ hàng:', error);
+        setCartItemCount(0);
+      }
+    } else {
+      setCartItemCount(0);
+    }
+  };
+
   const isLoggedIn = !!user;
   const userName = user ? `${user.firstName} ${user.lastName}` : 'Guest';
 
-  // Đợi loading xong mới render children
   if (loading) {
-    return <div>Loading...</div>; // Hiển thị loading khi đang kiểm tra
+    return <div>Loading...</div>;
   }
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        isLoggedIn, 
-        userName, 
-        login, 
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        userName,
+        login,
         logout,
         user,
         cartId,
-        updateCartId
+        updateCartId,
+        cartItemCount, // Thêm cartItemCount
+        refreshCartItemCount, // Thêm hàm refresh
       }}
     >
       {children}

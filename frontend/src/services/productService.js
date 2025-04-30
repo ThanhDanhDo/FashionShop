@@ -25,7 +25,6 @@ export const searchProducts = async (name) => {
   return data;
 };
 
-
 export const filterProducts = async ({
   gender,
   mainCategoryId,
@@ -67,12 +66,24 @@ export const filterProducts = async ({
 };
 
 export const getProductById = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/id/${id}`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
-  if (!response.ok) throw new Error(`Không thể lấy thông tin sản phẩm với ID ${id}!`);
-  const data = await response.json();
-  console.log("getProductById response:", data);
-  return data;
+  try {
+    const response = await fetch(`${API_BASE_URL}/id/${id}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (!response.ok) {
+      throw new Error(`Không thể lấy thông tin sản phẩm với ID ${id}!`);
+    }
+    const data = await response.json();
+    console.log("getProductById response:", data);
+    // Đảm bảo size và color là mảng, nếu không có thì trả về mảng rỗng
+    return {
+      ...data,
+      size: Array.isArray(data.size) ? data.size : [],
+      color: Array.isArray(data.color) ? data.color : [],
+    };
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin sản phẩm:", error);
+    throw error;
+  }
 };

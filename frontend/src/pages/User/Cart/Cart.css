@@ -349,4 +349,34 @@ body {
        height: 120px;
    }
 
+   .success-message {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  
+  .item-attribute select {
+    margin-left: 10px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .item-attribute select:disabled {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+  }
+  
+  .item-attribute select:enabled {
+    cursor: pointer;
+  }
+  
+  .item-attribute label {
+    margin-right: 5px;
+  }
+
 }
