@@ -1,83 +1,118 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { getUserProfile } from '../services/userService'; // Import API lấy thông tin user
+import { useNavigate } from 'react-router-dom';
+import { getUserProfile } from '../services/userService';
+import { getActiveCart, getCartItems } from '../services/cartService';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Thêm trạng thái loading
-  const [cartId, setCartId] = useState(null); // Thêm state để lưu cartId
+  const [loading, setLoading] = useState(true);
+  const [cartId, setCartId] = useState(null);
+  const [cartItemCount, setCartItemCount] = useState(0);
+  const navigate = useNavigate();
 
-  // Kiểm tra JWT token khi khởi động
   useEffect(() => {
-    const jwt = document.cookie.split('; ').find(row => row.startsWith('jwt='));
-    if (jwt) {
-      const token = jwt.split('=')[1];
-      // Lưu token vào localStorage để sử dụng cho các API calls
-      localStorage.setItem('jwt', token);
-      
-      // Gọi API để lấy thông tin user dựa trên token
-      getUserProfile()
-        .then((userData) => {
-          setUser(userData);
-          // Có thể thêm logic để lấy cartId của user ở đây nếu cần
-        })
-        .catch((error) => {
-          console.error('Không thể khôi phục trạng thái đăng nhập:', error);
-          // Xóa token nếu không hợp lệ
-          localStorage.removeItem('jwt');
-          document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
-  }, []);
+    // Kiểm tra trạng thái đăng nhập bằng API /api/authorities
+    fetch('/api/authorities', {
+      method: 'GET',
+      credentials: 'include', // Gửi cookie (bao gồm token HttpOnly)
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Không xác thực được người dùng');
+        return res.json();
+      })
+      .then(() => getUserProfile()) // Nếu thành công, lấy thông tin user
+      .then((userData) => {
+        setUser(userData);
+        return getActiveCart();
+      })
+      .then((cartData) => {
+        if (cartData && cartData.id) {
+          setCartId(cartData.id);
+          return getCartItems(cartData.id);
+        }
+        return [];
+      })
+      .then((items) => {
+        setCartItemCount(items.length);
+      })
+      .catch((error) => {
+        console.error('Không thể khôi phục trạng thái đăng nhập:', error);
+        setUser(null);
+        setCartId(null);
+        setCartItemCount(0);
+        navigate('/login');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [navigate]);
 
   const login = (userData) => {
     if (userData) {
       setUser(userData);
-      // Lấy JWT token từ cookie sau khi đăng nhập
-      const jwt = document.cookie.split('; ').find(row => row.startsWith('jwt='));
-      if (jwt) {
-        const token = jwt.split('=')[1];
-        localStorage.setItem('jwt', token);
-      }
+      getActiveCart()
+        .then((cartData) => {
+          if (cartData && cartData.id) {
+            setCartId(cartData.id);
+            return getCartItems(cartData.id);
+          }
+          return [];
+        })
+        .then((items) => {
+          setCartItemCount(items.length);
+        })
+        .catch((error) => {
+          console.error('Không thể lấy giỏ hàng sau khi đăng nhập:', error);
+        });
     }
   };
 
   const logout = () => {
     setUser(null);
-    setCartId(null); // Reset cartId khi logout
-    localStorage.removeItem('jwt');
-    // Xóa cookie JWT
-    document.cookie = 'jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    setCartId(null);
+    setCartItemCount(0);
+    navigate('/login');
   };
 
   const updateCartId = (newCartId) => {
     setCartId(newCartId);
   };
 
+  const refreshCartItemCount = async () => {
+    if (cartId) {
+      try {
+        const items = await getCartItems(cartId);
+        setCartItemCount(items.length);
+      } catch (error) {
+        console.error('Không thể làm mới số lượng giỏ hàng:', error);
+        setCartItemCount(0);
+      }
+    } else {
+      setCartItemCount(0);
+    }
+  };
+
   const isLoggedIn = !!user;
   const userName = user ? `${user.firstName} ${user.lastName}` : 'Guest';
 
-  // Đợi loading xong mới render children
   if (loading) {
-    return <div>Loading...</div>; // Hiển thị loading khi đang kiểm tra
+    return <div>Loading...</div>;
   }
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        isLoggedIn, 
-        userName, 
-        login, 
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        userName,
+        login,
         logout,
         user,
         cartId,
-        updateCartId
+        updateCartId,
+        cartItemCount,
+        refreshCartItemCount,
       }}
     >
       {children}

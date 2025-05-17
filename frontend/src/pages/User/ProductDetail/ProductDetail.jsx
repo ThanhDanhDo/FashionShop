@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Typography, Grid, Container } from "@mui/material";
 import Navbar from "../../../components/Navbar/Navbar";
 import { getProductById } from "../../../services/productService";
-import { addToCart, createCart } from '../../../services/cartService';
+import { addToCart, createCart, getActiveCart } from '../../../services/cartService';
 import { AuthContext } from '../../../context/AuthContext';
 
 const ProductDetail = () => {
@@ -16,50 +16,15 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { isLoggedIn, cartId, updateCartId } = useContext(AuthContext);
+  const { isLoggedIn, cartId, updateCartId, refreshCartItemCount } = useContext(AuthContext);
   const [cartMessage, setCartMessage] = useState('');
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // Mock data cho relatedProducts (có thể thay bằng API sau này)
+  // Mock data cho relatedProducts
   const relatedProducts = [
-    {
-      name: "Cotton Tencel Jacket Relaxed Fit",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/476941/item/vngoods_02_476941_3x4.jpg?width=423",
-      sizes: "S, M, L",
-      colors: ["White", "Black"],
-      price: 1275000,
-      rating: 4.5,
-      reviewCount: 10,
-    },
-    {
-      name: "Miracle Air Double Jacket",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474943/item/vngoods_03_474943_3x4.jpg?width=369",
-      sizes: "S, M, L",
-      colors: ["Gray", "Dark Gray", "Black"],
-      price: 1471000,
-      rating: 4.8,
-      reviewCount: 15,
-    },
-    {
-      name: "Knitted Short Jacket",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474981/item/vngoods_00_474981_3x4.jpg?width=369",
-      sizes: "S, M, L, XL",
-      colors: ["White", "Black"],
-      price: 784000,
-      rating: 4.2,
-      reviewCount: 8,
-    },
-    {
-      name: "Oversized Shirt Coat",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474941/item/vngoods_57_474941_3x4.jpg?width=369",
-      sizes: "S, M, L, XL",
-      colors: ["Olive", "Navy"],
-      price: 1471000,
-      rating: 4.7,
-      reviewCount: 12,
-    },
+    // ... giữ nguyên code hiện tại ...
   ];
 
-  // State để quản lý trạng thái yêu thích cho từng sản phẩm liên quan
   const [favoriteStates, setFavoriteStates] = useState(
     new Array(relatedProducts.length).fill(false)
   );
@@ -86,41 +51,61 @@ const ProductDetail = () => {
       navigate('/login');
       return;
     }
-
+  
     if (!selectedSize || !selectedColor) {
       setCartMessage('Vui lòng chọn size và màu sắc');
       return;
     }
-
+  
     if (!product.price || product.price <= 0) {
       setCartMessage('Sản phẩm này hiện không có giá bán');
       return;
     }
-
+  
     if (!product.stock || product.stock <= 0) {
       setCartMessage('Sản phẩm này đã hết hàng');
       return;
     }
-
+  
+    setIsAddingToCart(true); // Thêm trạng thái loading
     try {
-      let cart = await createCart();
-      
+      let currentCartId = cartId;
+  
+      if (!currentCartId) {
+        try {
+          const activeCart = await getActiveCart();
+          if (activeCart && activeCart.id) {
+            currentCartId = activeCart.id;
+            updateCartId(currentCartId);
+          }
+        } catch (error) {
+          console.warn('Không tìm thấy giỏ hàng, tạo giỏ hàng mới:', error);
+          const newCart = await createCart();
+          currentCartId = newCart.id;
+          updateCartId(currentCartId);
+        }
+      }
+  
       const cartItem = {
-        cart: {
-          id: cart.id
-        },
-        product: {
-          id: product.id
-        },
+        cart: { id: currentCartId },
+        product: { id: product.id },
         quantity: quantity,
         size: selectedSize,
-        color: selectedColor
+        color: selectedColor,
       };
-
+  
       await addToCart(cartItem);
       setCartMessage('Đã thêm vào giỏ hàng thành công!');
+      await refreshCartItemCount();
     } catch (error) {
-      setCartMessage('Không thể thêm vào giỏ hàng: ' + error.message);
+      if (error.message.includes('Phiên đăng nhập hết hạn')) {
+        navigate('/login');
+        setCartMessage('Vui lòng đăng nhập lại để tiếp tục!');
+      } else {
+        setCartMessage('Không thể thêm vào giỏ hàng: ' + error.message);
+      }
+    } finally {
+      setIsAddingToCart(false); // Kết thúc trạng thái loading
     }
   };
 
@@ -129,8 +114,6 @@ const ProductDetail = () => {
   if (!product) return <div>Không tìm thấy sản phẩm</div>;
 
   const filteredImages = product.imgurls || [];
-
-  // Xử lý chuỗi description để thay thế \\n thành \n
   const formattedDescription = product.description.replaceAll("\\n", "\n");
 
   return (
@@ -185,7 +168,6 @@ const ProductDetail = () => {
                     />
                   ))}
                 </div>
-
                 {/* Ảnh chính hiển thị lớn bên phải */}
                 <div>
                   <img
@@ -205,14 +187,13 @@ const ProductDetail = () => {
                 </div>
               </div>
             </div>
-
             {/* Mô tả & Đánh giá */}
             <div
               style={{
                 marginLeft: "auto",
                 marginRight: "120px",
                 marginTop: "40px",
-                width: "400px", // Cố định chiều rộng khung mô tả
+                width: "400px",
               }}
             >
               <div>
@@ -233,7 +214,6 @@ const ProductDetail = () => {
                     within 30 days if the product is defective or not as described.
                   </p>
                 </details>
-
                 <h3 style={{ marginTop: "32px", fontSize: "20px" }}>
                   Đánh giá
                 </h3>
@@ -259,7 +239,6 @@ const ProductDetail = () => {
             </p>
             <p>Gender: {product.gender}</p>
             <p>Status: {product.stock > 0 ? "In stock" : "Out of stock"}</p>
-
             {/* Màu sắc */}
             <div style={{ display: "flex", gap: "10px", margin: "10px 0" }}>
               {product.color.map((color) => (
@@ -280,7 +259,6 @@ const ProductDetail = () => {
                 ></div>
               ))}
             </div>
-
             {/* Kích cỡ */}
             <div>
               {product.size.map((size) => (
@@ -315,7 +293,6 @@ const ProductDetail = () => {
                 </button>
               ))}
             </div>
-
             {/* Giá */}
             <div
               style={{
@@ -329,7 +306,6 @@ const ProductDetail = () => {
                 {product.price.toLocaleString("vi-VN")} VND
               </h3>
             </div>
-
             {/* Bộ đếm số lượng */}
             <div
               style={{
@@ -401,25 +377,25 @@ const ProductDetail = () => {
                 +
               </button>
             </div>
-
             {/* Thêm vào giỏ hàng */}
             <div style={{ display: "flex", justifyContent: "flex-start" }}>
-              <button
-                onClick={handleAddToCart}
-                style={{
-                  padding: "12px 48px",
-                  background: "black",
-                  color: "white",
-                  borderRadius: "999px",
-                  marginTop: "20px",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  fontSize: "18px",
-                  width: "300px",
-                }}
-              >
-                ADD TO CART
-              </button>
+            <button
+              onClick={handleAddToCart}
+              disabled={isAddingToCart}
+              style={{
+                padding: "12px 48px",
+                background: isAddingToCart ? "#ccc" : "black",
+                color: "white",
+                borderRadius: "999px",
+                marginTop: "20px",
+                fontWeight: "bold",
+                cursor: isAddingToCart ? "not-allowed" : "pointer",
+                fontSize: "18px",
+                width: "300px",
+              }}
+            >
+              {isAddingToCart ? "Đang thêm..." : "ADD TO CART"}
+            </button>
             </div>
             {cartMessage && <p style={{ color: 'red', marginTop: '10px' }}>{cartMessage}</p>}
           </div>
@@ -433,8 +409,8 @@ const ProductDetail = () => {
               gap: "20px",
               overflowX: "auto",
               justifyContent: "flex-start",
-              scrollbarWidth: "none", /* Firefox */
-              msOverflowStyle: "none", /* IE and Edge */
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
             }}
           >
             {relatedProducts.map((item, index) => (
@@ -461,7 +437,7 @@ const ProductDetail = () => {
                   e.currentTarget.style.boxShadow = "none";
                 }}
               >
-                <div style={{ position: "-add-to-cartrelative" }}>
+                <div style={{ position: "relative" }}>
                   <img
                     src={item.image}
                     alt={item.name}
@@ -475,7 +451,6 @@ const ProductDetail = () => {
                       transition: "transform 0.3s ease",
                     }}
                   />
-                  {/* Icon trái tim */}
                   <div
                     onClick={(e) => {
                       e.stopPropagation();

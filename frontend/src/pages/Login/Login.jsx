@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar/Navbar';
 import './Login.css';
-import { login } from '../../services/authService'; // Import hàm login từ authService
+import { login } from '../../services/authService';
 import { AuthContext } from '../../context/AuthContext';
 
 const Login = () => {
@@ -24,17 +24,17 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await login(formData);
-      localStorage.setItem('token', response.token);
       if (response.data) {
-        setLoginState(response.data); // response.data chứa thông tin user từ backend
+        setLoginState(response.data); // Sử dụng user từ response.data
+        alert('Đăng nhập thành công!');
+        navigate('/');
       } else {
         console.error('Không có thông tin user trong response');
+        alert('Đăng nhập thất bại!');
       }
-      alert('Đăng nhập thành công!');
-      navigate('/');
     } catch (error) {
       console.error('Login error:', error);
-      alert(error.message);
+      alert(error.message || 'Đăng nhập thất bại!');
     }
   };
 
