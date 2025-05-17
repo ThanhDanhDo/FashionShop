@@ -29,10 +29,10 @@ public class Product {
     private String description;
 
     @Column(nullable = false)
-    private Double price;
+    private Double price = 0.0;
 
     @Column(nullable = false)
-    private Long stock;
+    private Long stock = 0L;
 
     @ManyToOne
     @JoinColumn(name = "main_category_id", nullable = false)
@@ -52,6 +52,6 @@ public class Product {
     private List<String> imgurls;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "gender", nullable = false, columnDefinition = "gender_type")
+    @Column(name = "gender", nullable = false) // , columnDefinition = "gender_type"
     private Gender gender;
 }

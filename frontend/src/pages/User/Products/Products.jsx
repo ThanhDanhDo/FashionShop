@@ -248,6 +248,8 @@ const Products = () => {
           sizes: selectedSizes.length > 0 ? selectedSizes : [],
           colors: selectedColors.length > 0 ? selectedColors : [],
           priceRanges: selectedPriceRanges.length > 0 ? selectedPriceRanges : [],
+          page: 0,
+          size: 80,
         };
 
         console.log("Applying filters with params:", filterParams);
@@ -273,10 +275,10 @@ const Products = () => {
   // Load initial products when categories are loaded
   useEffect(() => {
     if (categoriesLoaded) {
-      console.log("Initial load: calling applyFilters with filters:", filters);
+      console.log("Filters changed, applying filters:", filters);
       applyFilters(filters);
     }
-  }, [categoriesLoaded, filters]);
+  }, [categoriesLoaded, filters, applyFilters]);
 
   const handleGenderChange = async (gender) => {
     const standardizedGender = gender === "all" ? "all" : gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
@@ -321,7 +323,6 @@ const Products = () => {
     if (filters.gender && filters.gender !== "all") queryParams.append("gender", filters.gender);
     if (isSelecting) queryParams.append("mainCategoryId", titleId);
     navigate(`/products?${queryParams.toString()}`);
-
     await applyFilters(newFilters);
   };
 

@@ -2,9 +2,12 @@ package com.example.fashionshop.service;
 
 import com.example.fashionshop.config.JwtProvider;
 import com.example.fashionshop.config.OtpGenerator;
+import com.example.fashionshop.enums.Gender;
 import com.example.fashionshop.enums.Role;
+import com.example.fashionshop.model.Cart;
 import com.example.fashionshop.model.User;
 import com.example.fashionshop.model.VerificationCode;
+import com.example.fashionshop.repository.CartRepository;
 import com.example.fashionshop.repository.UserRepository;
 import com.example.fashionshop.repository.verificationCodeRepository;
 import com.example.fashionshop.request.LogInRequest;
@@ -35,6 +38,7 @@ public class AuthService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final CartRepository cartRepository;
 
     public String sendOtp(RegisterRequest req) throws MessagingException {
         if (userRepository.findByEmail(req.getEmail()) != null) {
@@ -90,8 +94,14 @@ public class AuthService {
         user.setLastName(verificationCode.getLastName());
         user.setEmail(email);
         user.setPassword(verificationCode.getPassword());
+        user.setGender(Gender.valueOf(verificationCode.getGender()));
         user.setRole(Role.USER);
         userRepository.save(user);
+
+        // tạo giỏ hàng cho user mới
+        Cart cart = new Cart();
+        cart.setUser(user);
+        cartRepository.save(cart);
 
         // Xóa OTP sau khi xác thực thành công
         verificationCodeRepository.delete(verificationCode);

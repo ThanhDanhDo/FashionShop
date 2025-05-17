@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 import { Avatar, Popover, MenuItem, IconButton, Badge } from '@mui/material';
@@ -9,7 +9,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { AuthContext } from '../../context/AuthContext';
 
 const Navbar = () => {
-  const { isLoggedIn, userName, logout } = useContext(AuthContext);
+  const { isLoggedIn, userName, logout, cartId, cartItemCount, refreshCartItemCount } = useContext(AuthContext);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [isProductHovered, setIsProductHovered] = useState(false);
@@ -17,7 +17,7 @@ const Navbar = () => {
   const [isMenHovered, setIsMenHovered] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
 
-  // Static category map (aligned with Products.jsx)
+  // Static category map
   const categoryMap = {
     Outerwear: 1,
     'T-shirt': 2,
@@ -27,7 +27,7 @@ const Navbar = () => {
     Accessories: 6,
   };
 
-  // Subcategory map (aligned with category.csv)
+  // Subcategory map
   const subCategoryMap = {
     'Jackets & Blazers': 7,
     Coats: 8,
@@ -37,12 +37,20 @@ const Navbar = () => {
     'Shirt Long-sleeve': 12,
     Skirts: 13,
     Dresses: 14,
-    Long: 15, // Bottoms
-    Short: 16, // Bottoms
+    Long: 15,
+    Short: 16,
     Bags: 17,
     Belts: 18,
     Hats: 19,
   };
+
+  useEffect(() => {
+    if (isLoggedIn && cartId) {
+      refreshCartItemCount();
+    } else {
+      // Không cần setCartItemCount trực tiếp vì AuthContext đã xử lý
+    }
+  }, [isLoggedIn, cartId, refreshCartItemCount]);
 
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -66,17 +74,14 @@ const Navbar = () => {
     setIsSearchActive(false);
   };
 
-  // Handle navigation with filters and close popup
   const handleFilterNavigation = (gender, mainCategory, subCategory) => {
     const queryParams = new URLSearchParams();
     if (gender && gender !== 'all') queryParams.append('gender', gender);
     if (mainCategory) queryParams.append('mainCategoryId', categoryMap[mainCategory]);
     if (subCategory) queryParams.append('subCategoryId', subCategoryMap[subCategory]);
     
-    // Navigate to /products with query parameters
     navigate(`/products?${queryParams.toString()}`);
     
-    // Close all popups
     setIsProductHovered(false);
     setIsWomenHovered(false);
     setIsMenHovered(false);
@@ -485,11 +490,13 @@ const Navbar = () => {
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
-              <IconButton>
-                <Badge badgeContent={2} color="error">
-                  <ShoppingCartIcon />
-                </Badge>
-              </IconButton>
+              <Link to="/cart" className="cart-link">
+                <IconButton>
+                  <Badge badgeContent={cartItemCount} color="error">
+                    <ShoppingCartIcon />
+                  </Badge>
+                </IconButton>
+              </Link>
               <IconButton>
                 <Badge badgeContent={5} color="error">
                   <FavoriteIcon />
@@ -542,13 +549,11 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Overlay */}
       <div
         className={`search-overlay ${isSearchActive ? 'active' : ''}`}
         onClick={closeSearchPopup}
       ></div>
 
-      {/* Search Popup */}
       <div className={`search-popup ${isSearchActive ? 'active' : ''}`}>
         <div className="search-row">
           <input type="text" placeholder="Search" />

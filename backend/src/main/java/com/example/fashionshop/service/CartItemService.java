@@ -1,5 +1,6 @@
 package com.example.fashionshop.service;
 
+import com.example.fashionshop.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,8 @@ public class CartItemService {
     private final ProductRepository productRepository;
 
     @Autowired
-    public CartItemService(CartRepository cartRepository, CartItemRepository cartItemRepository, ProductRepository productRepository){
+    public CartItemService(CartRepository cartRepository, CartItemRepository cartItemRepository,
+            ProductRepository productRepository) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
@@ -26,33 +28,49 @@ public class CartItemService {
     }
 
     @Transactional
-    public CartItem addCartItem(CartItem cartItem) {
-        Cart cart = cartRepository.findById(cartItem.getCart().getId())
-            .orElseThrow(() -> new RuntimeException("Cart not found"));
+    public CartItem updateCartItem(Long userId, Long cartItemId, CartItem cartItem) {
+        CartItem item = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("CartItem not found in cart"));
+        User cartItemUser = item.getCart().getUser();
 
-        Product product = productRepository.findById(cartItem.getProduct().getId())
-            .orElseThrow(() -> new RuntimeException("Product not found"));
+        if (cartItemUser.getId().equals(userId)) {
+            if (cartItem.getQuantity() != 0) {
+                item.setQuantity(cartItem.getQuantity());
+            }
+            if (cartItem.getSize() != null) {
+                item.setSize(cartItem.getSize());
+            }
+            if (cartItem.getColor() != null) {
+                item.setColor(cartItem.getColor());
+            }
 
-        CartItem newCartItem = cartItemRepository.findByCartIdAndProductId(cartItem.getCart().getId(), cartItem.getProduct().getId())
-            .orElse(new CartItem(cartItem.getCart(), cartItem.getProduct(), 0));
+            item.setTotalPrice(item.getQuantity() * item.getProduct().getPrice());
 
-        if(newCartItem.getQuantity() + cartItem.getQuantity() > product.getStock()) {
-            newCartItem.setQuantity(product.getStock().intValue());
-        }else if(newCartItem.getQuantity() + cartItem.getQuantity() <= 0){
-            cartItemRepository.delete(newCartItem);
-            return null;
+            item.getCart().updateTotalPrice();
+            cartRepository.save(item.getCart());
+
+            return cartItemRepository.save(item);
         } else {
-            newCartItem.setQuantity(newCartItem.getQuantity() + cartItem.getQuantity());
+            throw new RuntimeException("You can't update  another users cart_item");
         }
-        
-        return cartItemRepository.save(newCartItem);
     }
 
     @Transactional
-    public void deleteCartItem(CartItem cartItem) {
-        CartItem existItem = cartItemRepository.findByCartIdAndProductId(cartItem.getCart().getId(), cartItem.getProduct().getId())
-            .orElseThrow(() -> new RuntimeException("CartItem not found in cart"));
+    public void removeCartItem(Long userId, Long cartId, Long cartItemId) {
+        CartItem item = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("CartItem not found in cart"));
+        User cartItemUser = item.getCart().getUser();
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
 
-        cartItemRepository.delete(existItem);
+        if (cartItemUser.getId().equals(userId)) {
+            cart.getCartItems().remove(item);
+            cartItemRepository.deleteById(item.getId());
+            cart.updateTotalPrice();
+            cartRepository.save(cart);
+        } else {
+
+            throw new RuntimeException("You can't remove another user's item");
+        }
     }
 }

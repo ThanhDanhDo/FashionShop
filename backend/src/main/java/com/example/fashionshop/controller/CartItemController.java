@@ -18,17 +18,4 @@ public class CartItemController {
         this.cartItemService = cartItemService;
     }
 
-    @PreAuthorize("hasAuthority('USER')")
-    @PostMapping("/add")
-    public ResponseEntity<CartItem> addCartItem(@RequestBody CartItem cartItem) {
-        CartItem savedCartItem = cartItemService.addCartItem(cartItem);
-        return ResponseEntity.ok(savedCartItem);
-    }
-
-    @PreAuthorize("hasAuthority('USER')")
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteCartItem(@RequestBody CartItem cartItem) {
-        cartItemService.deleteCartItem(cartItem);
-        return ResponseEntity.noContent().build();
-    }
 }
