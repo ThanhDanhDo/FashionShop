@@ -45,7 +45,6 @@ body {
   letter-spacing: 1px;
 }
 
-
 /* === Cart Layout === */
 .cart-layout {
   display: flex;
@@ -66,7 +65,6 @@ body {
   align-self: flex-start;
 }
 
-
 /* === Cart Item Card Styling === */
 .cart-item-card {
   display: flex;
@@ -83,7 +81,7 @@ body {
   flex-shrink: 0;
 }
 
-.product-image-cart { /* Class cho ảnh trong giỏ hàng */
+.product-image-cart {
   width: 150px;
   height: 150px;
   object-fit: cover;
@@ -125,32 +123,6 @@ body {
   border-top: 1px solid #eee;
 }
 
-.quantity-section {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.quantity-label {
-  font-size: 12px;
-  font-weight: bold;
-  color: #555;
-}
-
-.quantity-select { /* Style cho select */
-  width: 60px;
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: white;
-  font-size: 14px;
-  cursor: pointer;
-}
-.quantity-select:focus {
-  border-color: #000;
-  outline: none;
-}
-
 .item-total-section {
   text-align: right;
 }
@@ -167,13 +139,20 @@ body {
   color: #000;
 }
 
-.item-remove-wrapper {
+.item-action-icons {
   position: absolute;
   top: 15px;
   right: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.remove-button-x { /* Style nút xóa */
+.item-remove-wrapper {
+  margin: 0;
+}
+
+.remove-button-x {
   background: none;
   border: none;
   font-size: 24px;
@@ -186,6 +165,29 @@ body {
 
 .remove-button-x:hover {
   color: #000;
+}
+
+.item-edit-wrapper {
+  margin: 0;
+}
+
+.edit-icon-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #888;
+  cursor: pointer;
+  padding: 0 2.5px;
+  transition: color 0.3s ease;
+}
+
+.edit-icon-button:hover {
+  color: #000000;
+}
+
+.edit-icon-button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
 }
 
 /* === Cart Summary Styling === */
@@ -253,7 +255,7 @@ body {
   margin-top: 25px;
 }
 
-.checkout-button-main { /* Style nút thanh toán */
+.checkout-button-main {
   width: 100%;
   padding: 15px;
   background-color: #00bbff;
@@ -272,7 +274,7 @@ body {
   background-color: #0082ec;
 }
 
-.continue-shopping-button-secondary { /* Style nút tiếp tục */
+.continue-shopping-button-secondary {
   width: 100%;
   padding: 14px;
   background-color: white;
@@ -307,49 +309,149 @@ body {
   text-shadow: none;
   text-transform: none;
 }
-/* Sử dụng lại style nút continue-shopping-button-secondary cho trường hợp giỏ hàng trống */
-.cart-empty .continue-shopping-button-secondary {
-    width: auto; /* Nút không cần full width */
-    padding: 12px 30px;
+
+/* === Edit Modal Styling === */
+.edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
+.edit-modal {
+  background: white;
+  padding: 25px;
+  border-radius: 4px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 
-/* === Responsive Considerations (tối ưu hóa giao diện)  === */
+.edit-modal h2 {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.edit-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.edit-form-field label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
+.edit-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.edit-modal-save {
+  padding: 10px 20px;
+  background-color: #00bbff;
+  color: black;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.edit-modal-save:hover {
+  background-color: #0082ec;
+}
+
+.edit-modal-save:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.edit-modal-cancel {
+  padding: 10px 20px;
+  background-color: white;
+  color: #000;
+  font-weight: bold;
+  border: 1px solid #000;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.edit-modal-cancel:hover {
+  background-color: #f0f0f0;
+}
+
+/* === Responsive Considerations === */
 @media (max-width: 768px) {
   .cart-layout {
-    flex-direction: column; /* Chuyển thành 1 cột trên màn hình nhỏ */
+    flex-direction: column;
   }
 
   .cart-summary-column {
-    position: static; /* Bỏ sticky trên mobile */
-    width: 100%; /* Chiếm toàn bộ chiều rộng */
+    position: static;
+    width: 100%;
   }
 
   .cart-item-card {
-      flex-direction: column; /* Xếp ảnh và info chồng lên nhau */
-      align-items: center; /* Căn giữa */
-      text-align: center;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
-   .item-details-wrapper {
-      width: 100%; /* Chiếm đủ rộng */
-      align-items: center; /* Căn giữa các phần tử con */
-   }
-   .item-actions {
-      width: 100%;
-      justify-content: space-around; /* Phân bố đều hơn */
-      margin-top: 20px;
-   }
-   .item-remove-wrapper {
-      position: absolute; /* Đặt lại vị trí nút xóa */
-      top: 10px;
-      right: 10px;
-   }
-   .product-image-cart {
-       width: 120px; /* Có thể giảm kích thước ảnh */
-       height: 120px;
-   }
 
-   .success-message {
+  .item-details-wrapper {
+    width: 100%;
+    align-items: center;
+  }
+
+  .item-actions {
+    width: 100%;
+    justify-content: space-around;
+    margin-top: 20px;
+  }
+
+  .item-action-icons {
+    position: static;
+    flex-direction: row;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+  }
+
+  .item-remove-wrapper,
+  .item-edit-wrapper {
+    margin: 0;
+  }
+
+  .product-image-cart {
+    width: 120px;
+    height: 120px;
+  }
+
+  .edit-modal {
+    margin: 20px;
+    max-width: 90%;
+  }
+
+  .success-message {
     background-color: #4caf50;
     color: white;
     padding: 10px;
@@ -357,26 +459,4 @@ body {
     margin-bottom: 10px;
     text-align: center;
   }
-  
-  .item-attribute select {
-    margin-left: 10px;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-  }
-  
-  .item-attribute select:disabled {
-    background-color: #f0f0f0;
-    cursor: not-allowed;
-  }
-  
-  .item-attribute select:enabled {
-    cursor: pointer;
-  }
-  
-  .item-attribute label {
-    margin-right: 5px;
-  }
-
 }
