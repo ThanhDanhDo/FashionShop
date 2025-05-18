@@ -64,5 +64,6 @@
 /Users/ngoquyen/IdeaProjects/Main/backend/src/main/java/com/example/fashionshop/converter/GenderConverter.java
 /Users/ngoquyen/IdeaProjects/Main/backend/src/main/java/com/example/fashionshop/model/Address.java
 /Users/ngoquyen/IdeaProjects/Main/backend/src/main/java/com/example/fashionshop/repository/UserRepository.java
+/Users/ngoquyen/IdeaProjects/Main/backend/src/main/java/com/example/fashionshop/controller/PaymentController.java
 /Users/ngoquyen/IdeaProjects/Main/backend/src/main/java/com/example/fashionshop/repository/verificationCodeRepository.java
 /Users/ngoquyen/IdeaProjects/Main/backend/src/main/java/com/example/fashionshop/service/CartItemService.java
