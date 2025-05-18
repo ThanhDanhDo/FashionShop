@@ -5,6 +5,7 @@ import com.example.fashionshop.model.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,4 +21,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findByUserId(Long userId, Pageable pageable);
     Page<Order> findByOrderStatus(OrderStatus orderStatus, Pageable pageable);
     List<Order> findByOrderDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    @Query("SELECT COUNT(o) FROM Order o")
+    int countAllOrders();
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.orderStatus = 'CANCELLED'")
+    int countCanceledOrders();
+
+    @Query("SELECT o FROM Order o WHERE o.orderStatus = 'CANCELED'")
+    List<Order> findCanceledOrders();
 }

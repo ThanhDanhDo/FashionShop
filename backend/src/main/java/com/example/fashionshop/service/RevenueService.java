@@ -3,8 +3,10 @@ package com.example.fashionshop.service;
 import com.example.fashionshop.enums.Gender;
 import com.example.fashionshop.enums.Role;
 import com.example.fashionshop.model.Order;
+import com.example.fashionshop.model.Report;
 import com.example.fashionshop.model.RevenueChart;
 import com.example.fashionshop.repository.OrderRepository;
+import com.example.fashionshop.repository.ReportRepository;
 import com.example.fashionshop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,12 +14,14 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class RevenueService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final ReportRepository reportRepository;
 
     //tính doanh thu trong days ngày gần nhất
     public List<RevenueChart> getDailyRevenueForChart(int days) {
@@ -70,21 +74,15 @@ public class RevenueService {
         }
     }
 
-    public double getTotalRevenue() {
-        double totalRevenue = 0;
-        totalRevenue  = orderRepository
-                .findAll()
-                .stream()
-                .mapToDouble(Order::getTotalOrderPrice)
-                .sum();
-        return totalRevenue;
+    public Report getReport() {
+        Report report = reportRepository.findById(1L).orElseGet(() -> {
+            Report newReport = new Report();
+            return reportRepository.save(newReport);
+        });
+        return report;
     }
 
-    public long getTotalOrder(){
-        return orderRepository.count();
-    }
-
-    public long getTotalUser(){
-        return userRepository.countByRole(Role.USER);
+    public Report updateReport(Report report) {
+        return reportRepository.save(report);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.fashionshop.controller;
 
+import com.example.fashionshop.model.Report;
 import com.example.fashionshop.model.RevenueChart;
 import com.example.fashionshop.service.RevenueService;
 import lombok.RequiredArgsConstructor;
@@ -26,23 +27,8 @@ public class DashboardController {
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping("/revenue/total")
-    public ResponseEntity<Double> getTotalRevenue() {
-        double totalRevenue = revenueService.getTotalRevenue();
-        return ResponseEntity.ok(totalRevenue);
-    }
-
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping("/orders/total")
-    public ResponseEntity<Long> getTotalOrder() {
-        long totalOrder = revenueService.getTotalOrder();
-        return ResponseEntity.ok(totalOrder);
-    }
-
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping("/users/total")
-    public ResponseEntity<Long> getTotalUser() {
-        long totalUser = revenueService.getTotalUser();
-        return ResponseEntity.ok(totalUser);
+    @GetMapping("/report")
+    public Report getReport() {
+        return revenueService.getReport();
     }
 }
