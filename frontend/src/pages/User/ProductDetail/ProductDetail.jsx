@@ -5,6 +5,9 @@ import Navbar from "../../../components/Navbar/Navbar";
 import { getProductById } from "../../../services/productService";
 import { addToCart, createCart, getActiveCart } from '../../../services/cartService';
 import { AuthContext } from '../../../context/AuthContext';
+import CustomBreadcrumb from '../../../components/Breadcrumb';
+import FooterComponent from '../../../components/Footer/Footer';
+import ProductCard from '../../../components/ProductCard';
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -20,14 +23,55 @@ const ProductDetail = () => {
   const [cartMessage, setCartMessage] = useState('');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // Mock data cho relatedProducts
+  // Mock data for relatedProducts (can be replaced with API later)
   const relatedProducts = [
-    // ... giữ nguyên code hiện tại ...
+    {
+      name: "Cotton Tencel Jacket Relaxed Fit",
+      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/476941/item/vngoods_02_476941_3x4.jpg?width=423",
+      sizes: "S, M, L",
+      colors: ["White", "Black"],
+      price: 1275000,
+      rating: 4.5,
+      reviewCount: 10,
+    },
+    {
+      name: "Miracle Air Double Jacket",
+      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474943/item/vngoods_03_474943_3x4.jpg?width=369",
+      sizes: "S, M, L",
+      colors: ["Gray", "Dark Gray", "Black"],
+      price: 1471000,
+      rating: 4.8,
+      reviewCount: 15,
+    },
+    {
+      name: "Knitted Short Jacket",
+      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474981/item/vngoods_00_474981_3x4.jpg?width=369",
+      sizes: "S, M, L, XL",
+      colors: ["White", "Black"],
+      price: 784000,
+      rating: 4.2,
+      reviewCount: 8,
+    },
+    {
+      name: "Oversized Shirt Coat",
+      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474941/item/vngoods_57_474941_3x4.jpg?width=369",
+      sizes: "S, M, L, XL",
+      colors: ["Olive", "Navy"],
+      price: 1471000,
+      rating: 4.7,
+      reviewCount: 12,
+    },
   ];
 
   const [favoriteStates, setFavoriteStates] = useState(
     new Array(relatedProducts.length).fill(false)
   );
+
+  const handleToggleFavorite = (index) => {
+    const updatedFavorites = [...favoriteStates];
+    updatedFavorites[index] = !updatedFavorites[index];
+    setFavoriteStates(updatedFavorites);
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -67,7 +111,7 @@ const ProductDetail = () => {
       return;
     }
   
-    setIsAddingToCart(true); // Thêm trạng thái loading
+    setIsAddingToCart(true);
     try {
       let currentCartId = cartId;
   
@@ -105,7 +149,7 @@ const ProductDetail = () => {
         setCartMessage('Không thể thêm vào giỏ hàng: ' + error.message);
       }
     } finally {
-      setIsAddingToCart(false); // Kết thúc trạng thái loading
+      setIsAddingToCart(false);
     }
   };
 
@@ -119,6 +163,17 @@ const ProductDetail = () => {
   return (
     <>
       <Navbar />
+      <CustomBreadcrumb
+        items={[
+          {
+            href: "/products",
+            title: 'Products',
+          },
+          {
+            title: product.name,
+          },
+        ]}
+      />
       <div style={{ fontSize: "18px" }}>
         <div
           style={{
@@ -129,7 +184,7 @@ const ProductDetail = () => {
           }}
         >
           <div style={{ flex: 1, marginLeft: "auto" }}>
-            {/* Ảnh sản phẩm */}
+            {/* Product Images */}
             <div
               style={{
                 display: "flex",
@@ -138,7 +193,7 @@ const ProductDetail = () => {
               }}
             >
               <div style={{ display: "flex", gap: "12px" }}>
-                {/* Cột ảnh nhỏ bên trái */}
+                {/* Thumbnail column */}
                 <div
                   style={{
                     display: "flex",
@@ -168,7 +223,7 @@ const ProductDetail = () => {
                     />
                   ))}
                 </div>
-                {/* Ảnh chính hiển thị lớn bên phải */}
+                {/* Main image */}
                 <div>
                   <img
                     src={filteredImages[selectedImageIndex]}
@@ -187,7 +242,7 @@ const ProductDetail = () => {
                 </div>
               </div>
             </div>
-            {/* Mô tả & Đánh giá */}
+            {/* Description & Reviews */}
             <div
               style={{
                 marginLeft: "auto",
@@ -222,7 +277,7 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
-          {/* Thông tin sản phẩm */}
+          {/* Product Information */}
           <div
             style={{
               flex: 1,
@@ -239,7 +294,7 @@ const ProductDetail = () => {
             </p>
             <p>Gender: {product.gender}</p>
             <p>Status: {product.stock > 0 ? "In stock" : "Out of stock"}</p>
-            {/* Màu sắc */}
+            {/* Colors */}
             <div style={{ display: "flex", gap: "10px", margin: "10px 0" }}>
               {product.color.map((color) => (
                 <div
@@ -259,7 +314,7 @@ const ProductDetail = () => {
                 ></div>
               ))}
             </div>
-            {/* Kích cỡ */}
+            {/* Sizes */}
             <div>
               {product.size.map((size) => (
                 <button
@@ -293,7 +348,7 @@ const ProductDetail = () => {
                 </button>
               ))}
             </div>
-            {/* Giá */}
+            {/* Price */}
             <div
               style={{
                 display: "flex",
@@ -306,7 +361,7 @@ const ProductDetail = () => {
                 {product.price.toLocaleString("vi-VN")} VND
               </h3>
             </div>
-            {/* Bộ đếm số lượng */}
+            {/* Quantity Counter */}
             <div
               style={{
                 display: "flex",
@@ -377,30 +432,30 @@ const ProductDetail = () => {
                 +
               </button>
             </div>
-            {/* Thêm vào giỏ hàng */}
+            {/* Add to Cart */}
             <div style={{ display: "flex", justifyContent: "flex-start" }}>
-            <button
-              onClick={handleAddToCart}
-              disabled={isAddingToCart}
-              style={{
-                padding: "12px 48px",
-                background: isAddingToCart ? "#ccc" : "black",
-                color: "white",
-                borderRadius: "999px",
-                marginTop: "20px",
-                fontWeight: "bold",
-                cursor: isAddingToCart ? "not-allowed" : "pointer",
-                fontSize: "18px",
-                width: "300px",
-              }}
-            >
-              {isAddingToCart ? "Đang thêm..." : "ADD TO CART"}
-            </button>
+              <button
+                onClick={handleAddToCart}
+                disabled={isAddingToCart}
+                style={{
+                  padding: "12px 48px",
+                  background: isAddingToCart ? "#ccc" : "black",
+                  color: "white",
+                  borderRadius: "999px",
+                  marginTop: "20px",
+                  fontWeight: "bold",
+                  cursor: isAddingToCart ? "not-allowed" : "pointer",
+                  fontSize: "18px",
+                  width: "300px",
+                }}
+              >
+                {isAddingToCart ? "Đang thêm..." : "ADD TO CART"}
+              </button>
             </div>
             {cartMessage && <p style={{ color: 'red', marginTop: '10px' }}>{cartMessage}</p>}
           </div>
         </div>
-        {/* Sản phẩm liên quan */}
+        {/* Related Products */}
         <div style={{ marginTop: "60px", textAlign: "center" }}>
           <h2 style={{ marginBottom: "20px" }}>Sản phẩm được quan tâm</h2>
           <div
@@ -414,158 +469,17 @@ const ProductDetail = () => {
             }}
           >
             {relatedProducts.map((item, index) => (
-              <div
+              <ProductCard
                 key={index}
-                style={{
-                  width: "calc(25% - 15px)",
-                  minWidth: "0",
-                  border: "1px solid #eee",
-                  borderRadius: "10px",
-                  padding: "10px",
-                  textAlign: "left",
-                  position: "relative",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.03)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                <div style={{ position: "relative" }}>
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      aspectRatio: "1/1",
-                      objectFit: "cover",
-                      borderRadius: "8px",
-                      marginBottom: "8px",
-                      transition: "transform 0.3s ease",
-                    }}
-                  />
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const updatedFavorites = [...favoriteStates];
-                      updatedFavorites[index] = !updatedFavorites[index];
-                      setFavoriteStates(updatedFavorites);
-                    }}
-                    style={{
-                      position: "absolute",
-                      top: "8px",
-                      right: "8px",
-                      width: "28px",
-                      height: "28px",
-                      background: "white",
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                      zIndex: 2,
-                      cursor: "pointer",
-                      color: favoriteStates[index] ? "red" : "gray",
-                      transition: "color 0.3s ease",
-                    }}
-                  >
-                    {favoriteStates[index] ? "❤️" : "🤍"}
-                  </div>
-                </div>
-                <h3 style={{ fontSize: "18px", margin: "10px 0" }}>{item.name}</h3>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: "6px",
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: "16px",
-                      color: "#666",
-                      marginBottom: "0",
-                      marginRight: "10px",
-                    }}
-                  >
-                    Size: {item.sizes}
-                  </p>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    {item.colors?.map((color, cidx) => (
-                      <div
-                        key={cidx}
-                        style={{
-                          width: "16px",
-                          height: "16px",
-                          borderRadius: "50%",
-                          backgroundColor: color,
-                          border: "1px solid #ccc",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <p style={{ marginBottom: "4px" }}>{item.price.toLocaleString()} VND</p>
-                <p style={{ fontSize: "16px" }}>
-                  ★ {item.rating} ({item.reviewCount})
-                </p>
-              </div>
+                product={item}
+                isFavorite={favoriteStates[index]}
+                onToggleFavorite={handleToggleFavorite}
+                index={index}
+              />
             ))}
           </div>
         </div>
-        {/* Footer */}
-        <footer
-          style={{
-            backgroundColor: "#333",
-            color: "#fff",
-            padding: "40px 0",
-            marginTop: "40px",
-          }}
-        >
-          <Container>
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={4}>
-                <Typography variant="h6" style={{ fontWeight: "bold" }}>
-                  Tên web
-                </Typography>
-                <Typography variant="body2">slogan</Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="h6" style={{ fontWeight: "bold" }}>
-                  LIÊN HỆ
-                </Typography>
-                <Typography variant="body2">
-                  📍 Đường Hàn Thuyên, Khu Phố 6, Thủ Đức, HCM
-                </Typography>
-                <Typography variant="body2">
-                  📞 (+84) 12 3456 7891
-                </Typography>
-                <Typography variant="body2">✉️ info@gmail.com</Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="h6" style={{ fontWeight: "bold" }}>
-                  HỖ TRỢ KHÁCH HÀNG
-                </Typography>
-                <Typography variant="body2">
-                  Chính sách bảo mật thông tin
-                </Typography>
-                <Typography variant="body2">Quy chế hoạt động</Typography>
-                <Typography variant="body2">Chính sách thanh toán</Typography>
-                <Typography variant="body2">Chính sách đổi trả hàng</Typography>
-                <Typography variant="body2">Chính sách vận chuyển</Typography>
-                <Typography variant="body2">Giới thiệu sản phẩm</Typography>
-              </Grid>
-            </Grid>
-          </Container>
-        </footer>
+        <FooterComponent />
       </div>
     </>
   );

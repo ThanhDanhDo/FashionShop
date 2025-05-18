@@ -2,12 +2,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 7.5px 30px;
+  padding: 0px 30px;
   background-color: #fff;
   border-radius: 45px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   max-width: 1600px;
-  margin: 20px auto;
+  margin: 20px 44px;
   position: relative;
   transition: border-radius 0.3s ease;
 }
@@ -26,19 +26,22 @@
   flex: 1;
 }
 
-.nav-logo, .nav-link {
+.logo-img {
+  height: 30px; /* hoặc 30px tùy bạn muốn nhỏ cỡ nào */
+  width: auto;
+  object-fit: contain;
+  margin-top: 5px;
+}
+
+.nav-link {
   text-decoration: none;
   color: #333;
   font-weight: bold;
 }
 
-.nav-logo {
-  font-size: 24px;
-}
-
 .nav-link {
   font-size: 24px;
-  padding: 10px 0;
+  padding: 10px 15px;
 }
 
 .nav-button {
@@ -105,7 +108,7 @@
 
 .product-popup {
   position: absolute;
-  top: calc(100% - 20px);
+  top: calc(100%);
   left: 0;
   width: 100%;
   background-color: #fff;
@@ -181,6 +184,18 @@
 
 .women-container:hover .nav-link {
   color: #0066ff;
+}
+
+.women-container:hover .women-popup,
+.men-container:hover .men-popup {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.nav-link {
+  display: block;
+  /* padding: 15px 0px; tăng vùng bấm và hover */
 }
 
 .men-popup {

@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserProfile } from '../services/userService';
 import { getActiveCart, getCartItems } from '../services/cartService';
+import { logoutApi } from '../services/authService';
 
 export const AuthContext = createContext();
 
@@ -13,16 +14,15 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Kiểm tra trạng thái đăng nhập bằng API /api/authorities
     fetch('/api/authorities', {
       method: 'GET',
-      credentials: 'include', // Gửi cookie (bao gồm token HttpOnly)
+      credentials: 'include',
     })
       .then((res) => {
         if (!res.ok) throw new Error('Không xác thực được người dùng');
         return res.json();
       })
-      .then(() => getUserProfile()) // Nếu thành công, lấy thông tin user
+      .then(() => getUserProfile())
       .then((userData) => {
         setUser(userData);
         return getActiveCart();
@@ -39,10 +39,15 @@ export const AuthProvider = ({ children }) => {
       })
       .catch((error) => {
         console.error('Không thể khôi phục trạng thái đăng nhập:', error);
-        setUser(null);
+        setUser(null); // Đặt user về null để coi là Guest
         setCartId(null);
         setCartItemCount(0);
-        navigate('/login');
+        // Không chuyển hướng đến /login trừ khi cần thiết
+        // Ví dụ: Chỉ chuyển hướng nếu đang ở trang yêu cầu đăng nhập
+        const protectedRoutes = ['/profile', '/checkout']; // Danh sách các route yêu cầu đăng nhập
+        if (protectedRoutes.includes(window.location.pathname)) {
+          navigate('/login');
+        }
       })
       .finally(() => {
         setLoading(false);
@@ -70,10 +75,21 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    setUser(null);
-    setCartId(null);
-    setCartItemCount(0);
-    navigate('/login');
+    logoutApi()
+      .then(() => {
+        setUser(null);
+        setCartId(null);
+        setCartItemCount(0);
+        navigate('/login');
+      })
+      .catch((err) => {
+        console.error('Lỗi khi gọi logout:', err);
+        // Vẫn xóa state để đảm bảo frontend không hiển thị user
+        setUser(null);
+        setCartId(null);
+        setCartItemCount(0);
+        navigate('/login');
+      });
   };
 
   const updateCartId = (newCartId) => {

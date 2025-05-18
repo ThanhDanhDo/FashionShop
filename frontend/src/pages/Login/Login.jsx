@@ -1,9 +1,10 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar/Navbar';
-import './Login.css';
+import styles from './Login.module.css';
 import { login } from '../../services/authService';
 import { AuthContext } from '../../context/AuthContext';
+import CustomBreadcrumb from '../../components/Breadcrumb';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -41,21 +42,23 @@ const Login = () => {
   return (
     <div>
       <Navbar />
-      <div className="page-container">
-        <div className="breadcrumb">
-          <a href="/">Trang chủ</a> {'>'} <span>Đăng nhập</span>
-        </div>
-        <div className="login-container">
-          <div className="brand-section">
-            <div className="brand-logo">icon thương hiệu</div>
-          </div>
-          <div className="login-form-section">
-            <div className="login-form-wrapper">
-              <h2>ĐĂNG NHẬP TÀI KHOẢN</h2>
-              <form onSubmit={handleSubmit} className="login-form">
-                <div className="form-group">
+      <div className={styles.pageContainer}>
+        <CustomBreadcrumb
+          items={[
+            {
+              title: 'Login',
+            },
+          ]}
+        />
+        <div className={styles.loginContainer}>
+          
+          <div className={styles.loginFormSection}>
+            <div className={styles.loginFormWrapper}>
+              <h2>LOG IN ACCOUNT</h2>
+              <form onSubmit={handleSubmit} className={styles.loginForm}>
+                <div className={styles.formGroup}>
                   <label htmlFor="email">
-                    ĐỊA CHỈ EMAIL<span className="required">*</span>
+                    EMAIL ADDRESS<span className="required">*</span>
                   </label>
                   <input
                     type="email"
@@ -63,38 +66,38 @@ const Login = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Nhập email hợp lệ"
+                    placeholder="Enter a valid email"
                     required
                   />
                 </div>
 
-                <div className="form-group">
+                <div className={styles.formGroup}>
                   <label htmlFor="password">
-                    MẬT KHẨU<span className="required">*</span>
+                    PASSWORD<span className={styles.required}>*</span>
                   </label>
-                  <div className="password-input">
+                  <div className={styles.passwordInput}>
                     <input
                       type="password"
                       id="password"
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      placeholder="Nhập mật khẩu"
+                      placeholder="Input your password"
                       required
                     />
-                    <span className="password-toggle">👁</span>
+                    <span className={styles.passwordToggle}>👁</span>
                   </div>
-                  <a href="/forgot-password" className="forgot-password">
-                    Quên mật khẩu?
+                  <a href="/forgot-password" className={styles.forgotPassword}>
+                    Forgot Password?
                   </a>
                 </div>
 
-                <button type="submit" className="login-button">
-                  ĐĂNG NHẬP
+                <button type="submit" className={styles.loginButton}>
+                  LOGIN
                 </button>
 
-                <div className="signup-prompt">
-                  Chưa có tài khoản? <a href="/signup">Đăng ký ngay</a>
+                <div className={styles.signupPrompt}>
+                  No account yet? <a href="/signup">Sign up now</a>
                 </div>
               </form>
             </div>
