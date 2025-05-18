@@ -3,8 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Typography, Grid, Container } from "@mui/material";
 import Navbar from "../../../components/Navbar/Navbar";
 import { getProductById } from "../../../services/productService";
-import { addToCart, createCart } from '../../../services/cartService';
+import { addToCart, createCart, getActiveCart } from '../../../services/cartService';
 import { AuthContext } from '../../../context/AuthContext';
+import CustomBreadcrumb from '../../../components/Breadcrumb';
+import FooterComponent from '../../../components/Footer/Footer';
+import ProductCard from '../../../components/ProductCard';
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -16,10 +19,11 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { isLoggedIn, cartId, updateCartId } = useContext(AuthContext);
+  const { isLoggedIn, cartId, updateCartId, refreshCartItemCount } = useContext(AuthContext);
   const [cartMessage, setCartMessage] = useState('');
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
 
-  // Mock data cho relatedProducts (có thể thay bằng API sau này)
+  // Mock data for relatedProducts (can be replaced with API later)
   const relatedProducts = [
     {
       name: "Cotton Tencel Jacket Relaxed Fit",
@@ -59,10 +63,15 @@ const ProductDetail = () => {
     },
   ];
 
-  // State để quản lý trạng thái yêu thích cho từng sản phẩm liên quan
   const [favoriteStates, setFavoriteStates] = useState(
     new Array(relatedProducts.length).fill(false)
   );
+
+  const handleToggleFavorite = (index) => {
+    const updatedFavorites = [...favoriteStates];
+    updatedFavorites[index] = !updatedFavorites[index];
+    setFavoriteStates(updatedFavorites);
+  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -86,41 +95,61 @@ const ProductDetail = () => {
       navigate('/login');
       return;
     }
-
+  
     if (!selectedSize || !selectedColor) {
       setCartMessage('Vui lòng chọn size và màu sắc');
       return;
     }
-
+  
     if (!product.price || product.price <= 0) {
       setCartMessage('Sản phẩm này hiện không có giá bán');
       return;
     }
-
+  
     if (!product.stock || product.stock <= 0) {
       setCartMessage('Sản phẩm này đã hết hàng');
       return;
     }
-
+  
+    setIsAddingToCart(true);
     try {
-      let cart = await createCart();
-      
+      let currentCartId = cartId;
+  
+      if (!currentCartId) {
+        try {
+          const activeCart = await getActiveCart();
+          if (activeCart && activeCart.id) {
+            currentCartId = activeCart.id;
+            updateCartId(currentCartId);
+          }
+        } catch (error) {
+          console.warn('Không tìm thấy giỏ hàng, tạo giỏ hàng mới:', error);
+          const newCart = await createCart();
+          currentCartId = newCart.id;
+          updateCartId(currentCartId);
+        }
+      }
+  
       const cartItem = {
-        cart: {
-          id: cart.id
-        },
-        product: {
-          id: product.id
-        },
+        cart: { id: currentCartId },
+        product: { id: product.id },
         quantity: quantity,
         size: selectedSize,
-        color: selectedColor
+        color: selectedColor,
       };
-
+  
       await addToCart(cartItem);
       setCartMessage('Đã thêm vào giỏ hàng thành công!');
+      await refreshCartItemCount();
     } catch (error) {
-      setCartMessage('Không thể thêm vào giỏ hàng: ' + error.message);
+      if (error.message.includes('Phiên đăng nhập hết hạn')) {
+        navigate('/login');
+        setCartMessage('Vui lòng đăng nhập lại để tiếp tục!');
+      } else {
+        setCartMessage('Không thể thêm vào giỏ hàng: ' + error.message);
+      }
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
@@ -129,13 +158,22 @@ const ProductDetail = () => {
   if (!product) return <div>Không tìm thấy sản phẩm</div>;
 
   const filteredImages = product.imgurls || [];
-
-  // Xử lý chuỗi description để thay thế \\n thành \n
   const formattedDescription = product.description.replaceAll("\\n", "\n");
 
   return (
     <>
       <Navbar />
+      <CustomBreadcrumb
+        items={[
+          {
+            href: "/products",
+            title: 'Products',
+          },
+          {
+            title: product.name,
+          },
+        ]}
+      />
       <div style={{ fontSize: "18px" }}>
         <div
           style={{
@@ -146,7 +184,7 @@ const ProductDetail = () => {
           }}
         >
           <div style={{ flex: 1, marginLeft: "auto" }}>
-            {/* Ảnh sản phẩm */}
+            {/* Product Images */}
             <div
               style={{
                 display: "flex",
@@ -155,7 +193,7 @@ const ProductDetail = () => {
               }}
             >
               <div style={{ display: "flex", gap: "12px" }}>
-                {/* Cột ảnh nhỏ bên trái */}
+                {/* Thumbnail column */}
                 <div
                   style={{
                     display: "flex",
@@ -185,8 +223,7 @@ const ProductDetail = () => {
                     />
                   ))}
                 </div>
-
-                {/* Ảnh chính hiển thị lớn bên phải */}
+                {/* Main image */}
                 <div>
                   <img
                     src={filteredImages[selectedImageIndex]}
@@ -205,14 +242,13 @@ const ProductDetail = () => {
                 </div>
               </div>
             </div>
-
-            {/* Mô tả & Đánh giá */}
+            {/* Description & Reviews */}
             <div
               style={{
                 marginLeft: "auto",
                 marginRight: "120px",
                 marginTop: "40px",
-                width: "400px", // Cố định chiều rộng khung mô tả
+                width: "400px",
               }}
             >
               <div>
@@ -233,7 +269,6 @@ const ProductDetail = () => {
                     within 30 days if the product is defective or not as described.
                   </p>
                 </details>
-
                 <h3 style={{ marginTop: "32px", fontSize: "20px" }}>
                   Đánh giá
                 </h3>
@@ -242,7 +277,7 @@ const ProductDetail = () => {
               </div>
             </div>
           </div>
-          {/* Thông tin sản phẩm */}
+          {/* Product Information */}
           <div
             style={{
               flex: 1,
@@ -259,8 +294,7 @@ const ProductDetail = () => {
             </p>
             <p>Gender: {product.gender}</p>
             <p>Status: {product.stock > 0 ? "In stock" : "Out of stock"}</p>
-
-            {/* Màu sắc */}
+            {/* Colors */}
             <div style={{ display: "flex", gap: "10px", margin: "10px 0" }}>
               {product.color.map((color) => (
                 <div
@@ -280,8 +314,7 @@ const ProductDetail = () => {
                 ></div>
               ))}
             </div>
-
-            {/* Kích cỡ */}
+            {/* Sizes */}
             <div>
               {product.size.map((size) => (
                 <button
@@ -315,8 +348,7 @@ const ProductDetail = () => {
                 </button>
               ))}
             </div>
-
-            {/* Giá */}
+            {/* Price */}
             <div
               style={{
                 display: "flex",
@@ -329,8 +361,7 @@ const ProductDetail = () => {
                 {product.price.toLocaleString("vi-VN")} VND
               </h3>
             </div>
-
-            {/* Bộ đếm số lượng */}
+            {/* Quantity Counter */}
             <div
               style={{
                 display: "flex",
@@ -401,30 +432,30 @@ const ProductDetail = () => {
                 +
               </button>
             </div>
-
-            {/* Thêm vào giỏ hàng */}
+            {/* Add to Cart */}
             <div style={{ display: "flex", justifyContent: "flex-start" }}>
               <button
                 onClick={handleAddToCart}
+                disabled={isAddingToCart}
                 style={{
                   padding: "12px 48px",
-                  background: "black",
+                  background: isAddingToCart ? "#ccc" : "black",
                   color: "white",
                   borderRadius: "999px",
                   marginTop: "20px",
                   fontWeight: "bold",
-                  cursor: "pointer",
+                  cursor: isAddingToCart ? "not-allowed" : "pointer",
                   fontSize: "18px",
                   width: "300px",
                 }}
               >
-                ADD TO CART
+                {isAddingToCart ? "Đang thêm..." : "ADD TO CART"}
               </button>
             </div>
             {cartMessage && <p style={{ color: 'red', marginTop: '10px' }}>{cartMessage}</p>}
           </div>
         </div>
-        {/* Sản phẩm liên quan */}
+        {/* Related Products */}
         <div style={{ marginTop: "60px", textAlign: "center" }}>
           <h2 style={{ marginBottom: "20px" }}>Sản phẩm được quan tâm</h2>
           <div
@@ -433,164 +464,22 @@ const ProductDetail = () => {
               gap: "20px",
               overflowX: "auto",
               justifyContent: "flex-start",
-              scrollbarWidth: "none", /* Firefox */
-              msOverflowStyle: "none", /* IE and Edge */
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
             }}
           >
             {relatedProducts.map((item, index) => (
-              <div
+              <ProductCard
                 key={index}
-                style={{
-                  width: "calc(25% - 15px)",
-                  minWidth: "0",
-                  border: "1px solid #eee",
-                  borderRadius: "10px",
-                  padding: "10px",
-                  textAlign: "left",
-                  position: "relative",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = "scale(1.03)";
-                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = "scale(1)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                <div style={{ position: "-add-to-cartrelative" }}>
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      aspectRatio: "1/1",
-                      objectFit: "cover",
-                      borderRadius: "8px",
-                      marginBottom: "8px",
-                      transition: "transform 0.3s ease",
-                    }}
-                  />
-                  {/* Icon trái tim */}
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const updatedFavorites = [...favoriteStates];
-                      updatedFavorites[index] = !updatedFavorites[index];
-                      setFavoriteStates(updatedFavorites);
-                    }}
-                    style={{
-                      position: "absolute",
-                      top: "8px",
-                      right: "8px",
-                      width: "28px",
-                      height: "28px",
-                      background: "white",
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                      zIndex: 2,
-                      cursor: "pointer",
-                      color: favoriteStates[index] ? "red" : "gray",
-                      transition: "color 0.3s ease",
-                    }}
-                  >
-                    {favoriteStates[index] ? "❤️" : "🤍"}
-                  </div>
-                </div>
-                <h3 style={{ fontSize: "18px", margin: "10px 0" }}>{item.name}</h3>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: "6px",
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: "16px",
-                      color: "#666",
-                      marginBottom: "0",
-                      marginRight: "10px",
-                    }}
-                  >
-                    Size: {item.sizes}
-                  </p>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    {item.colors?.map((color, cidx) => (
-                      <div
-                        key={cidx}
-                        style={{
-                          width: "16px",
-                          height: "16px",
-                          borderRadius: "50%",
-                          backgroundColor: color,
-                          border: "1px solid #ccc",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <p style={{ marginBottom: "4px" }}>{item.price.toLocaleString()} VND</p>
-                <p style={{ fontSize: "16px" }}>
-                  ★ {item.rating} ({item.reviewCount})
-                </p>
-              </div>
+                product={item}
+                isFavorite={favoriteStates[index]}
+                onToggleFavorite={handleToggleFavorite}
+                index={index}
+              />
             ))}
           </div>
         </div>
-        {/* Footer */}
-        <footer
-          style={{
-            backgroundColor: "#333",
-            color: "#fff",
-            padding: "40px 0",
-            marginTop: "40px",
-          }}
-        >
-          <Container>
-            <Grid container spacing={4}>
-              <Grid item xs={12} md={4}>
-                <Typography variant="h6" style={{ fontWeight: "bold" }}>
-                  Tên web
-                </Typography>
-                <Typography variant="body2">slogan</Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="h6" style={{ fontWeight: "bold" }}>
-                  LIÊN HỆ
-                </Typography>
-                <Typography variant="body2">
-                  📍 Đường Hàn Thuyên, Khu Phố 6, Thủ Đức, HCM
-                </Typography>
-                <Typography variant="body2">
-                  📞 (+84) 12 3456 7891
-                </Typography>
-                <Typography variant="body2">✉️ info@gmail.com</Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <Typography variant="h6" style={{ fontWeight: "bold" }}>
-                  HỖ TRỢ KHÁCH HÀNG
-                </Typography>
-                <Typography variant="body2">
-                  Chính sách bảo mật thông tin
-                </Typography>
-                <Typography variant="body2">Quy chế hoạt động</Typography>
-                <Typography variant="body2">Chính sách thanh toán</Typography>
-                <Typography variant="body2">Chính sách đổi trả hàng</Typography>
-                <Typography variant="body2">Chính sách vận chuyển</Typography>
-                <Typography variant="body2">Giới thiệu sản phẩm</Typography>
-              </Grid>
-            </Grid>
-          </Container>
-        </footer>
+        <FooterComponent />
       </div>
     </>
   );

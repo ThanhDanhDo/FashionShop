@@ -7,19 +7,17 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import SearchIcon from '@mui/icons-material/Search';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { AuthContext } from '../../context/AuthContext';
-import { getCartItems } from '../../services/cartService';
 
 const Navbar = () => {
-  const { isLoggedIn, userName, logout, cartId } = useContext(AuthContext);
+  const { isLoggedIn, userName, logout, cartId, cartItemCount, refreshCartItemCount } = useContext(AuthContext);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [isProductHovered, setIsProductHovered] = useState(false);
   const [isWomenHovered, setIsWomenHovered] = useState(false);
   const [isMenHovered, setIsMenHovered] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [cartItemCount, setCartItemCount] = useState(0);
 
-  // Static category map (aligned with Products.jsx)
+  // Static category map
   const categoryMap = {
     Outerwear: 1,
     'T-shirt': 2,
@@ -29,7 +27,7 @@ const Navbar = () => {
     Accessories: 6,
   };
 
-  // Subcategory map (aligned with category.csv)
+  // Subcategory map
   const subCategoryMap = {
     'Jackets & Blazers': 7,
     Coats: 8,
@@ -39,8 +37,8 @@ const Navbar = () => {
     'Shirt Long-sleeve': 12,
     Skirts: 13,
     Dresses: 14,
-    Long: 15, // Bottoms
-    Short: 16, // Bottoms
+    Long: 15,
+    Short: 16,
     Bags: 17,
     Belts: 18,
     Hats: 19,
@@ -48,21 +46,11 @@ const Navbar = () => {
 
   useEffect(() => {
     if (isLoggedIn && cartId) {
-      fetchCartItemCount();
+      refreshCartItemCount();
     } else {
-      setCartItemCount(0);
+      // Không cần setCartItemCount trực tiếp vì AuthContext đã xử lý
     }
-  }, [isLoggedIn, cartId]);
-
-  const fetchCartItemCount = async () => {
-    try {
-      const items = await getCartItems(cartId);
-      setCartItemCount(items.length);
-    } catch (error) {
-      console.error('Không thể lấy số lượng sản phẩm trong giỏ hàng:', error);
-      setCartItemCount(0);
-    }
-  };
+  }, [isLoggedIn, cartId, refreshCartItemCount]);
 
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -86,17 +74,14 @@ const Navbar = () => {
     setIsSearchActive(false);
   };
 
-  // Handle navigation with filters and close popup
   const handleFilterNavigation = (gender, mainCategory, subCategory) => {
     const queryParams = new URLSearchParams();
     if (gender && gender !== 'all') queryParams.append('gender', gender);
     if (mainCategory) queryParams.append('mainCategoryId', categoryMap[mainCategory]);
     if (subCategory) queryParams.append('subCategoryId', subCategoryMap[subCategory]);
     
-    // Navigate to /products with query parameters
     navigate(`/products?${queryParams.toString()}`);
     
-    // Close all popups
     setIsProductHovered(false);
     setIsWomenHovered(false);
     setIsMenHovered(false);
@@ -108,7 +93,9 @@ const Navbar = () => {
     <>
       <nav className={`navbar ${isProductHovered || isWomenHovered || isMenHovered ? 'navbar-hovered' : ''}`}>
         <div className="navbar-left">
-          <Link to="/" className="nav-logo">LOGO</Link>
+          <Link to="/" className="nav-logo">
+            <img src="/images/logo4.png" alt="Logo" className="logo-img" />
+          </Link>
           <div className="search-bar" onClick={toggleSearchPopup}>
             <SearchIcon style={{ fontSize: '24px', color: '#333' }} />
             <input type="text" placeholder="Search" readOnly />
@@ -505,13 +492,13 @@ const Navbar = () => {
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
-            <Link to="/cart" className="cart-link">
-              <IconButton>
-                <Badge badgeContent={cartItemCount} color="error">
-                  <ShoppingCartIcon />
-                </Badge>
-              </IconButton>
-            </Link>
+              <Link to="/cart" className="cart-link">
+                <IconButton>
+                  <Badge badgeContent={cartItemCount} color="error">
+                    <ShoppingCartIcon />
+                  </Badge>
+                </IconButton>
+              </Link>
               <IconButton>
                 <Badge badgeContent={5} color="error">
                   <FavoriteIcon />
@@ -545,13 +532,13 @@ const Navbar = () => {
                   onClick={handleClose}
                   sx={{ fontSize: '18px' }}
                 >
-                  Tài khoản
+                  Account
                 </MenuItem>
                 <MenuItem
                   onClick={handleLogout}
                   sx={{ fontSize: '18px' }}
                 >
-                  Đăng xuất
+                  Log out
                 </MenuItem>
               </Popover>
             </>
@@ -564,13 +551,11 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Overlay */}
       <div
         className={`search-overlay ${isSearchActive ? 'active' : ''}`}
         onClick={closeSearchPopup}
       ></div>
 
-      {/* Search Popup */}
       <div className={`search-popup ${isSearchActive ? 'active' : ''}`}>
         <div className="search-row">
           <input type="text" placeholder="Search" />
