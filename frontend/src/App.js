@@ -15,6 +15,7 @@ import Products from './pages/User/Products/Products';
 import { AuthProvider } from './context/AuthContext';
 import ProductDetail from './pages/User/ProductDetail/ProductDetail';
 import Cart from './pages/User/Cart/Cart';
+import OtpVerification from './pages/OtpVerification/OtpVerification';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           {/* Authentication routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/otp-verification" element={<OtpVerification />} />
           <Route path="/cart" element={<Cart />} />
 
           {/* Product routes */}
