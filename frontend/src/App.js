@@ -12,6 +12,8 @@ import Login from './pages/Login/Login';
 import Signup from './pages/SignUp/Signup';
 import Home from './pages/User/Home/Home';
 import Products from './pages/User/Products/Products';
+import AddProduct from './pages/Admin/Products-admin/add-product';
+import ChangeProduct from './pages/Admin/Products-admin/Change-product';
 import { AuthProvider } from './context/AuthContext';
 import ProductDetail from './pages/User/ProductDetail/ProductDetail';
 import Cart from './pages/User/Cart/Cart';
@@ -43,6 +45,8 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products-admin" element={<ProductsAdmin />} />
+            <Route path="/Products-admin/add-product" element={<AddProduct />} />
+            <Route path="/Products-admin/Change-product/:id" element={<ChangeProduct />} />
             <Route path="/orders-admin" element={<OrdersAdmin />} />
             <Route path="/users-admin" element={<UsersAdmin />} />
           </Route>

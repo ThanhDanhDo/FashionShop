@@ -1,0 +1,134 @@
+.product-admin {
+    display: flex;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    background-color: #f5f8fa;
+    padding: 20px;
+}
+.user-info {
+    display: flex;
+    align-items: center;
+}
+/* Filters */
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.search-input, .filter-select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 200px;
+}
+.add-product-btn {
+    padding: 8px 15px;
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+/* Table */
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 5px;
+    overflow: hidden;
+}
+.product-table th, .product-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+.product-table th {
+    background-color: #f9fafb;
+}
+.product-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+.status {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+.in-stock {
+    background-color: #e6f0fa;
+    color: #1a73e8;
+}
+.out-of-stock {
+    background-color: #fce8e6;
+    color: #d93025;
+}
+.action-btn {
+    padding: 5px 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #1a73e8;
+}
+.delete-btn {
+    color: #d93025;
+}
+
+.delete-selected-btn {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  
+  .delete-selected-btn:hover {
+    background-color: #d9363e;
+  }
+
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.popup-btn {
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.popup-btn.cancel-btn {
+    background-color: #d93025;
+    color: white;
+}
+
+.popup-btn {
+    background-color: #1a73e8;
+    color: white;
+}
