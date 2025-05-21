@@ -10,6 +10,8 @@ import Navbar from "../../../components/Navbar/Navbar";
 import "./Products.css";
 import { filterProducts } from "../../../services/productService";
 import { getCategoryById } from "../../../services/categoryService";
+import CustomBreadcrumb from '../../../components/Breadcrumb';
+import FooterComponent from '../../../components/Footer/Footer';
 
 const Products = () => {
   const navigate = useNavigate();
@@ -380,7 +382,15 @@ const Products = () => {
   return (
     <div>
       <Navbar isLoggedIn={false} />
-      <Container maxWidth="xl" sx={{ mt: 4 }}>
+      <CustomBreadcrumb
+        items={[
+          {
+            title: "Products",
+          }
+        ]}
+      />
+      <div className="main-content-container">
+        <Container maxWidth="xl" sx={{ mt: 4 }}>
         <Grid container spacing={3}>
           {/* Sidebar */}
           <Grid item xs={12} md={3}>
@@ -475,72 +485,135 @@ const Products = () => {
 
           {/* Main Content */}
           <Grid item xs={12} md={9}>
-            {/* Free Shipping Banner */}
-            <div className="free-shipping-banner">
-              <img
-                src="/images/free-shipping-banner.svg"
-                alt="Ảnh và lời quảng cáo"
-                style={{
-                  filter: "brightness(0) invert(1)",
-                  opacity: 0.9,
-                }}
-              />
-            </div>
-
-            {/* Product Grid */}
-            <div className="product-grid">
-              {loading ? (
-                <div>Loading products...</div>
-              ) : error ? (
-                <div style={{ color: "red", textAlign: "center" }}>{error}</div>
-              ) : products.length > 0 ? (
-                products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="product-card"
-                    onClick={() => navigate(`/product/${product.id}`)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div className="product-image-container">
-                      <img
-                        src={
-                          product.imgurls && product.imgurls.length > 0
-                            ? product.imgurls[0]
-                            : "/images/default-product.jpg"
-                        }
-                        alt={product.name}
-                        className="product-image"
-                      />
-                      <IconButton
-                        className="favorite-button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(product.id);
+              {/* Product Grid */}
+              <div className="product-grid">
+                {loading ? (
+                  <div>Loading products...</div>
+                ) : error ? (
+                  <div style={{ color: "red", textAlign: "center" }}>{error}</div>
+                ) : products.length > 0 ? (
+                  products.map((product) => (
+                    <div
+                      key={product.id}
+                      className="product-card"
+                      onClick={() => navigate(`/product/${product.id}`)}
+                      style={{
+                        border: "1px solid #eee",
+                        borderRadius: "10px",
+                        padding: "10px",
+                        textAlign: "left",
+                        position: "relative",
+                        overflow: "hidden",
+                        cursor: "pointer",
+                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "scale(1.03)";
+                        e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
+                    >
+                      <div style={{ position: "relative" }}>
+                        <img
+                          src={
+                            product.imgurls && product.imgurls.length > 0
+                              ? product.imgurls[0]
+                              : "/images/default-product.jpg"
+                          }
+                          alt={product.name}
+                          style={{
+                            width: "100%",
+                            height: "auto",
+                            aspectRatio: "1/1",
+                            objectFit: "cover",
+                            borderRadius: "8px",
+                            marginBottom: "8px",
+                            transition: "transform 0.3s ease",
+                          }}
+                        />
+                        <IconButton
+                          className="favorite-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavorite(product.id);
+                          }}
+                          style={{
+                            position: "absolute",
+                            top: "8px",
+                            right: "8px",
+                            width: "28px",
+                            height: "28px",
+                            background: "white",
+                            borderRadius: "50%",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                            zIndex: 2,
+                            cursor: "pointer",
+                          }}
+                        >
+                          {favorites[product.id] ? (
+                            <FavoriteIcon color="error" />
+                          ) : (
+                            <FavoriteBorderIcon />
+                          )}
+                        </IconButton>
+                      </div>
+                      <h3 style={{ fontSize: "18px", margin: "10px 0" }}>{product.name}</h3>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginBottom: "6px",
                         }}
                       >
-                        {favorites[product.id] ? (
-                          <FavoriteIcon color="error" />
-                        ) : (
-                          <FavoriteBorderIcon />
-                        )}
-                      </IconButton>
+                        <p
+                          style={{
+                            fontSize: "16px",
+                            color: "#666",
+                            marginBottom: "0",
+                            marginRight: "10px",
+                          }}
+                        >
+                          Size: {product.size ? product.size.join(", ") : "N/A"}
+                        </p>
+                        <div style={{ display: "flex", gap: "6px" }}>
+                          {product.color?.map((color, cidx) => (
+                            <div
+                              key={cidx}
+                              style={{
+                                width: "16px",
+                                height: "16px",
+                                borderRadius: "50%",
+                                backgroundColor: color.toLowerCase(),
+                                border: "1px solid #ccc",
+                              }}
+                            />
+                          )) || <p>No colors</p>}
+                        </div>
+                      </div>
+                      <p style={{ marginBottom: "4px" }}>
+                        {product.price.toLocaleString("vi-VN")} VND
+                      </p>
+                      <p style={{ fontSize: "16px" }}>
+                        ★ {product.rating || 4.8} ({product.reviewCount || 15})
+                      </p>
                     </div>
-                    <div className="product-info">
-                      {product.tag && (
-                        <div className="product-tag">{product.tag}</div>
-                      )}
-                      <div className="product-name">{product.name}</div>
-                      <div className="product-price">{product.price.toLocaleString("vi-VN")}đ</div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div>Không có sản phẩm nào.</div>
-              )}
-            </div>
+                  ))
+                ) : (
+                  <div>Không có sản phẩm nào.</div>
+                )}
+              </div>
+            </Grid>
           </Grid>
-        </Grid>
-      </Container>
+        </Container>
+      </div>
+      <FooterComponent />
     </div>
   );
 };

@@ -1,29 +1,68 @@
+/* Thêm padding tổng cho container chính */
+.main-content-container {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* Responsive điều chỉnh */
+@media (max-width: 600px) {
+  .main-content-container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+/* Product card styles */
 .product-card {
   position: relative;
-  transition: transform 0.3s ease;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: left;
+  background: #fff;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  min-width: 200px; /* Thêm min-width để tránh thẻ bị nén quá nhỏ */
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transform: scale(1.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.product-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: transform 0.3s ease;
 }
 
 .favorite-button {
   position: absolute;
   top: 8px;
   right: 8px;
-  background-color: rgba(255, 255, 255, 0.8);
+  width: 28px;
+  height: 28px;
+  background: white;
   border-radius: 50%;
-  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 2;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .favorite-button:hover {
-  background-color: rgba(255, 255, 255, 1);
   transform: scale(1.1);
 }
 
+/* Sold-out overlay */
 .sold-out-overlay {
   position: absolute;
   top: 0;
@@ -38,6 +77,7 @@
   font-weight: bold;
 }
 
+/* Filter section styles */
 .filter-section {
   background-color: #f5f5f5;
   padding: 20px;
@@ -66,6 +106,10 @@
   width: 250px;
   min-width: 250px;
   padding-right: 20px;
+}
+
+.MuiGrid-root {
+  padding-top: 0 !important;
 }
 
 /* Gender filter styles */
@@ -264,65 +308,51 @@
 .product-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 15px; /* Giảm gap để có thêm không gian cho các thẻ */
 }
 
-.product-card {
-  position: relative;
-  border: none;
-  background: #fff;
-  transition: transform 0.3s ease;
-}
-
-.product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.product-image-container {
-  position: relative;
-  padding-top: 100%;
-  overflow: hidden;
-}
-
-.product-image {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
+/* Product info styles */
 .product-info {
-  padding: 15px 0;
+  padding: 0;
 }
 
 .product-name {
-  font-size: 0.9rem;
-  color: #000;
-  margin-bottom: 5px;
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.product-size-color {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.product-size-color p {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 0;
+  margin-right: 10px;
+}
+
+.product-color-swatches {
+  display: flex;
+  gap: 6px;
+}
+
+.product-color-swatches div {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
 }
 
 .product-price {
-  font-size: 0.9rem;
-  color: #666;
+  margin-bottom: 4px;
 }
 
-.product-status {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px 20px;
-  font-weight: bold;
-}
-
-.product-tag {
-  font-size: 0.8rem;
-  color: #ff4400;
-  margin-bottom: 5px;
+.product-rating {
+  font-size: 16px;
 }
 
 /* Responsive adjustments */
