@@ -28,5 +28,4 @@ public class RecommendationController {
         recommendationService.triggerTraining();
         return ResponseEntity.ok("Training triggered successfully");
     }
-
 }

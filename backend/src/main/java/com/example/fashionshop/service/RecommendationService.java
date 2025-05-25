@@ -6,10 +6,10 @@ import com.example.fashionshop.config.ColabConfig;
 import com.example.fashionshop.model.Product;
 import com.example.fashionshop.model.Recommendation;
 import com.example.fashionshop.repository.RecommendationRepository;
+import com.example.fashionshop.repository.ProductRepository;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,11 +20,12 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class RecommendationService {
     private final RecommendationRepository recommendationRepository;
+    private final ProductRepository productRepository;
     private final RestTemplate restTemplate;
     private final ColabConfig colabConfig;
 
     public void triggerTraining() {
-        String endpoint = colabConfig.getNgrok_link() + "update_recommendation";
+        String endpoint = colabConfig.getNgrok_link() + "/update_recommendation";
 
         Map<String, Object> requestBody = new HashMap<>();
 
@@ -42,8 +43,21 @@ public class RecommendationService {
     }
 
     public List<Product> findRecommendationByUserId(int userId) {
-        return recommendationRepository.findByUserId(userId)
-                .map(Recommendation::getProducts)
-                .orElse(List.of());
+        Optional<Recommendation> optionalRec = recommendationRepository.findByUserId(userId);
+    
+        if (optionalRec.isEmpty()) {
+            return List.of();
+        }
+    
+        Integer[] productIds = optionalRec.get().getProductIds();
+        if (productIds == null || productIds.length == 0) {
+            return List.of();
+        }
+
+        List<Long> ids = Arrays.stream(productIds)
+            .map(Integer::longValue)
+            .collect(Collectors.toList());
+    
+        return productRepository.findAllById(ids);
     }
 }

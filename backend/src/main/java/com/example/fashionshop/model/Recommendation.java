@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Entity
 @Getter
 @Setter
@@ -20,12 +18,8 @@ public class Recommendation {
     private Long id;
 
     private int userId;
-    
-    @ManyToMany
-    @JoinTable(
-        name = "recommendation_products",
-        joinColumns = @JoinColumn(name = "recommendation_id"),
-        inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
-    private List<Product> products;
+
+    @Column(name = "product_ids", columnDefinition = "integer[]")
+    private Integer[] productIds;
 }
+
