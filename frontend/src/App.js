@@ -18,6 +18,7 @@ import { AuthProvider } from './context/AuthContext';
 import ProductDetail from './pages/User/ProductDetail/ProductDetail';
 import Cart from './pages/User/Cart/Cart';
 import OtpVerification from './pages/OtpVerification/OtpVerification';
+import OrderList from './pages/User/Orders-user/OrderList';
 
 function App() {
   return (
@@ -40,7 +41,8 @@ function App() {
           <Route path="/products/:categoryType/:categoryId" element={<Products />} />
           {/* Home route */}
           <Route path="/" element={<Home />} />
-
+          {/* User routes */}
+          <Route path="/orders" element={<OrderList />} />
           {/* Admin routes */}
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
