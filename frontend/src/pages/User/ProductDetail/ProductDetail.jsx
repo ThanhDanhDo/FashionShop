@@ -139,7 +139,7 @@ const ProductDetail = () => {
       };
   
       await addToCart(cartItem);
-      setCartMessage('Đã thêm vào giỏ hàng thành công!');
+      setCartMessage('Added to cart successfully!');
       await refreshCartItemCount();
     } catch (error) {
       if (error.message.includes('Phiên đăng nhập hết hạn')) {
