@@ -19,6 +19,7 @@ import ProductDetail from './pages/User/ProductDetail/ProductDetail';
 import Cart from './pages/User/Cart/Cart';
 import OtpVerification from './pages/OtpVerification/OtpVerification';
 import OrderList from './pages/User/Orders-user/OrderList';
+import WishList from './pages/User/WishList/WishList';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path="/products/:category" element={<Products />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/products/:categoryType/:categoryId" element={<Products />} />
+          <Route path="/WishList" element={<WishList />} />
           {/* Home route */}
           <Route path="/" element={<Home />} />
           {/* User routes */}
