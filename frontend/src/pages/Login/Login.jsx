@@ -26,9 +26,28 @@ const Login = () => {
     try {
       const response = await login(formData);
       if (response.data) {
-        setLoginState(response.data); // Sử dụng user từ response.data
+        // Gọi API /api/authorities để lấy role
+        const authResponse = await fetch('/api/authorities', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        if (!authResponse.ok) throw new Error('Không thể lấy thông tin vai trò');
+        const authData = await authResponse.json();
+        const userRole = authData.role[0]; // Lấy role (ROLE_ADMIN hoặc ROLE_USER)
+
+        // Cập nhật trạng thái đăng nhập với user và role
+        setLoginState(response.data, userRole);
+        
         alert('Đăng nhập thành công!');
-        navigate('/');
+
+        // Điều hướng dựa trên role
+        setTimeout(() => {
+          if (userRole === 'ADMIN') {
+            navigate('/dashboard');
+          } else {
+            navigate('/');
+          }
+        }, 100); // Độ trễ 100ms
       } else {
         console.error('Không có thông tin user trong response');
         alert('Đăng nhập thất bại!');

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useContext } from 'react';
 import './Layout.css';
 import {
   Box,
@@ -27,12 +27,14 @@ import {
   Chat as ChatIcon,
   ArrowDropDown as ArrowDropDownIcon,
 } from '@mui/icons-material';
-import { useNavigate, Outlet } from 'react-router-dom'; // Thêm Outlet
+import { useNavigate, Outlet } from 'react-router-dom';
+import { AuthContext } from '../../context/AuthContext';
 
 const drawerWidth = 250;
 
-const Layout = () => { // Không cần prop children
+const Layout = () => {
   const navigate = useNavigate();
+  const { logout, userName } = useContext(AuthContext); 
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
@@ -41,6 +43,11 @@ const Layout = () => { // Không cần prop children
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout(); 
+    handleClose();
   };
 
   const isPopoverOpen = Boolean(anchorEl);
@@ -83,7 +90,7 @@ const Layout = () => { // Không cần prop children
           >
             <Avatar alt="Account" src="/path/to/avatar.jpg" />
             <Box sx={{ ml: 1 }}>
-              <Typography variant="subtitle1">Name</Typography>
+              <Typography variant="subtitle1">{userName || 'Admin'}</Typography>
               <Typography variant="body2" color="textSecondary">Admin</Typography>
             </Box>
             <ArrowDropDownIcon />
@@ -102,7 +109,7 @@ const Layout = () => { // Không cần prop children
             }}
           >
             <MenuItem onClick={handleClose}>Tài khoản</MenuItem>
-            <MenuItem onClick={handleClose}>Đăng xuất</MenuItem>
+            <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
           </Popover>
         </Toolbar>
       </AppBar>
@@ -166,12 +173,12 @@ const Layout = () => { // Không cần prop children
         sx={{
           flexGrow: 1,
           p: 3,
-          ml: '0px', // Giảm khoảng cách giữa sidebar và nội dung
+          ml: '0px',
           mt: 8,
           minHeight: '100vh',
         }}
       >
-        <Outlet /> {/* Render các route con như Dashboard */}
+        <Outlet />
       </Box>
     </Box>
   );

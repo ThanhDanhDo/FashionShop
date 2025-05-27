@@ -20,6 +20,7 @@ import Cart from './pages/User/Cart/Cart';
 import OtpVerification from './pages/OtpVerification/OtpVerification';
 import OrderList from './pages/User/Orders-user/OrderList';
 import WishList from './pages/User/WishList/WishList';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
@@ -41,18 +42,63 @@ function App() {
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/products/:categoryType/:categoryId" element={<Products />} />
           <Route path="/wishList" element={<WishList />} />
+          
           {/* Home route */}
           <Route path="/" element={<Home />} />
+          
           {/* User routes */}
           <Route path="/orders" element={<OrderList />} />
+          
           {/* Admin routes */}
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/products-admin" element={<ProductsAdmin />} />
-            <Route path="/Products-admin/add-product" element={<AddProduct />} />
-            <Route path="/Products-admin/Change-product/:id" element={<ChangeProduct />} />
-            <Route path="/orders-admin" element={<OrdersAdmin />} />
-            <Route path="/users-admin" element={<UsersAdmin />} />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute requiredRole="ADMIN">
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/products-admin"
+              element={
+                <PrivateRoute requiredRole="ADMIN">
+                  <ProductsAdmin />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/Products-admin/add-product"
+              element={
+                <PrivateRoute requiredRole="ADMIN">
+                  <AddProduct />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/Products-admin/Change-product/:id"
+              element={
+                <PrivateRoute requiredRole="ADMIN">
+                  <ChangeProduct />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/orders-admin"
+              element={
+                <PrivateRoute requiredRole="ADMIN">
+                  <OrdersAdmin />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/users-admin"
+              element={
+                <PrivateRoute requiredRole="ADMIN">
+                  <UsersAdmin />
+                </PrivateRoute>
+              }
+            />
           </Route>
         </Routes>
       </AuthProvider>
