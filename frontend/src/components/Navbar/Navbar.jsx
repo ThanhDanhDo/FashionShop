@@ -87,7 +87,11 @@ const Navbar = () => {
     setIsMenHovered(false);
   };
 
-  const isPopoverOpen = Boolean(anchorEl);
+  const handleAccountClick = () => {
+    navigate('/user-account'); // Chuyển hướng đến trang quản lý tài khoản
+  };
+
+  const isPopoverOpen = Boolean(anchorEl)
 
   return (
     <>
@@ -531,7 +535,10 @@ const Navbar = () => {
                 }}
               >
                 <MenuItem
-                  onClick={handleClose}
+                  onClick={() => {
+                    handleClose(); // Đóng popup
+                    handleAccountClick(); // Chuyển hướng
+                  }}
                   sx={{ fontSize: '18px' }}
                 >
                   Account

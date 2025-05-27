@@ -16,6 +16,7 @@ import AddProduct from './pages/Admin/Products-admin/add-product';
 import ChangeProduct from './pages/Admin/Products-admin/Change-product';
 import { AuthProvider } from './context/AuthContext';
 import ProductDetail from './pages/User/ProductDetail/ProductDetail';
+import UserAccount from './pages/User/UserAccount/UserAccount';
 import Cart from './pages/User/Cart/Cart';
 import OtpVerification from './pages/OtpVerification/OtpVerification';
 import OrderList from './pages/User/Orders-user/OrderList';
@@ -49,6 +50,10 @@ function App() {
           {/* User routes */}
           <Route path="/orders" element={<OrderList />} />
           
+
+          {/* User Account route */}
+          <Route path="/user-account" element={<UserAccount />} />
+
           {/* Admin routes */}
           <Route element={<Layout />}>
             <Route
