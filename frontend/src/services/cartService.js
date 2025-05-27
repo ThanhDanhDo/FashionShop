@@ -1,3 +1,4 @@
+// src/services/cartService.js
 const API_BASE_URL = '/api/cart';
 const API_CART_ITEMS_URL = '/api/cart-items';
 
@@ -8,8 +9,8 @@ export const createCart = async () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-      }
+      },
+      credentials: 'include', // Gửi cookie
     });
     
     if (!response.ok) {
@@ -31,8 +32,8 @@ export const getCartById = async (cartId) => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-      }
+      },
+      credentials: 'include',
     });
     
     if (!response.ok) {
@@ -54,8 +55,8 @@ export const getActiveCart = async () => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-      }
+      },
+      credentials: 'include',
     });
     
     if (!response.ok) {
@@ -67,9 +68,10 @@ export const getActiveCart = async () => {
       }
       try {
         const errorData = await response.json();
+        console.log('Error response from /api/cart:', errorData);
         errorMessage = errorData.message || errorMessage;
       } catch (e) {
-        // Bỏ qua nếu phản hồi không phải JSON
+        console.error('Không thể parse error response:', e);
       }
       throw new Error(errorMessage);
     }
@@ -88,8 +90,8 @@ export const getCartItems = async (cartId) => {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-      }
+      },
+      credentials: 'include',
     });
     
     if (!response.ok) {
@@ -111,8 +113,8 @@ export const addToCart = async (cartItem) => {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
       },
+      credentials: 'include',
       body: JSON.stringify({
         productId: cartItem.product.id,
         quantity: cartItem.quantity,
@@ -140,8 +142,8 @@ export const removeFromCart = async (cartItemId) => {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-      }
+      },
+      credentials: 'include',
     });
     
     if (!response.ok) {
@@ -163,8 +165,8 @@ export const clearCart = async (cartId) => {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-      }
+      },
+      credentials: 'include',
     });
     
     if (!response.ok) {
@@ -186,8 +188,8 @@ export const deleteCart = async (cartId) => {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
-      }
+      },
+      credentials: 'include',
     });
     
     if (!response.ok) {
@@ -202,10 +204,9 @@ export const deleteCart = async (cartId) => {
   }
 };
 
-// Cập nhật sản phẩm trong giỏ hàng (quantity, size, color)
+// Cập nhật sản phẩm trong giỏ hàng
 export const updateCartItem = async (cartItemId, { quantity, size, color, availableSizes, availableColors }) => {
   try {
-    // Kiểm tra tính hợp lệ của size và color
     if (size && availableSizes && !availableSizes.includes(size)) {
       throw new Error('Size không hợp lệ cho sản phẩm này!');
     }
@@ -220,8 +221,8 @@ export const updateCartItem = async (cartItemId, { quantity, size, color, availa
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('jwt')}`
       },
+      credentials: 'include',
       body: JSON.stringify({
         quantity,
         size,
