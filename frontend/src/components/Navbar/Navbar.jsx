@@ -499,11 +499,13 @@ const Navbar = () => {
                   </Badge>
                 </IconButton>
               </Link>
-              <IconButton>
+              <Link to="/wishList" className="wishlist-link">
+                <IconButton>
                 <Badge badgeContent={5} color="error">
                   <FavoriteIcon />
                 </Badge>
               </IconButton>
+              </Link>
               <div className="account-section" onClick={handleAvatarClick}>
                 <AccountCircleIcon style={{ fontSize: 40, color: '#555' }} />
                 <span className="user-name">{userName || 'Guest'}</span>
