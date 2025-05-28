@@ -42,4 +42,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                         @Param("priceMax") Double priceMax,
                         Pageable pageable);
 
+        List<Product> findByIdIn(List<Long> ids);
+
 }
