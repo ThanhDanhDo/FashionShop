@@ -11,24 +11,20 @@
   }
   
   .wishlist-card {
-    display: flex;
-    flex-direction: column;
     background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-    overflow: hidden;
-    transition: transform 0.2s ease;
+    border: 1px solid #e0e0e0; /* viền xám nhạt */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
   
   .wishlist-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
   }
   
   .wishlist-image-wrapper.small {
     width: 100%;
     padding-top: 100%; 
     position: relative;
-    background-color: #f9f9f9;
+    background-color: #f7f7f7;;
   }
   
   .wishlist-image {
@@ -55,10 +51,6 @@
     margin: 0;
   }
   
-  .wishlist-heart {
-    color: hotpink;
-  }
-  
   .wishlist-price {
     font-weight: bold;
     color: #e91e63;
@@ -78,7 +70,10 @@
     margin-top: 12px;
   }
   
-  .add-to-cart,
+  .add-to-cart {
+    background-color: #e91e63;
+    color: white;
+  }
   .remove-wishlist {
     flex: 1;
     padding: 8px;
