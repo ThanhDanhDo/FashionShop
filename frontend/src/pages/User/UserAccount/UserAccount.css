@@ -1,0 +1,192 @@
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear,
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none;
+}
+
+.user-account {
+  padding: 40px;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f7ff;
+  min-height: 100vh;
+}
+
+.title {
+  font-size: 34px;
+  font-weight: 800;
+  color: #222;
+  text-align: left;
+  width: 80%; /* Cùng chiều rộng với form-box */
+  margin: 0 auto 30px;
+}
+
+.form-box {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 0;
+  margin-bottom: 30px;
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  transition: box-shadow 0.3s ease;
+  width: 80%;
+  margin: 0 auto;
+}
+
+/* PERSONAL INFORMATION: Bo tròn góc trên trái và trên phải */
+.user-account > .form-box:first-of-type {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+/* DELIVERY ADDRESS: Bo tròn góc dưới trái và dưới phải */
+.form-box:last-child {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.form-box.hoverable:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.form-box h3 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 0px;
+  color: #333;
+}
+
+.input-group {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.input-group label {
+  font-weight: bold;
+  margin-right: 10px;
+  min-width: 200px;
+  color: #333;
+}
+
+.input-group input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  background-color: #fdfdfd;
+  flex: 1;
+  margin: 0;
+}
+
+.info-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.info-group label {
+  font-weight: bold;
+  margin-right: 10px;
+  min-width: 200px;
+  color: #333;
+}
+
+.info-group p {
+  padding: 10px;
+  background-color: #fdfdfd;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  flex: 1;
+  margin: 0;
+}
+
+/* Password field with icon */
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #fdfdfd;
+  font-size: 15px;
+  flex: 1;
+}
+
+.password-field input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.password-field span {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  font-size: 18px;
+  color: #888;
+  padding-right: 20px;
+}
+
+.blue-btn {
+  background-color: #2563eb;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  font-weight: bold;
+  font-size: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.blue-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.button-wrapper {
+  text-align: right;
+  margin-top: 10px;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #3b82f6;
+  padding: 40px 60px;
+  border-radius: 12px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  text-align: center;
+  font-size: 24px;
+  color: #fff;
+  animation: popup-fade-in 0.3s ease-out;
+}
+
+.popup.success {
+  background: #3b82f6;
+}
+
+.popup.error {
+  background: #ef4444;
+}
+
+.popup p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.popup .icon {
+  font-size: 30px;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+@keyframes popup-fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
