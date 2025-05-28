@@ -27,11 +27,11 @@ public class InteractService {
     public Interact addInteract(User user, Product product){
         Integer userId = user.getId().intValue();
         Long productId = product.getId();
-        Optional<Interact> existingInteract = interactRepository.findByUserIdAndProductId(userId, productId);
 
-        if (existingInteract.isPresent()) {
-            return existingInteract.get();
-        }
+//        Optional<Interact> existingInteract = interactRepository.findByUserIdAndProductId(userId, productId);
+//        if (existingInteract.isPresent()) {
+//            return existingInteract.get();
+//        }
         Interact interact = new Interact();
         interact.setUserId(userId);
         interact.setProduct(product);

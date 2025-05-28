@@ -4,47 +4,48 @@ import sys
 import argparse
 from SASRec import SASREC
 
-def fine_tune_model(model, user_id, sequence, device, num_products, lr=1e-4):
+def fine_tune_model(model, user_id, sequence, device, num_products, lr=1e-4, num_epochs=25):
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     bce_loss = torch.nn.BCEWithLogitsLoss(reduction='none')
 
-    x = sequence[:-1]
-    pos = sequence[1:]
-    seq_len = len(x)
+    for epoch in range(num_epochs):
+        x = sequence[:-1]
+        pos = sequence[1:]
+        seq_len = len(x)
 
-    product_set = set(sequence)
-    neg = []
-    for _ in range(seq_len):
-        t = np.random.randint(1, num_products + 1)
-        while t in product_set:
+        product_set = set(sequence)
+        neg = []
+        for _ in range(seq_len):
             t = np.random.randint(1, num_products + 1)
-        neg.append(t)
+            while t in product_set:
+                t = np.random.randint(1, num_products + 1)
+            neg.append(t)
 
-    x = torch.LongTensor([x]).to(device)
-    pos = torch.LongTensor([pos]).to(device)
-    neg = torch.LongTensor([neg]).to(device)
-    user_ids = torch.LongTensor([user_id]).to(device)
+        x_tensor = torch.LongTensor([x]).to(device)
+        pos_tensor = torch.LongTensor([pos]).to(device)
+        neg_tensor = torch.LongTensor([neg]).to(device)
+        user_ids = torch.LongTensor([user_id]).to(device)
 
-    optimizer.zero_grad()
-    pos_logits, neg_logits = model(user_ids, x, pos, neg)
-    
-    pos_labels = torch.ones_like(pos_logits, device=device)
-    neg_labels = torch.zeros_like(neg_logits, device=device)
-    
-    mask = (pos != 0).float().to(device)
+        optimizer.zero_grad()
+        pos_logits, neg_logits = model(user_ids, x_tensor, pos_tensor, neg_tensor)
 
-    loss_pos = (bce_loss(pos_logits, pos_labels) * mask)
-    loss_neg = (bce_loss(neg_logits, neg_labels) * mask)
-    
-    loss = (loss_pos.sum() + loss_neg.sum()) / mask.sum()
+        pos_labels = torch.ones_like(pos_logits, device=device)
+        neg_labels = torch.zeros_like(neg_logits, device=device)
 
-    loss.backward()
-    optimizer.step()
-    
+        mask = (pos_tensor != 0).float().to(device)
+
+        loss_pos = (bce_loss(pos_logits, pos_labels) * mask)
+        loss_neg = (bce_loss(neg_logits, neg_labels) * mask)
+
+        loss = (loss_pos.sum() + loss_neg.sum()) / mask.sum()
+
+        loss.backward()
+        optimizer.step()
+
     return loss.item()
 
-def recommend(user_id, new_item_id, user_sequences, all_product_ids, model_path, sequence_size=50, top_k=5):
+def recommend(user_id, new_item_id, user_sequences, all_product_ids, model_path, sequence_size=50, top_k=5, num_epochs=25):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     num_users = max(user_sequences.keys()) + 1
@@ -68,13 +69,11 @@ def recommend(user_id, new_item_id, user_sequences, all_product_ids, model_path,
         sequence = sequence[-sequence_size:]
     user_sequences[user_id] = sequence
 
-    loss = fine_tune_model(model, user_id, sequence, device, num_products)
-#     print(f"Fine-tuned model for user {user_id} - loss: {loss:.4f}")
+    loss = fine_tune_model(model, user_id, sequence, device, num_products, num_epochs=num_epochs)
 
     interacted_set = set(sequence)
     candidate_products = [pid for pid in all_product_ids if pid not in interacted_set]
     if len(candidate_products) == 0:
-#         print("Không còn sản phẩm nào để gợi ý.")
         return []
 
     padded_sequence = sequence + [0] * (sequence_size - len(sequence))
@@ -114,6 +113,7 @@ if __name__ == "__main__":
         all_product_ids=all_product_ids,
         model_path=model_path,
         sequence_size=25,
-        top_k=5
+        top_k=5,
+        num_epochs=20
     )
     print(",".join(map(str, recommended)))
