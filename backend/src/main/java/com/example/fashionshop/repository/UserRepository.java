@@ -22,5 +22,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> searchUsers(String firstName, String email, Pageable pageable);
 
     User findByEmail(String email);
-    long countByRole(Role role);
+    int countByRole(Role role);
+
+    @Query("SELECT COUNT(u) FROM User u")
+    int countAllUsers();
 }

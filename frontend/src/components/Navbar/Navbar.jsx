@@ -87,13 +87,19 @@ const Navbar = () => {
     setIsMenHovered(false);
   };
 
-  const isPopoverOpen = Boolean(anchorEl);
+  const handleAccountClick = () => {
+    navigate('/user-account'); // Chuyển hướng đến trang quản lý tài khoản
+  };
+
+  const isPopoverOpen = Boolean(anchorEl)
 
   return (
     <>
       <nav className={`navbar ${isProductHovered || isWomenHovered || isMenHovered ? 'navbar-hovered' : ''}`}>
         <div className="navbar-left">
-          <Link to="/" className="nav-logo">LOGO</Link>
+          <Link to="/" className="nav-logo">
+            <img src="/images/logo4.png" alt="Logo" className="logo-img" />
+          </Link>
           <div className="search-bar" onClick={toggleSearchPopup}>
             <SearchIcon style={{ fontSize: '24px', color: '#333' }} />
             <input type="text" placeholder="Search" readOnly />
@@ -497,11 +503,13 @@ const Navbar = () => {
                   </Badge>
                 </IconButton>
               </Link>
-              <IconButton>
+              <Link to="/wishList" className="wishlist-link">
+                <IconButton>
                 <Badge badgeContent={5} color="error">
                   <FavoriteIcon />
                 </Badge>
               </IconButton>
+              </Link>
               <div className="account-section" onClick={handleAvatarClick}>
                 <AccountCircleIcon style={{ fontSize: 40, color: '#555' }} />
                 <span className="user-name">{userName || 'Guest'}</span>
@@ -527,16 +535,19 @@ const Navbar = () => {
                 }}
               >
                 <MenuItem
-                  onClick={handleClose}
+                  onClick={() => {
+                    handleClose(); // Đóng popup
+                    handleAccountClick(); // Chuyển hướng
+                  }}
                   sx={{ fontSize: '18px' }}
                 >
-                  Tài khoản
+                  Account
                 </MenuItem>
                 <MenuItem
                   onClick={handleLogout}
                   sx={{ fontSize: '18px' }}
                 >
-                  Đăng xuất
+                  Log out
                 </MenuItem>
               </Popover>
             </>

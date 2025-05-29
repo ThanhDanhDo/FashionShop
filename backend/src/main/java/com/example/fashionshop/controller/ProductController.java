@@ -1,15 +1,20 @@
 package com.example.fashionshop.controller;
 
+import com.example.fashionshop.model.Interact;
 import com.example.fashionshop.model.Product;
 import com.example.fashionshop.model.Category;
+import com.example.fashionshop.model.User;
 import com.example.fashionshop.repository.CategoryRepository;
+import com.example.fashionshop.repository.UserRepository;
 import com.example.fashionshop.service.CategoryService;
+import com.example.fashionshop.service.InteractService;
 import com.example.fashionshop.service.ProductService;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,16 +40,28 @@ import java.util.Map;
 public class ProductController {
     private final ProductService productService;
     private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
+    private final InteractService interactService;
 
     @Autowired
-    public ProductController(ProductService productService, CategoryRepository categoryRepository) {
+    public ProductController(ProductService productService, CategoryRepository categoryRepository, UserRepository userRepository, InteractService interactService) {
         this.productService = productService;
         this.categoryRepository = categoryRepository;
+        this.userRepository = userRepository;
+        this.interactService = interactService;
     }
 
     @GetMapping("/id/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    public ResponseEntity<Product> getProductById(Authentication authentication, @PathVariable Long id) {
         Optional<Product> product = productService.getProductById(id);
+
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+        if (product.isPresent() && user != null) {
+            Product prod = product.get();
+            Interact interact = interactService.addInteract(user, prod);
+        }
+
         return product.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

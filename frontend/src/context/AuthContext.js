@@ -2,35 +2,50 @@ import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserProfile } from '../services/userService';
 import { getActiveCart, getCartItems } from '../services/cartService';
+import { logoutApi } from '../services/authService';
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cartId, setCartId] = useState(null);
   const [cartItemCount, setCartItemCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Kiểm tra trạng thái đăng nhập bằng API /api/authorities
     fetch('/api/authorities', {
       method: 'GET',
-      credentials: 'include', // Gửi cookie (bao gồm token HttpOnly)
+      credentials: 'include',
     })
       .then((res) => {
         if (!res.ok) throw new Error('Không xác thực được người dùng');
         return res.json();
       })
-      .then(() => getUserProfile()) // Nếu thành công, lấy thông tin user
+      .then((data) => {
+        console.log('Authorities response:', data); // Thêm log
+        setRole(data.role[0]); // Lưu role từ API (ví dụ: "ROLE_ADMIN" hoặc "ROLE_USER")
+        return getUserProfile();
+      })
       .then((userData) => {
+        console.log('User profile:', userData);
         setUser(userData);
-        return getActiveCart();
+        if (role !== 'ADMIN') { // Bỏ qua cho ADMIN
+          return getActiveCart().catch((error) => {
+            console.error('Lỗi lấy giỏ hàng:', error);
+            return null;
+          });
+        }
+  return null;
       })
       .then((cartData) => {
         if (cartData && cartData.id) {
           setCartId(cartData.id);
-          return getCartItems(cartData.id);
+          return getCartItems(cartData.id).catch((error) => {
+            console.error('Lỗi lấy cart items:', error);
+            return [];
+          });
         }
         return [];
       })
@@ -38,20 +53,27 @@ export const AuthProvider = ({ children }) => {
         setCartItemCount(items.length);
       })
       .catch((error) => {
+        // Chỉ xử lý lỗi từ /api/authorities hoặc getUserProfile
         console.error('Không thể khôi phục trạng thái đăng nhập:', error);
         setUser(null);
+        setRole(null);
         setCartId(null);
         setCartItemCount(0);
-        navigate('/login');
+        const protectedRoutes = ['/profile', '/checkout', '/dashboard', '/products-admin'];
+        if (protectedRoutes.includes(window.location.pathname)) {
+          navigate('/login');
+        }
       })
       .finally(() => {
         setLoading(false);
       });
   }, [navigate]);
 
-  const login = (userData) => {
+  const login = (userData, userRole) => {
     if (userData) {
       setUser(userData);
+      setRole(userRole);
+      // Thử lấy giỏ hàng, nhưng không làm hỏng trạng thái nếu lỗi
       getActiveCart()
         .then((cartData) => {
           if (cartData && cartData.id) {
@@ -65,15 +87,30 @@ export const AuthProvider = ({ children }) => {
         })
         .catch((error) => {
           console.error('Không thể lấy giỏ hàng sau khi đăng nhập:', error);
+          setCartId(null);
+          setCartItemCount(0);
         });
     }
   };
 
   const logout = () => {
-    setUser(null);
-    setCartId(null);
-    setCartItemCount(0);
-    navigate('/login');
+    logoutApi()
+      .then(() => {
+        setUser(null);
+        setRole(null);
+        setCartId(null);
+        setCartItemCount(0);
+        navigate('/');
+      })
+      .catch((err) => {
+        console.error('Lỗi khi gọi logout:', err);
+        // Vẫn xóa state để đảm bảo frontend không hiển thị user
+        setUser(null);
+        setRole(null);
+        setCartId(null);
+        setCartItemCount(0);
+        navigate('/login');
+      });
   };
 
   const updateCartId = (newCartId) => {
@@ -95,7 +132,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isLoggedIn = !!user;
-  const userName = user ? `${user.firstName} ${user.lastName}` : 'Guest';
+  const userName = user ? `${user.lastName} ${user.firstName} ` : 'Guest';
 
   if (loading) {
     return <div>Loading...</div>;
@@ -109,6 +146,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         user,
+        role,
         cartId,
         updateCartId,
         cartItemCount,

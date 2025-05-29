@@ -27,7 +27,7 @@ public class JwtProvider {
         //tao jwt với email và role
         String jwt= Jwts.builder()
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime()+86400000))
+//                .setExpiration(new Date(new Date().getTime()+86400000))
                 .claim("email",auth.getName())
                 .claim("authorities", roles)
                 .signWith(key)
@@ -39,7 +39,7 @@ public class JwtProvider {
                 .secure(true)
                 .sameSite("Strict") //none
                 .path("/")
-                .maxAge(86400) // 1 ngày
+//                .maxAge(86400) // 1 ngày
                 .build();
 
         // Thêm cookie vào response

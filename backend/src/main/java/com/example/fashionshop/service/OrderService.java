@@ -86,36 +86,30 @@ public class OrderService {
         savedOrder.setOrderItems(orderItems);
         orderRepository.save(savedOrder);
 
-        // Xóa giỏ hàng sau khi đặt hàng thành công
-        cartService.clearCart(cart.getId());
         return savedOrder;
     }
 
     @Transactional
     public Order updateOrderStatus(Long orderId, OrderStatus orderStatus) {
+        if (orderStatus == OrderStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot cancel a order of customer");
+        }
+
         Optional<Order> optionalOrder = orderRepository.findById(orderId);
         if (optionalOrder.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found");
         }
         Order order = optionalOrder.get();
         // Trừ kho khi đơn hàng từ pending -> confirmed
-        if (order.getOrderStatus() == OrderStatus.PENDING && orderStatus == OrderStatus.CONFIRMED) {
+        if ((order.getOrderStatus() == OrderStatus.PENDING && orderStatus == OrderStatus.CONFIRMED) ||
+                (order.getOrderStatus() == OrderStatus.PENDING && orderStatus == OrderStatus.SHIPPED) ||
+                (order.getOrderStatus() == OrderStatus.PENDING && orderStatus == OrderStatus.DELIVERED)) {
+
             for (OrderItem orderItem : order.getOrderItems()) {
                 Product product = orderItem.getProduct();
                 product.setStock(product.getStock() - orderItem.getQuantity());
                 productRepository.save(product);
             }
-        }
-        // Hoàn lại hàng vào kho khi đơn hàng từ Confirm -> cancelled
-        else if (order.getOrderStatus() == OrderStatus.CONFIRMED && orderStatus == OrderStatus.CANCELLED) {
-            for (OrderItem orderItem : order.getOrderItems()) {
-                Product product = orderItem.getProduct();
-                product.setStock(product.getStock() + orderItem.getQuantity());
-                productRepository.save(product);
-            }
-        }
-        else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot update order status");
         }
         order.setOrderStatus(orderStatus);
         return orderRepository.save(order);
@@ -149,6 +143,7 @@ public class OrderService {
             for (OrderItem orderItem : order.getOrderItems()) {
                 Product product = orderItem.getProduct();
                 product.setStock(product.getStock() + orderItem.getQuantity());
+                productRepository.save(product);
             }
         }
 

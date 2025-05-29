@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar/Navbar';
 import './Signup.css';
 import { register, verifyOtp } from '../../services/authService';
+import CustomBreadcrumb from '../../components/Breadcrumb';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -48,11 +49,13 @@ const Signup = () => {
     <div>
       <Navbar isLoggedIn={false} />
       <div className="page-container">
-        <div className="breadcrumb">
-          <Link to="/">Home</Link>
-          <span> {'>'} </span>
-          <span>Register</span>
-        </div>
+        <CustomBreadcrumb
+          items={[
+            {
+              title: 'Sign Up',
+            },
+          ]}
+        />
 
         <div className="signup-container">
           <div className="signup-form-section">
@@ -168,9 +171,7 @@ const Signup = () => {
             </div>
           </div>
 
-          <div className="brand-section">
-            <h2>icon thương hiệu</h2>
-          </div>
+         
         </div>
       </div>
     </div>

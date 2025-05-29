@@ -41,3 +41,16 @@ export const login = async (formData) => {
   if (!response.ok) throw new Error('Đăng nhập thất bại!');
   return response.json();
 };
+
+export const logoutApi = async () => {
+  const response = await fetch('/api/auth/logout', {
+    method: 'POST',
+    credentials: 'include', // Gửi cookie jwt để backend biết mà xóa
+  });
+
+  if (!response.ok) {
+    throw new Error('Đăng xuất thất bại!');
+  }
+
+  return response.json(); // hoặc return void nếu không cần dữ liệu
+};

@@ -5,6 +5,8 @@ import { AuthContext } from '../../../context/AuthContext';
 import './Cart.css';
 import Navbar from '../../../components/Navbar/Navbar';
 import { useNavigate } from 'react-router-dom';
+import CustomBreadcrumb from '../../../components/Breadcrumb';
+import FooterComponent from '../../../components/Footer/Footer';
 
 // Hàm định dạng tiền tệ
 const formatCurrency = (value) => {
@@ -139,9 +141,13 @@ function Cart() {
   return (
     <div>
       <Navbar />
-      <div className="breadcrumb">
-        <a href="/">Home</a> {'>'} <span>Cart</span>
-      </div>
+      <CustomBreadcrumb
+          items={[
+            {
+              title: 'Cart',
+            },
+          ]}
+        />
 
       <div className="cart-page-container">
         <h1 className="cart-main-title">YOUR CART</h1>
@@ -385,6 +391,7 @@ function Cart() {
           </div>
         )}
       </div>
+      <FooterComponent />
     </div>
   );
 }
