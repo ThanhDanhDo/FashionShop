@@ -36,3 +36,49 @@ export const getUserAddresses = async () => {
   if (!response.ok) throw new Error('Không thể lấy danh sách địa chỉ!');
   return response.json();
 };
+
+export const addUserAddress = async (addressData) => {
+  const response = await fetch(`/api/user/addresses/add`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(addressData),
+  });
+  if (!response.ok) throw new Error('Could not add address!');
+  return response.json();
+};
+
+export const deleteUserAddress = async (id) => {
+  const response = await fetch(`/api/user/addresses/delete/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error('Could not delete address!');
+};
+
+export const updateUserAddress = async (id, addressData) => {
+  const response = await fetch(`/api/user/addresses/update/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(addressData),
+  });
+  if (!response.ok) throw new Error('Could not update address!');
+  return response.json();
+};
+
+export const changePassword = async (currentPassword, newPassword) => {
+  const response = await fetch('/api/user/change-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'Could not change password!');
+  }
+  return response.json();
+};

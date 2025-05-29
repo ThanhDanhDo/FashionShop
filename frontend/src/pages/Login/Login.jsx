@@ -5,6 +5,7 @@ import styles from './Login.module.css';
 import { login } from '../../services/authService';
 import { AuthContext } from '../../context/AuthContext';
 import CustomBreadcrumb from '../../components/Breadcrumb';
+import { useNotification } from '../../components/NotificationProvider';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const Login = () => {
     email: '',
     password: '',
   });
+  const api = useNotification();
 
   const handleChange = (e) => {
     setFormData({
@@ -38,23 +40,19 @@ const Login = () => {
         // Cập nhật trạng thái đăng nhập với user và role
         setLoginState(response.data, userRole);
         
-        alert('Đăng nhập thành công!');
-
-        // Điều hướng dựa trên role
+        api.success({ message: 'Login successful' });
         setTimeout(() => {
           if (userRole === 'ADMIN') {
             navigate('/dashboard');
           } else {
             navigate('/');
           }
-        }, 100); // Độ trễ 100ms
+        }, 100);
       } else {
-        console.error('Không có thông tin user trong response');
-        alert('Đăng nhập thất bại!');
+        api.error({ message: 'Login failed' });
       }
     } catch (error) {
-      console.error('Login error:', error);
-      alert(error.message || 'Đăng nhập thất bại!');
+      api.error({ message: error.message || 'Login failed' });
     }
   };
 

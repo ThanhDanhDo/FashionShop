@@ -4,9 +4,11 @@ import Navbar from '../../components/Navbar/Navbar';
 import './Signup.css';
 import { register, verifyOtp } from '../../services/authService';
 import CustomBreadcrumb from '../../components/Breadcrumb';
+import { useNotification } from '../../components/NotificationProvider';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const api = useNotification();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -31,17 +33,15 @@ const Signup = () => {
       };
 
       await register(formDataWithUpperCaseGender);
-      alert('OTP has been sent to your email. Please check and verify.');
+      api.info({ message: 'OTP has been sent to your email. Please check and verify.' });
 
       const otp = prompt('Input OTP:');
-
       await verifyOtp(otp, formData.email);
 
-      alert('Registration successful!');
+      api.success({ message: 'Registration successful!' });
       navigate('/login');
     } catch (error) {
-      console.error('OTP authentication error:', error.message);
-      alert(error.message);
+      api.error({ message: error.message || 'OTP authentication error' });
     }
   };
 
