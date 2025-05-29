@@ -15,6 +15,7 @@ import Products from './pages/User/Products/Products';
 import { AuthProvider } from './context/AuthContext';
 import ProductDetail from './pages/User/ProductDetail/ProductDetail';
 import WishList from './pages/User/WishList/WishList';
+import Payment from './pages/User/Payment/Payment';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/products/:category" element={<Products />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/WishList" element={<WishList />} />
+          <Route path="/Payment" element={<Payment />} />
           {/* Home route */}
           <Route path="/" element={<Home />} />
 

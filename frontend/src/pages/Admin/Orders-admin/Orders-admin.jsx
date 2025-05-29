@@ -79,7 +79,7 @@ const Orders = () => {
       <h1 className="orders-title">Lịch sử đơn hàng</h1>
 
       <div className="order-filter centered">
-        {["ALL", "ORDERED", "COMPLETED", "CANCELED","PENDING"].map((status) => (
+        {["ALL", "ORDERED", "COMPLETED", "CANCELED", "PENDING"].map((status) => (
           <button
             key={status}
             onClick={() => handleStatusFilter(status)}
@@ -98,18 +98,18 @@ const Orders = () => {
             <div key={order.orderId} className="order-card">
               <div className="order-header">
                 <div>
-                  <p><strong>Mã đơn:</strong> {order.orderId} &nbsp;&nbsp; <strong>Ngày đặt:</strong> {order.date}</p>
-                  <p><strong>Địa chỉ:</strong> {order.address}</p>
-                  <p><strong>Tổng tiền:</strong> {order.total.toLocaleString()} VND &nbsp;&nbsp; <strong>Phương thức:</strong> {order.paymentMethod}</p>
+                  <p><strong>OrderID:</strong> {order.orderId} &nbsp;&nbsp; <strong>Order Date:</strong> {order.date}</p>
+                  <p><strong>Address:</strong> {order.address}</p>
+                  <p><strong>Total:</strong> {order.total.toLocaleString()} VND &nbsp;&nbsp; <strong>Payment Method:</strong> {order.paymentMethod}</p>
                   <div className="order-footer">
-                <button className="toggle-button" onClick={() => toggleExpand(order.orderId)}>
-                      {expandedOrders[order.orderId] ? 'Ẩn sản phẩm ▲' : 'Xem thêm ▼'}
-                </button>
-                </div>
+                    <button className="toggle-button" onClick={() => toggleExpand(order.orderId)}>
+                      {expandedOrders[order.orderId] ? 'Less ▲' : 'More ▼'}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <select
-                    className="status-dropdown"
+                    className={`status-dropdown status-${order.status}`}
                     value={order.status}
                     onChange={(e) => handleStatusChange(order.orderId, e.target.value)}
                   >
@@ -128,8 +128,8 @@ const Orders = () => {
                       <img src={product.image} alt={product.name} className="order-image" />
                       <div className="order-details">
                         <h4>{product.name}</h4>
-                        <p>Số lượng: {product.quantity}</p>
-                        <p>Giá: {product.price.toLocaleString()} VND</p>
+                        <p>Quantity: {product.quantity}</p>
+                        <p>Price: {product.price.toLocaleString()} VND</p>
                       </div>
                     </div>
                   ))}
