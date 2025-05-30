@@ -24,6 +24,7 @@ import WishList from './pages/User/WishList/WishList';
 import PrivateRoute from './components/PrivateRoute';
 import DeliveryAddress from './pages/User/DeliveryAddress/DeliveryAddress';
 import NotificationProvider from './components/NotificationProvider';
+import ConfirmOtp from './pages/confirm_otp/confirm_otp';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/otp-verification" element={<OtpVerification />} />
+            <Route path="/confirm-otp" element={<ConfirmOtp />} />
             <Route path="/cart" element={<Cart />} />
 
             {/* Product routes */}
