@@ -38,7 +38,7 @@ public class User {
     private Gender gender;
 
     // Một user có nhiều địa chỉ
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL) //user trong Address
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL) // user trong Address
     private Set<Address> addresses = new HashSet<>();
 
     @Enumerated(EnumType.STRING)

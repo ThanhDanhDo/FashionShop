@@ -1,15 +1,23 @@
 package com.example.fashionshop.service;
 
+import com.example.fashionshop.enums.Role;
 import com.example.fashionshop.model.Address;
 import com.example.fashionshop.model.User;
 import com.example.fashionshop.repository.AddressRepository;
 import com.example.fashionshop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -17,6 +25,33 @@ import java.util.Set;
 public class UserService {
     final UserRepository userRepository;
     final AddressRepository addressRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public Page<User> getAllUser(Pageable pageable) {
+        return userRepository.findAllByRole(Role.USER, pageable);
+    }
+
+    public Page<User> searchUser(String firstName, String email, Pageable pageable) {
+        return userRepository.searchUsers(firstName, email, pageable);
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public Long getCurrentUserId(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        return user.getId();
+    }
 
     public User getCurrentUserProfile(Authentication authentication) throws Exception{
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -30,18 +65,18 @@ public class UserService {
         return user;
     }
 
-    public User updateCurrentUserProfile(Authentication authentication, User updatedUser) throws Exception{
-        if (authentication == null || !authentication.isAuthenticated()){
+    public User updateCurrentUserProfile(Authentication authentication, User updatedUser) throws Exception {
+        if (authentication == null || !authentication.isAuthenticated()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
         }
         String email = authentication.getName();
         User currentUser = userRepository.findByEmail(email);
-        if (updatedUser == null){
+        if (updatedUser == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found");
         }
 
-        //update
-        if (updatedUser.getEmail()!=null){
+        // update
+        if (updatedUser.getEmail() != null) {
             currentUser.setEmail(updatedUser.getEmail());
         }
         if (updatedUser.getGender()!=null){
@@ -50,11 +85,11 @@ public class UserService {
         if (updatedUser.getFirstName()!=null){
             currentUser.setFirstName(updatedUser.getFirstName());
         }
-        if (updatedUser.getLastName()!=null){
+        if (updatedUser.getLastName() != null) {
             currentUser.setLastName(updatedUser.getLastName());
         }
 
-        //địa chỉ
+        // địa chỉ
         Set<Address> updatedAddresses = updatedUser.getAddresses();
         if (updatedAddresses != null && !updatedAddresses.isEmpty()) {
             Address newAddress = updatedAddresses.iterator().next(); // Chỉ lấy một địa chỉ
@@ -87,5 +122,21 @@ public class UserService {
         }
 
         return userRepository.save(currentUser);
+    }
+
+    public void changePassword(Authentication authentication, String currentPassword, String newPassword) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }

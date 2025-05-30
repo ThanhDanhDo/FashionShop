@@ -4,8 +4,11 @@ import com.example.fashionshop.config.JwtProvider;
 import com.example.fashionshop.config.OtpGenerator;
 import com.example.fashionshop.enums.Gender;
 import com.example.fashionshop.enums.Role;
+import com.example.fashionshop.model.Cart;
+import com.example.fashionshop.model.Report;
 import com.example.fashionshop.model.User;
 import com.example.fashionshop.model.VerificationCode;
+import com.example.fashionshop.repository.CartRepository;
 import com.example.fashionshop.repository.UserRepository;
 import com.example.fashionshop.repository.verificationCodeRepository;
 import com.example.fashionshop.request.LogInRequest;
@@ -36,6 +39,8 @@ public class AuthService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final CartRepository cartRepository;
+    private final RevenueService revenueService;
 
     public String sendOtp(RegisterRequest req) throws MessagingException {
         if (userRepository.findByEmail(req.getEmail()) != null) {
@@ -95,6 +100,11 @@ public class AuthService {
         user.setRole(Role.USER);
         userRepository.save(user);
 
+        // tạo giỏ hàng cho user mới
+        Cart cart = new Cart();
+        cart.setUser(user);
+        cartRepository.save(cart);
+
         // Xóa OTP sau khi xác thực thành công
         verificationCodeRepository.delete(verificationCode);
 
@@ -105,6 +115,9 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         jwtProvider.generateToken(authentication, response);
 
+        Report report = revenueService.getReport();
+        report.setTotalUsers(report.getTotalUsers() + 1);
+        revenueService.updateReport(report);
         return "Đăng ký thành công!";
     }
 

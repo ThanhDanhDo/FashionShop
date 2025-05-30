@@ -1,22 +1,57 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 import { Avatar, Popover, MenuItem, IconButton, Badge } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import SearchIcon from '@mui/icons-material/Search';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // Import icon mặc định
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { AuthContext } from '../../context/AuthContext';
 
 const Navbar = () => {
-  const { isLoggedIn, userName, logout } = useContext(AuthContext);
+  const { isLoggedIn, userName, logout, cartId, cartItemCount, refreshCartItemCount } = useContext(AuthContext);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [isProductHovered, setIsProductHovered] = useState(false);
   const [isWomenHovered, setIsWomenHovered] = useState(false);
   const [isMenHovered, setIsMenHovered] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  
+
+  // Static category map
+  const categoryMap = {
+    Outerwear: 1,
+    'T-shirt': 2,
+    Shirt: 3,
+    Dresses: 4,
+    Bottoms: 5,
+    Accessories: 6,
+  };
+
+  // Subcategory map
+  const subCategoryMap = {
+    'Jackets & Blazers': 7,
+    Coats: 8,
+    'T-shirt Short-sleeve': 9,
+    'T-shirt Long-sleeve': 10,
+    'Shirt Short-sleeve': 11,
+    'Shirt Long-sleeve': 12,
+    Skirts: 13,
+    Dresses: 14,
+    Long: 15,
+    Short: 16,
+    Bags: 17,
+    Belts: 18,
+    Hats: 19,
+  };
+
+  useEffect(() => {
+    if (isLoggedIn && cartId) {
+      refreshCartItemCount();
+    } else {
+      // Không cần setCartItemCount trực tiếp vì AuthContext đã xử lý
+    }
+  }, [isLoggedIn, cartId, refreshCartItemCount]);
+
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -39,17 +74,40 @@ const Navbar = () => {
     setIsSearchActive(false);
   };
 
-  const isPopoverOpen = Boolean(anchorEl);
+  const handleFilterNavigation = (gender, mainCategory, subCategory) => {
+    const queryParams = new URLSearchParams();
+    if (gender && gender !== 'all') queryParams.append('gender', gender);
+    if (mainCategory) queryParams.append('mainCategoryId', categoryMap[mainCategory]);
+    if (subCategory) queryParams.append('subCategoryId', subCategoryMap[subCategory]);
+    
+    navigate(`/products?${queryParams.toString()}`);
+    
+    setIsProductHovered(false);
+    setIsWomenHovered(false);
+    setIsMenHovered(false);
+  };
+
+  const handleAccountClick = () => {
+    navigate('/user-account'); // Chuyển hướng đến trang quản lý tài khoản
+  };
+
+  const handleDeliveryAddressClick = () => {
+    navigate('/delivery-address');
+    handleClose();
+  };
+
+  const isPopoverOpen = Boolean(anchorEl)
 
   return (
     <>
       <nav className={`navbar ${isProductHovered || isWomenHovered || isMenHovered ? 'navbar-hovered' : ''}`}>
         <div className="navbar-left">
-          <Link to="/" className="nav-logo">LOGO</Link>
+          <Link to="/" className="nav-logo">
+            <img src="/images/logo4.png" alt="Logo" className="logo-img" />
+          </Link>
           <div className="search-bar" onClick={toggleSearchPopup}>
             <SearchIcon style={{ fontSize: '24px', color: '#333' }} />
             <input type="text" placeholder="Search" readOnly />
-
           </div>
         </div>
 
@@ -71,45 +129,117 @@ const Navbar = () => {
             >
               <div className="product-grid">
                 <div className="product-column">
-                  <h4><Link to="/products/outerwear">Outerwear</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('all', 'Outerwear')} style={{ cursor: 'pointer' }}>
+                      Outerwear
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/products/outerwear">Jackets & Blazers</Link></li>
-                    <li><Link to="/products/outerwear">Coats</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'Outerwear', 'Jackets & Blazers')} style={{ cursor: 'pointer' }}>
+                        Jackets & Blazers
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'Outerwear', 'Coats')} style={{ cursor: 'pointer' }}>
+                        Coats
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/products/T-shirt">T-shirt</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('all', 'T-shirt')} style={{ cursor: 'pointer' }}>
+                      T-shirt
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/products/t-shirt">Short-sleeve</Link></li>
-                    <li><Link to="/products/shirt">Long-sleeve</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'T-shirt', 'T-shirt Short-sleeve')} style={{ cursor: 'pointer' }}>
+                        Short-sleeve
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'T-shirt', 'T-shirt Long-sleeve')} style={{ cursor: 'pointer' }}>
+                        Long-sleeve
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/products/Shirtt">Shirt</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('all', 'Shirt')} style={{ cursor: 'pointer' }}>
+                      Shirt
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/products/Shirt">Short-sleeve</Link></li>
-                    <li><Link to="/products/Shirt">Long-sleeve</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'Shirt', 'Shirt Short-sleeve')} style={{ cursor: 'pointer' }}>
+                        Short-sleeve
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'Shirt', 'Shirt Long-sleeve')} style={{ cursor: 'pointer' }}>
+                        Long-sleeve
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/products/Dresses">Dresses</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('all', 'Dresses')} style={{ cursor: 'pointer' }}>
+                      Dresses
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/products/Dresses">Skirts</Link></li>
-                    <li><Link to="/products/Dresses">Dresses</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'Dresses', 'Skirts')} style={{ cursor: 'pointer' }}>
+                        Skirts
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'Dresses', 'Dresses')} style={{ cursor: 'pointer' }}>
+                        Dresses
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/products/bottoms">Bottoms</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('all', 'Bottoms')} style={{ cursor: 'pointer' }}>
+                      Bottoms
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/products/bottom">Long</Link></li>
-                    <li><Link to="/products/bottom">Short</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'Bottoms', 'Long')} style={{ cursor: 'pointer' }}>
+                        Long
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'Bottoms', 'Short')} style={{ cursor: 'pointer' }}>
+                        Short
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/products/accessories">Accessories</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('all', 'Accessories')} style={{ cursor: 'pointer' }}>
+                      Accessories
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/products/accessories">Bags</Link></li>
-                    <li><Link to="/products/accessories">Belts</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'Accessories', 'Bags')} style={{ cursor: 'pointer' }}>
+                        Bags
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('all', 'Accessories', 'Belts')} style={{ cursor: 'pointer' }}>
+                        Belts
+                      </span>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -118,7 +248,7 @@ const Navbar = () => {
 
           <div className="women-container">
             <Link
-              to="/women"
+              to="/products?gender=Women"
               className="nav-link"
               onMouseEnter={() => setIsWomenHovered(true)}
               onMouseLeave={() => setIsWomenHovered(false)}
@@ -133,45 +263,117 @@ const Navbar = () => {
             >
               <div className="product-grid">
                 <div className="product-column">
-                  <h4><Link to="/women/outerwear">Outerwear</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Women', 'Outerwear')} style={{ cursor: 'pointer' }}>
+                      Outerwear
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/women/outerwear">Jackets & Blazers</Link></li>
-                    <li><Link to="/women/outerwear">Coats</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'Outerwear', 'Jackets & Blazers')} style={{ cursor: 'pointer' }}>
+                        Jackets & Blazers
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'Outerwear', 'Coats')} style={{ cursor: 'pointer' }}>
+                        Coats
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/women/T-shirt">T-shirt</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Women', 'T-shirt')} style={{ cursor: 'pointer' }}>
+                      T-shirt
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/women/T-shirt">Short-sleeve</Link></li>
-                    <li><Link to="/women/T-shirt">Long-sleeve</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'T-shirt', 'T-shirt Short-sleeve')} style={{ cursor: 'pointer' }}>
+                        Short-sleeve
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'T-shirt', 'T-shirt Long-sleeve')} style={{ cursor: 'pointer' }}>
+                        Long-sleeve
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/women/Shirt">Shirt</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Women', 'Shirt')} style={{ cursor: 'pointer' }}>
+                      Shirt
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/women/Shirt">Short-sleeve</Link></li>
-                    <li><Link to="/women/Shirt">Long-sleeve</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'Shirt', 'Shirt Short-sleeve')} style={{ cursor: 'pointer' }}>
+                        Short-sleeve
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'Shirt', 'Shirt Long-sleeve')} style={{ cursor: 'pointer' }}>
+                        Long-sleeve
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/women/Dresses">Dresses</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Women', 'Dresses')} style={{ cursor: 'pointer' }}>
+                      Dresses
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/women/Dresses">Skirts</Link></li>
-                    <li><Link to="/women/Dresses">Dresses</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'Dresses', 'Skirts')} style={{ cursor: 'pointer' }}>
+                        Skirts
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'Dresses', 'Dresses')} style={{ cursor: 'pointer' }}>
+                        Dresses
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/women/bottoms">Bottoms</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Women', 'Bottoms')} style={{ cursor: 'pointer' }}>
+                      Bottoms
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/women/bottom">Long</Link></li>
-                    <li><Link to="/women/bottom">Short</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'Bottoms', 'Long')} style={{ cursor: 'pointer' }}>
+                        Long
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'Bottoms', 'Short')} style={{ cursor: 'pointer' }}>
+                        Short
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/women/accessories">Accessories</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Women', 'Accessories')} style={{ cursor: 'pointer' }}>
+                      Accessories
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/women/accessories">Hats</Link></li>
-                    <li><Link to="/women/accessories">Bags</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'Accessories', 'Hats')} style={{ cursor: 'pointer' }}>
+                        Hats
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Women', 'Accessories', 'Bags')} style={{ cursor: 'pointer' }}>
+                        Bags
+                      </span>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -180,7 +382,7 @@ const Navbar = () => {
 
           <div className="men-container">
             <Link
-              to="/men"
+              to="/products?gender=Men"
               className="nav-link"
               onMouseEnter={() => setIsMenHovered(true)}
               onMouseLeave={() => setIsMenHovered(false)}
@@ -195,38 +397,98 @@ const Navbar = () => {
             >
               <div className="product-grid">
                 <div className="product-column">
-                  <h4><Link to="/men/outerwear">Outerwear</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Men', 'Outerwear')} style={{ cursor: 'pointer' }}>
+                      Outerwear
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/men/outerwear">Jackets & Blazers</Link></li>
-                    <li><Link to="/women/outerwear">Coats</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Men', 'Outerwear', 'Jackets & Blazers')} style={{ cursor: 'pointer' }}>
+                        Jackets & Blazers
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Men', 'Outerwear', 'Coats')} style={{ cursor: 'pointer' }}>
+                        Coats
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/men/T-shirt">T-shirt</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Men', 'T-shirt')} style={{ cursor: 'pointer' }}>
+                      T-shirt
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/men/T-shirt">Short-sleeve</Link></li>
-                    <li><Link to="/men/T-shirt">Long-sleeve</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Men', 'T-shirt', 'T-shirt Short-sleeve')} style={{ cursor: 'pointer' }}>
+                        Short-sleeve
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Men', 'T-shirt', 'T-shirt Long-sleeve')} style={{ cursor: 'pointer' }}>
+                        Long-sleeve
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/men/Shirt">Shirt</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Men', 'Shirt')} style={{ cursor: 'pointer' }}>
+                      Shirt
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/men/Shirt">Short-sleeve</Link></li>
-                    <li><Link to="/men/Shirt">Long-sleeve</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Men', 'Shirt', 'Shirt Short-sleeve')} style={{ cursor: 'pointer' }}>
+                        Short-sleeve
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Men', 'Shirt', 'Shirt Long-sleeve')} style={{ cursor: 'pointer' }}>
+                        Long-sleeve
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/men/bottoms">Bottoms</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Men', 'Bottoms')} style={{ cursor: 'pointer' }}>
+                      Bottoms
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/men/bottom">Long</Link></li>
-                    <li><Link to="/men/bottom">Short</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Men', 'Bottoms', 'Long')} style={{ cursor: 'pointer' }}>
+                        Long
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Men', 'Bottoms', 'Short')} style={{ cursor: 'pointer' }}>
+                        Short
+                      </span>
+                    </li>
                   </ul>
                 </div>
                 <div className="product-column">
-                  <h4><Link to="/men/accessories">Accessories</Link></h4>
+                  <h4>
+                    <span onClick={() => handleFilterNavigation('Men', 'Accessories')} style={{ cursor: 'pointer' }}>
+                      Accessories
+                    </span>
+                  </h4>
                   <ul>
-                    <li><Link to="/men/accessories">Hats</Link></li>
-                    <li><Link to="/men/accessories">Bags</Link></li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Men', 'Accessories', 'Hats')} style={{ cursor: 'pointer' }}>
+                        Hats
+                      </span>
+                    </li>
+                    <li>
+                      <span onClick={() => handleFilterNavigation('Men', 'Accessories', 'Bags')} style={{ cursor: 'pointer' }}>
+                        Bags
+                      </span>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -239,18 +501,22 @@ const Navbar = () => {
         <div className="navbar-right">
           {isLoggedIn ? (
             <>
-              <IconButton>
-                <Badge badgeContent={2} color="error">
-                  <ShoppingCartIcon />
-                </Badge>
-              </IconButton>
-              <IconButton>
+              <Link to="/cart" className="cart-link">
+                <IconButton>
+                  <Badge badgeContent={cartItemCount} color="error">
+                    <ShoppingCartIcon />
+                  </Badge>
+                </IconButton>
+              </Link>
+              <Link to="/wishList" className="wishlist-link">
+                <IconButton>
                 <Badge badgeContent={5} color="error">
                   <FavoriteIcon />
                 </Badge>
               </IconButton>
+              </Link>
               <div className="account-section" onClick={handleAvatarClick}>
-                <AccountCircleIcon style={{ fontSize: 40, color: '#555' }} /> {/* Icon mặc định */}
+                <AccountCircleIcon style={{ fontSize: 40, color: '#555' }} />
                 <span className="user-name">{userName || 'Guest'}</span>
               </div>
               <Popover
@@ -258,29 +524,42 @@ const Navbar = () => {
                 anchorEl={anchorEl}
                 onClose={handleClose}
                 anchorOrigin={{
-                  vertical: 'bottom', // Hiển thị ngay dưới account-section
-                  horizontal: 'center', // Căn giữa theo chiều ngang
+                  vertical: 'bottom',
+                  horizontal: 'center',
                 }}
                 transformOrigin={{
-                  vertical: 'top', // Điểm gốc của popup là phía trên
-                  horizontal: 'center', // Căn giữa theo chiều ngang
+                  vertical: 'top',
+                  horizontal: 'center',
                 }}
                 sx={{
                   '& .MuiPopover-paper': {
-                    width: '180px', 
-                    padding: '10px', 
-                    fontSize: '18px', 
+                    width: '180px',
+                    padding: '10px',
+                    fontSize: '18px',
                   },
                 }}
               >
-                <MenuItem 
-                  onClick={handleClose}
+                <MenuItem
+                  onClick={() => {
+                    handleClose(); // Đóng popup
+                    handleAccountClick(); // Chuyển hướng
+                  }}
                   sx={{ fontSize: '18px' }}
-                >Tài khoản</MenuItem>     
-                <MenuItem 
+                >
+                  Account
+                </MenuItem>
+                 <MenuItem
+                  onClick={handleDeliveryAddressClick}
+                  sx={{ fontSize: '18px' }}
+                >
+                  Delivery Address
+                </MenuItem>
+                <MenuItem
                   onClick={handleLogout}
                   sx={{ fontSize: '18px' }}
-                >Đăng xuất</MenuItem>
+                >
+                  Log out
+                </MenuItem>
               </Popover>
             </>
           ) : (
@@ -291,14 +570,12 @@ const Navbar = () => {
           )}
         </div>
       </nav>
-      
-      {/* Overlay */}
+
       <div
         className={`search-overlay ${isSearchActive ? 'active' : ''}`}
-        onClick={closeSearchPopup} // Đóng popup khi click vào overlay
+        onClick={closeSearchPopup}
       ></div>
 
-      {/* Popup tìm kiếm */}
       <div className={`search-popup ${isSearchActive ? 'active' : ''}`}>
         <div className="search-row">
           <input type="text" placeholder="Search" />

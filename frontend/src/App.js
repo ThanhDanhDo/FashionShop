@@ -12,40 +12,106 @@ import Login from './pages/Login/Login';
 import Signup from './pages/SignUp/Signup';
 import Home from './pages/User/Home/Home';
 import Products from './pages/User/Products/Products';
+import AddProduct from './pages/Admin/Products-admin/add-product';
+import ChangeProduct from './pages/Admin/Products-admin/Change-product';
 import { AuthProvider } from './context/AuthContext';
 import ProductDetail from './pages/User/ProductDetail/ProductDetail';
+import UserAccount from './pages/User/UserAccount/UserAccount';
+import Cart from './pages/User/Cart/Cart';
+import OtpVerification from './pages/OtpVerification/OtpVerification';
+import OrderList from './pages/User/Orders-user/OrderList';
 import WishList from './pages/User/WishList/WishList';
 import Payment from './pages/User/Payment/Payment';
+import PrivateRoute from './components/PrivateRoute';
+import DeliveryAddress from './pages/User/DeliveryAddress/DeliveryAddress';
+import NotificationProvider from './components/NotificationProvider';
+import ConfirmOtp from './pages/confirm_otp/confirm_otp';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <Routes>
-          {/* Authentication routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+        <NotificationProvider>
+          <Routes>
+            {/* Authentication routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/otp-verification" element={<OtpVerification />} />
+            <Route path="/confirm-otp" element={<ConfirmOtp />} />
+            <Route path="/cart" element={<Cart />} />
 
-          {/* Product routes */}
-          <Route path="/products" element={<Products />} />
-          <Route path="/men" element={<Products />} />
-          <Route path="/women" element={<Products />} />
-          <Route path="/products/:category" element={<Products />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/WishList" element={<WishList />} />
-          <Route path="/Payment" element={<Payment />} />
-          {/* Home route */}
-          <Route path="/" element={<Home />} />
+            {/* Product routes */}
+            <Route path="/products" element={<Products />} />
+            <Route path="/men" element={<Products />} />
+            <Route path="/women" element={<Products />} />
+            <Route path="/products/:category" element={<Products />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/products/:categoryType/:categoryId" element={<Products />} />
+            <Route path="/wishList" element={<WishList />} />
+            <Route path="/Payment" element={<Payment />} />
+            
+            {/* Home route */}
+            <Route path="/" element={<Home />} />
+            
+            {/* User routes */}
+            <Route path="/orders" element={<OrderList />} />
+            <Route path="/user-account" element={<UserAccount />} />
+             <Route path="/delivery-address" element={<DeliveryAddress />} />
 
-          {/* Admin routes */}
-          <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/products-admin" element={<ProductsAdmin />} />
-            <Route path="/orders-admin" element={<OrdersAdmin />} />
-            <Route path="/users-admin" element={<UsersAdmin />} />
-          </Route>
-        </Routes>
+            {/* Admin routes */}
+            <Route element={<Layout />}>
+              <Route
+                path="/dashboard"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <Dashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/products-admin"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <ProductsAdmin />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/Products-admin/add-product"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <AddProduct />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/Products-admin/Change-product/:id"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <ChangeProduct />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/orders-admin"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <OrdersAdmin />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/users-admin"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <UsersAdmin />
+                  </PrivateRoute>
+                }
+              />
+            </Route>
+          </Routes>
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -23,9 +23,31 @@ public class AddressService {
 
     public Address addAddress(String email, Address newAddress) {
         User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found with email: " + email);
+        }
+        // Kiểm tra user đã có địa chỉ nào chưa
+        boolean hasAddress = addressRepository.existsByUser(user);
+        if (!hasAddress) {
+            newAddress.setDefault(true); // chưa có địa chỉ => set mặc định
+        } else {
+            newAddress.setDefault(false); // đã có địa chỉ => không set mặc định
+        }
         newAddress.setUser(user);
-        newAddress.setDefault(false);
         return addressRepository.save(newAddress);
+    }
+
+    public Address getAddressById(Long id) {
+        Optional<Address> address = addressRepository.findById(id);
+        if (address.isPresent()) {
+            return address.get();
+        }
+        return null;
+    }
+
+    public Address getAddressDefaultOfUser (User user) {
+        Address address = addressRepository.findByUserAndIsDefaultTrue(user).orElse(null);
+        return address;
     }
 
     public Address updateAddress(String email, Long addressId, Address updatedAddress) {

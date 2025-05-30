@@ -14,94 +14,144 @@ import jakarta.transaction.Transactional;
 
 import com.example.fashionshop.repository.CategoryRepository;
 
+import jakarta.transaction.Transactional;
+
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
 
-    @Transactional
+    // @Transactional
     private Category findOrCreateCategory(Long cateId, String name, Long parentId) {
         if (name == null || name.trim().isEmpty()) {
             throw new IllegalArgumentException("Category name cannot be empty");
         }
-    
+
         Optional<Category> existingCategory;
-    
+
         if (cateId != null) {
             existingCategory = categoryRepository.findById(cateId);
         } else {
-            existingCategory = categoryRepository.findByName(name);
+            List<Category> categories = categoryRepository.findByName(name);
+            if (parentId != null) {
+                existingCategory = categories.stream()
+                        .filter(cat -> cat.getParentCategory() != null
+                                && cat.getParentCategory().getId().equals(parentId))
+                        .findFirst();
+            } else {
+                existingCategory = categories.isEmpty() ? Optional.empty() : Optional.of(categories.get(0));
+            }
         }
-    
+
         if (existingCategory.isPresent()) {
             return existingCategory.get();
         }
-    
-        Category parentCategory = (parentId != null) 
-            ? categoryRepository.findById(parentId).orElse(null) 
-            : null;
-    
+
+        Category parentCategory = (parentId != null)
+                ? categoryRepository.findById(parentId)
+                        .orElseThrow(() -> new IllegalArgumentException("Parent category not found: " + parentId))
+                : null;
+
         Category newCategory = new Category();
         newCategory.setName(name);
         newCategory.setParentCategory(parentCategory);
-    
+
         return categoryRepository.save(newCategory);
-    }    
+    }
 
     private Category processCategory(Category category) {
         if (category == null) {
             return null;
         }
-    
+
         Long categoryId = category.getId();
         String name = category.getName();
         Long parentCategoryId = (category.getParentCategory() != null) ? category.getParentCategory().getId() : null;
-    
+
         return findOrCreateCategory(categoryId, name, parentCategoryId);
     }
-    
+
     @Autowired
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository){
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
     }
 
-    public Optional<Product> getProductById(Long id){
+    public Optional<Product> getProductById(Long id) {
         return productRepository.findById(id);
     }
 
-    public Page<Product> getAllProduct(Pageable pageable){
+    public Page<Product> getAllProduct(Pageable pageable) {
         return productRepository.findAll(pageable);
     }
 
-    public Map<String, Page<Product>> getProductByCate(Category category, Pageable pageable) {
-        Page<Product> mainCategoryProducts = productRepository.findByMainCategory(category, pageable);
-        Page<Product> subCategoryProducts = productRepository.findBySubCategory(category, pageable);
+    public Page<Product> filterProducts(
+            String gender,
+            Long mainCategoryId,
+            Long subCategoryId,
+            List<String> sizes,
+            List<String> colors,
+            List<String> priceRanges,
+            Pageable pageable) {
 
-        Map<String, Page<Product>> result = new HashMap<>();
-        result.put("mainCategory", mainCategoryProducts);
-        result.put("subCategories", subCategoryProducts);
+        String gendersCsv = "";
+        if (gender != null && !gender.equalsIgnoreCase("all")) {
+            if (gender.equalsIgnoreCase("Men")) {
+                gendersCsv = "Men,Unisex";
+            } else if (gender.equalsIgnoreCase("Women")) {
+                gendersCsv = "Women,Unisex";
+            } else if (gender.equalsIgnoreCase("Unisex")) {
+                gendersCsv = "Unisex";
+            } else {
+                throw new IllegalArgumentException("Invalid gender value: " + gender);
+            }
+        }
+
+        Double priceMin = null;
+        Double priceMax = null;
+        if (priceRanges != null && !priceRanges.isEmpty()) {
+            for (String range : priceRanges) {
+                if (range.equals("Under 500.000đ")) {
+                    priceMin = 0.0;
+                    priceMax = priceMax == null ? 500000.0 : Math.min(priceMax, 500000.0);
+                } else if (range.equals("500.000đ - 1.000.000đ")) {
+                    priceMin = priceMin == null ? 500000.0 : Math.max(priceMin, 500000.0);
+                    priceMax = priceMax == null ? 1000000.0 : Math.min(priceMax, 1000000.0);
+                } else if (range.equals("Above 1.000.000đ")) {
+                    priceMin = priceMin == null ? 1000000.0 : Math.max(priceMin, 1000000.0);
+                    priceMax = priceMax == null ? Double.MAX_VALUE : priceMax;
+                }
+            }
+        }
+
+        // Chuyển sizes và colors thành CSV String
+        String sizesCsv = (sizes != null && !sizes.isEmpty()) ? String.join(",", sizes) : "";
+        String colorsCsv = (colors != null && !colors.isEmpty()) ? String.join(",", colors) : "";
+
+        Page<Product> result = productRepository.findByFilters(
+                gendersCsv,
+                mainCategoryId,
+                subCategoryId,
+                sizesCsv,
+                colorsCsv,
+                priceMin,
+                priceMax,
+                pageable);
 
         return result;
     }
 
-    public List<Product> getProductByName(String name){
-        if (name == null || name.isEmpty()) {
-            throw new RuntimeException("Product list is empty or null");
-        }
-
-        return productRepository.findByNameContainingIgnoreCase(name);
-    }
-
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
-    public Product addProduct(Product product){
+    public Product addProduct(Product product) {
         if (product.getMainCategory() != null) {
             product.setMainCategory(processCategory(product.getMainCategory()));
         }
@@ -113,40 +163,40 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @Transactional
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @Transactional // Hàm này update được có 4 thuộc tính à, size color hông được
     public Product updateProduct(Product updatedProduct) {
         Product existingProduct = productRepository.findById(updatedProduct.getId())
-            .orElseThrow(() -> new RuntimeException("Product not found"));
-    
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
         if (updatedProduct.getName() != null) {
             existingProduct.setName(updatedProduct.getName());
         }
-    
+
         if (updatedProduct.getPrice() != null) {
             existingProduct.setPrice(updatedProduct.getPrice());
         }
-    
+
         if (updatedProduct.getMainCategory() != null) {
             existingProduct.setMainCategory(processCategory(updatedProduct.getMainCategory()));
         }
-    
+
         if (updatedProduct.getSubCategory() != null) {
             existingProduct.setSubCategory(processCategory(updatedProduct.getSubCategory()));
         }
-    
+
         return productRepository.save(existingProduct);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public void deleteProduct(Long id){
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public void deleteProduct(Long id) {
         Product product = getProductById(id)
-            .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
 
         productRepository.deleteById(id);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public List<Product> addProducts(List<Product> products) {
         if (products == null || products.isEmpty()) {
             throw new RuntimeException("Product list is empty or null");
@@ -160,26 +210,25 @@ public class ProductService {
         return addedProducts;
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Map<String, List<Product>> updateProducts(List<Product> products) {
         if (products == null || products.isEmpty()) {
             throw new RuntimeException("Product list is empty or null");
         }
-    
+
         List<Product> updatedProducts = new ArrayList<>();
         List<Product> failedProducts = new ArrayList<>();
-    
-        for(Product product : products) {
+
+        for (Product product : products) {
             try {
                 updatedProducts.add(updateProduct(product));
             } catch (RuntimeException e) {
                 failedProducts.add(product);
             }
         }
-    
+
         return Map.of(
-            "updated", updatedProducts,
-            "failed", failedProducts
-        );
-    }    
+                "updated", updatedProducts,
+                "failed", failedProducts);
+    }
 }
