@@ -21,6 +21,7 @@ import Cart from './pages/User/Cart/Cart';
 import OtpVerification from './pages/OtpVerification/OtpVerification';
 import OrderList from './pages/User/Orders-user/OrderList';
 import WishList from './pages/User/WishList/WishList';
+import Payment from './pages/User/Payment/Payment';
 import PrivateRoute from './components/PrivateRoute';
 import DeliveryAddress from './pages/User/DeliveryAddress/DeliveryAddress';
 import NotificationProvider from './components/NotificationProvider';
@@ -48,6 +49,7 @@ function App() {
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/products/:categoryType/:categoryId" element={<Products />} />
             <Route path="/wishList" element={<WishList />} />
+            <Route path="/Payment" element={<Payment />} />
             
             {/* Home route */}
             <Route path="/" element={<Home />} />
