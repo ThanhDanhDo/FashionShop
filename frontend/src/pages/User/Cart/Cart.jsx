@@ -7,7 +7,6 @@ import Navbar from '../../../components/Navbar/Navbar';
 import { useNavigate } from 'react-router-dom';
 import CustomBreadcrumb from '../../../components/Breadcrumb';
 import FooterComponent from '../../../components/Footer/Footer';
-import { useNavigate } from 'react-router-dom';
 
 // Hàm định dạng tiền tệ
 const formatCurrency = (value) => {
@@ -51,7 +50,6 @@ function Cart() {
           return;
         }
       }
-      const navigate = useNavigate();
       const items = await getCartItems(currentCartId);
       const enrichedItems = await Promise.all(
         items.map(async (item) => {
