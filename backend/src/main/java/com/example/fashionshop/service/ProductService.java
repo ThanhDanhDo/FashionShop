@@ -231,4 +231,9 @@ public class ProductService {
                 "updated", updatedProducts,
                 "failed", failedProducts);
     }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Page<Product> adminFilterProducts(String name, Long id, String gender, Long mainCategoryId, Long subCategoryId, Pageable pageable) {
+        return productRepository.adminFilterProducts(name, id, gender, mainCategoryId, subCategoryId, pageable);
+    }
 }

@@ -87,3 +87,10 @@ export const getProductById = async (id) => {
     throw error;
   }
 };
+
+export const adminFilterProducts = async (params) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetch(`/api/products/admin-filter?${query}`);
+  if (!response.ok) throw new Error('Failed to fetch');
+  return await response.json();
+};

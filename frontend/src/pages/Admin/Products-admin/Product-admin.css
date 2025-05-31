@@ -1,13 +1,19 @@
 .product-admin {
+    /* min-height: 100vh; */
+    /* height: 100vh; */
     display: flex;
-    height: 100vh;
-    font-family: Arial, sans-serif;
+    flex-direction: column;
 }
-
 .main-content {
-    flex: 1;
+    /* flex: 1; */
+    display: flex;
+    flex-direction: column;
+    /* min-height: 0; */
+    /* height: 100%; */
     background-color: #f5f8fa;
     padding: 20px;
+    box-sizing: border-box;
+    min-height: 100vh; /* Đảm bảo luôn đủ chiều cao khi ít sản phẩm */
 }
 .user-info {
     display: flex;
@@ -25,6 +31,14 @@
     border-radius: 5px;
     width: 200px;
 }
+
+.search-input:focus,
+.search-input:hover {
+    border: 1.5px solid #1a73e8;
+    outline: none;
+    background: #fff;
+}
+
 .add-product-btn {
     padding: 8px 15px;
     background-color: #1a73e8;
@@ -40,6 +54,8 @@
     background-color: #fff;
     border-radius: 5px;
     overflow: hidden;
+    /* Đảm bảo bảng không bị tràn */
+    table-layout: auto;
 }
 .product-table th, .product-table td {
     padding: 10px;
@@ -130,4 +146,91 @@
 .popup-btn {
     background-color: #1a73e8;
     color: white;
+}
+/* Style cho Dropdown Ant Design giống <select> */
+.ant-typography.filter-select {
+    border: 1px solid #ddd !important;
+    border-radius: 5px !important;
+    background: #fff !important;
+    width: 150px !important;
+    height: 38px !important;
+    box-sizing: border-box;
+    color: #222 !important;
+    font-size: 14px;
+    line-height: 20px;
+    transition: border 0.2s;
+    cursor: pointer;
+    padding: 8px 12px 8px 12px !important;
+    display: flex;
+    align-items: center;
+    position: relative;
+    text-align: left;
+}
+.ant-typography.filter-select.sub-category-dropdown {
+    width: 180px !important;
+}
+.ant-typography.filter-select:focus,
+.ant-typography.filter-select:hover {
+    border: 1.5px solid #1a73e8 !important;
+    background: #f5f8fa !important;
+}.category-dropdown {
+    min-width: 200px;
+    max-width: 200px;
+    width: 150px;
+    display: inline-block;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 8px 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: border 0.2s;
+    height: 38px;
+    line-height: 20px;
+}
+.category-dropdown:focus, .category-dropdown:hover {
+    border: 1.5px solid #1a73e8;
+}
+
+/* Đảm bảo icon luôn sát phải với Dropdown AntD */
+.ant-typography.filter-select .ant-space {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Đảm bảo icon luôn sát phải với <select> */
+.filter-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' fill='none' stroke='%23333' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px 18px;
+    padding-right: 36px !important;
+}
+.ant-typography.filter-select.sub-category-dropdown.sub-category-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed !important;
+}
+
+@media (max-width: 900px) {
+  .filters {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .main-content {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .search-input, .filter-select, .add-product-btn {
+    width: 100%;
+    min-width: 0;
+    font-size: 13px;
+    padding: 6px;
+  }
 }
