@@ -1,12 +1,15 @@
+// src/pages/SignUp/Signup.jsx
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar/Navbar';
 import './Signup.css';
-import { register, verifyOtp } from '../../services/authService';
+import { register } from '../../services/authService'; // Xóa verifyOtp vì không dùng ở đây nữa
 import CustomBreadcrumb from '../../components/Breadcrumb';
+import { useNotification } from '../../components/NotificationProvider';
 
 const Signup = () => {
   const navigate = useNavigate();
+  const api = useNotification();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -31,17 +34,12 @@ const Signup = () => {
       };
 
       await register(formDataWithUpperCaseGender);
-      alert('OTP has been sent to your email. Please check and verify.');
+      api.info({ message: 'OTP has been sent to your email. Please check and verify.' });
 
-      const otp = prompt('Input OTP:');
-
-      await verifyOtp(otp, formData.email);
-
-      alert('Registration successful!');
-      navigate('/login');
+      // Chuyển hướng đến trang OTP và truyền email qua state
+      navigate('/confirm-otp', { state: { email: formData.email } });
     } catch (error) {
-      console.error('OTP authentication error:', error.message);
-      alert(error.message);
+      api.error({ message: error.message || 'Registration failed' });
     }
   };
 
@@ -91,7 +89,7 @@ const Signup = () => {
                     <span className="password-toggle">👁️</span>
                   </div>
                   <p className="password-hint">
-                  Password must be between 8 and 20 characters including letters and numbers. The following symbols can be used {"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"}
+                    Password must be between 8 and 20 characters including letters and numbers. The following symbols can be used {"!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"}
                   </p>
                 </div>
 
@@ -156,7 +154,7 @@ const Signup = () => {
                 <div className="form-group terms">
                   <label className="checkbox-label">
                     <input type="checkbox" required />
-                    <span>I agree with <Link to="/terms">Terms of Service</Link> và <Link to="/privacy">Privacy Policy</Link></span>
+                    <span>I agree with <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link></span>
                   </label>
                 </div>
 
@@ -170,8 +168,6 @@ const Signup = () => {
               </form>
             </div>
           </div>
-
-         
         </div>
       </div>
     </div>

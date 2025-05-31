@@ -91,6 +91,11 @@ const Navbar = () => {
     navigate('/user-account'); // Chuyển hướng đến trang quản lý tài khoản
   };
 
+  const handleDeliveryAddressClick = () => {
+    navigate('/delivery-address');
+    handleClose();
+  };
+
   const isPopoverOpen = Boolean(anchorEl)
 
   return (
@@ -542,6 +547,12 @@ const Navbar = () => {
                   sx={{ fontSize: '18px' }}
                 >
                   Account
+                </MenuItem>
+                 <MenuItem
+                  onClick={handleDeliveryAddressClick}
+                  sx={{ fontSize: '18px' }}
+                >
+                  Delivery Address
                 </MenuItem>
                 <MenuItem
                   onClick={handleLogout}

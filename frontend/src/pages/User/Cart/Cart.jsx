@@ -7,6 +7,7 @@ import Navbar from '../../../components/Navbar/Navbar';
 import { useNavigate } from 'react-router-dom';
 import CustomBreadcrumb from '../../../components/Breadcrumb';
 import FooterComponent from '../../../components/Footer/Footer';
+import { useNavigate } from 'react-router-dom';
 
 // Hàm định dạng tiền tệ
 const formatCurrency = (value) => {
@@ -39,7 +40,7 @@ function Cart() {
     try {
       setLoading(true);
       let currentCartId = cartId;
-  
+
       if (!currentCartId) {
         const activeCart = await getActiveCart();
         if (activeCart && activeCart.id) {
@@ -50,7 +51,7 @@ function Cart() {
           return;
         }
       }
-  
+      const navigate = useNavigate();
       const items = await getCartItems(currentCartId);
       const enrichedItems = await Promise.all(
         items.map(async (item) => {
@@ -142,15 +143,22 @@ function Cart() {
     <div>
       <Navbar />
       <CustomBreadcrumb
-          items={[
-            {
-              title: 'Cart',
-            },
-          ]}
-        />
+        items={[
+          {
+            title: 'Cart',
+          },
+        ]}
+      />
 
       <div className="cart-page-container">
+
         <h1 className="cart-main-title">YOUR CART</h1>
+        <div class="cart-header">
+          <button className="back-btn" onClick={() => navigate(-1)}>
+            ← Back
+          </button>
+          <h1 class="cart-main-title">Your Cart</h1>
+        </div>
         {successMessage && <div className="success-message">{successMessage}</div>}
 
         {cartItems.length > 0 ? (
@@ -225,7 +233,7 @@ function Cart() {
               <div className="cart-actions">
                 <button
                   className="checkout-button-main"
-                  onClick={() => navigate('/checkout')}
+                  onClick={() => navigate('/Payment ')}
                   disabled={updating}
                 >
                   CHECKOUT

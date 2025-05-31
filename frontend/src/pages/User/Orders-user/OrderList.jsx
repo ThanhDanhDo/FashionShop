@@ -19,16 +19,16 @@ const orders = [
     address: "123 Nguyễn Văn Cừ, Long Biên, Hà Nội",
     paymentMethod: "Thanh toán khi nhận hàng",
     total: 890000,
-      products: [
-        {
-          id: 1,
-          name: "Áo thun xanh",
-          image: "/images/image1.png",
-          quantity: 2,
-          price: 570000,
-          size: "M",
-          color: "Xanh dương",
-        },
+    products: [
+      {
+        id: 1,
+        name: "Áo thun xanh",
+        image: "/images/image1.png",
+        quantity: 2,
+        price: 570000,
+        size: "M",
+        color: "Xanh dương",
+      },
       {
         id: 2,
         name: "Quần dài",
@@ -140,41 +140,41 @@ const OrderList = () => {
         {orders.map((order) => (
           <div key={order.orderId} className="order-block">
             <div className="order-header">
-  <         div className="order-info">
-            <div className="order-id-date">
-              <p><strong>Order ID:</strong> {order.orderId}</p>
-              <p><strong>Order Date:</strong> {order.date}</p>
-            </div>
-    
-              <p><strong>Address:</strong> {order.address}</p>
+              <         div className="order-info">
+                <div className="order-id-date">
+                  <p><strong>Order ID:</strong> {order.orderId}</p>
+                  <p><strong>Order Date:</strong> {order.date}</p>
+                </div>
 
-            <div className="order-total-payment">
-              <p><strong>Total:</strong> {order.total.toLocaleString()} VND</p>
-              <p><strong>Payment:</strong> {order.paymentMethod}</p>
-            </div>
-            </div>
-  
-            <span className={statusStyles[order.status]}>
-              {order.status}
-            </span>
+                <p><strong>Address:</strong> {order.address}</p>
+
+                <div className="order-total-payment">
+                  <p><strong>Total:</strong> {order.total.toLocaleString()} VND</p>
+                  <p><strong>Payment:</strong> {order.paymentMethod}</p>
+                </div>
+              </div>
+
+              <span className={statusStyles[order.status]}>
+                {order.status}
+              </span>
             </div>
             <div className="order-products">
-  {order.products.map((product) => (
-    <div key={product.id} className="order-item">
-      <img src={product.image} alt={product.name} className="order-image" />
-        <div className="order-details">
-          <h2 className="order-name">{product.name}</h2>
-            <div className="product-variant">
-              <span>Size: {product.size}</span> | <span>Color: {product.color}</span>
+              {order.products.map((product) => (
+                <div key={product.id} className="order-item">
+                  <img src={product.image} alt={product.name} className="order-image" />
+                  <div className="order-details">
+                    <h2 className="order-name">{product.name}</h2>
+                    <div className="product-variant">
+                      <span>Size: {product.size}</span> | <span>Color: {product.color}</span>
+                    </div>
+                    <div className="product-price-qty">
+                      <span>Quantity: {product.quantity}</span>
+                      <span>Price: {product.price.toLocaleString()} VND</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="product-price-qty">
-              <span>Quantity: {product.quantity}</span>
-              <span>Price: {product.price.toLocaleString()} VND</span>
-            </div>
-            </div>
-            </div>
-            ))}
-          </div>
           </div>
         ))}
       </div>
