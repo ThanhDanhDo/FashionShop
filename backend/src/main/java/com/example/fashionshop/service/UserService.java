@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,6 +25,7 @@ import java.util.Set;
 public class UserService {
     final UserRepository userRepository;
     final AddressRepository addressRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public Page<User> getAllUser(Pageable pageable) {
         return userRepository.findAllByRole(Role.USER, pageable);
@@ -120,5 +122,21 @@ public class UserService {
         }
 
         return userRepository.save(currentUser);
+    }
+
+    public void changePassword(Authentication authentication, String currentPassword, String newPassword) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized");
+        }
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+        }
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }

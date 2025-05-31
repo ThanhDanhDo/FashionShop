@@ -3,6 +3,7 @@ package com.example.fashionshop.controller;
 import com.example.fashionshop.model.Address;
 import com.example.fashionshop.model.User;
 import com.example.fashionshop.repository.AddressRepository;
+import com.example.fashionshop.request.ChangePasswordRequest;
 import com.example.fashionshop.response.ApiResponse;
 import com.example.fashionshop.service.AddressService;
 import com.example.fashionshop.service.UserService;
@@ -103,5 +104,11 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-
+    @PostMapping("/user/change-password")
+    public ResponseEntity<ApiResponse> changePassword(
+            Authentication authentication,
+            @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(authentication, request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.ok(new ApiResponse("Password changed successfully", true, null));
+    }
 }
