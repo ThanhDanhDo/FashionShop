@@ -87,3 +87,54 @@ export const getProductById = async (id) => {
     throw error;
   }
 };
+
+export const adminFilterProducts = async (params) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await fetch(`/api/products/admin-filter?${query}`);
+  if (!response.ok) throw new Error('Failed to fetch');
+  return await response.json();
+};
+
+export const uploadProductImage = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await fetch("/api/upload/image", {
+    method: "POST",
+    body: formData,
+  });
+  if (!response.ok) throw new Error("Upload failed");
+  const imageUrl = await response.text(); // trả về dạng "/api/upload/image/filename"
+  return imageUrl;
+};
+
+export const deleteProductImage = async (imgUrl) => {
+  // imgUrl dạng "/api/upload/image/filename"
+  const filename = imgUrl.split('/').pop();
+  const response = await fetch(`/api/upload/image/${filename}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Delete failed");
+  return await response.text();
+};
+
+export const addProduct = async (product) => {
+  const response = await fetch('/api/products/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(product),
+    credentials: 'include', // Để gửi cookie JWT nếu cần xác thực ADMIN
+  });
+  if (!response.ok) throw new Error('Add product failed');
+  return await response.json();
+};
+
+export const updateProduct = async (product) => {
+  const response = await fetch('/api/products/update', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(product),
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error('Update product failed');
+  return await response.json();
+};
