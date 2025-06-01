@@ -26,6 +26,8 @@ import PrivateRoute from './components/PrivateRoute';
 import DeliveryAddress from './pages/User/DeliveryAddress/DeliveryAddress';
 import NotificationProvider from './components/NotificationProvider';
 import ConfirmOtp from './pages/confirm_otp/confirm_otp';
+import ChangeAccount from './pages/Admin/Users-admin/Change-account';
+import AddAccount from './pages/Admin/Users-admin/Add-account';
 
 function App() {
   return (
@@ -106,6 +108,22 @@ function App() {
                 element={
                   <PrivateRoute requiredRole="ADMIN">
                     <UsersAdmin />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/users-admin/Change-account/:accountId"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <ChangeAccount />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/users-admin/Add-account"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <AddAccount />
                   </PrivateRoute>
                 }
               />
