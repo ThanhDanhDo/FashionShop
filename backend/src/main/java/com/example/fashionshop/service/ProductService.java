@@ -164,7 +164,7 @@ public class ProductService {
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @Transactional // Hàm này update được có 4 thuộc tính à, size color hông được
+    @Transactional
     public Product updateProduct(Product updatedProduct) {
         Product existingProduct = productRepository.findById(updatedProduct.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -172,17 +172,32 @@ public class ProductService {
         if (updatedProduct.getName() != null) {
             existingProduct.setName(updatedProduct.getName());
         }
-
+        if (updatedProduct.getDescription() != null) {
+            existingProduct.setDescription(updatedProduct.getDescription());
+        }
         if (updatedProduct.getPrice() != null) {
             existingProduct.setPrice(updatedProduct.getPrice());
         }
-
+        if (updatedProduct.getStock() != null) {
+            existingProduct.setStock(updatedProduct.getStock());
+        }
         if (updatedProduct.getMainCategory() != null) {
             existingProduct.setMainCategory(processCategory(updatedProduct.getMainCategory()));
         }
-
         if (updatedProduct.getSubCategory() != null) {
             existingProduct.setSubCategory(processCategory(updatedProduct.getSubCategory()));
+        }
+        if (updatedProduct.getSize() != null) {
+            existingProduct.setSize(updatedProduct.getSize());
+        }
+        if (updatedProduct.getColor() != null) {
+            existingProduct.setColor(updatedProduct.getColor());
+        }
+        if (updatedProduct.getImgurls() != null) {
+            existingProduct.setImgurls(updatedProduct.getImgurls());
+        }
+        if (updatedProduct.getGender() != null) {
+            existingProduct.setGender(updatedProduct.getGender());
         }
 
         return productRepository.save(existingProduct);

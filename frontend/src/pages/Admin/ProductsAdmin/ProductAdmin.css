@@ -24,6 +24,7 @@
     display: flex;
     gap: 10px;
     margin-bottom: 20px;
+    align-items: stretch;
 }
 .search-input, .filter-select {
     padding: 8px;
@@ -214,6 +215,27 @@
     opacity: 0.5;
     pointer-events: none;
     cursor: not-allowed !important;
+}
+
+.delete-product-btn {
+    padding: 8px 15px;
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.2s, opacity 0.2s;
+    height: 100%;
+}
+
+.delete-product-btn:hover,
+.delete-product-btn:focus {
+    background-color: #d9363e;
+}
+
+.delete-btn-wrapper {
+    display: flex;
+    align-items: stretch;
 }
 
 @media (max-width: 900px) {
