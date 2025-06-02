@@ -5,15 +5,15 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from './styles/theme';
 import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Admin/Dashboard/Dashboard';
-import ProductsAdmin from './pages/Admin/Products-admin/Products-admin';
+import ProductsAdmin from './pages/Admin/ProductsAdmin/ProductsAdmin';
 import OrdersAdmin from './pages/Admin/Orders-admin/Orders-admin';
 import UsersAdmin from './pages/Admin/Users-admin/Users-admin';
 import Login from './pages/Login/Login';
 import Signup from './pages/SignUp/Signup';
 import Home from './pages/User/Home/Home';
 import Products from './pages/User/Products/Products';
-import AddProduct from './pages/Admin/Products-admin/add-product';
-import ChangeProduct from './pages/Admin/Products-admin/Change-product';
+import AddProduct from './pages/Admin/ProductsAdmin/AddProduct';
+import ChangeProduct from './pages/Admin/ProductsAdmin/ChangeProduct';
 import { AuthProvider } from './context/AuthContext';
 import ProductDetail from './pages/User/ProductDetail/ProductDetail';
 import UserAccount from './pages/User/UserAccount/UserAccount';
@@ -28,6 +28,7 @@ import NotificationProvider from './components/NotificationProvider';
 import ConfirmOtp from './pages/confirm_otp/confirm_otp';
 import ChangeAccount from './pages/Admin/Users-admin/Change-account';
 import AddAccount from './pages/Admin/Users-admin/Add-account';
+import ProductDetailAdmin from './pages/Admin/ProductsAdmin/ProductDetailAdmin';
 
 function App() {
   return (
@@ -124,6 +125,14 @@ function App() {
                 element={
                   <PrivateRoute requiredRole="ADMIN">
                     <AddAccount />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/Products-admin/Product-detail/:id"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <ProductDetailAdmin />
                   </PrivateRoute>
                 }
               />
