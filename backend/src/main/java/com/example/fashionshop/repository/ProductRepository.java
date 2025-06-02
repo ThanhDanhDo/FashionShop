@@ -42,4 +42,31 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                         @Param("priceMax") Double priceMax,
                         Pageable pageable);
 
+        @Query(value = """
+    SELECT DISTINCT p.*
+    FROM product p
+    WHERE (:id IS NULL OR p.id = :id)
+      AND (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')))
+      AND (:gender IS NULL OR p.gender = :gender)
+      AND (:mainCategoryId IS NULL OR p.main_category_id = :mainCategoryId)
+      AND (:subCategoryId IS NULL OR p.sub_category_id = :subCategoryId)
+    """,
+    countQuery = """
+    SELECT COUNT(DISTINCT p.id)
+    FROM product p
+    WHERE (:id IS NULL OR p.id = :id)
+      AND (:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')))
+      AND (:gender IS NULL OR p.gender = :gender)
+      AND (:mainCategoryId IS NULL OR p.main_category_id = :mainCategoryId)
+      AND (:subCategoryId IS NULL OR p.sub_category_id = :subCategoryId)
+    """,
+    nativeQuery = true)
+        Page<Product> adminFilterProducts(
+            @Param("name") String name,
+            @Param("id") Long id,
+            @Param("gender") String gender,
+            @Param("mainCategoryId") Long mainCategoryId,
+            @Param("subCategoryId") Long subCategoryId,
+            Pageable pageable
+        );
 }
