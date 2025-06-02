@@ -207,6 +207,24 @@
   min-height: 60px;
 }
 
+.cancel-btn {
+  padding: 12px 20px;
+  background-color: #f44336; /* đỏ tươi */
+  color: white;              /* chữ trắng */
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+  margin-bottom: 10px; /* tạo khoảng cách với nút Save Address */
+}
+
+.cancel-btn:hover {
+   background-color: #d32f2f;
+}
+
 .add-btn {
   padding: 12px 20px;
   background-color: #19997d;
@@ -224,6 +242,23 @@
   background-color: #137d66;
 }
 
+
+.save-btn {
+  padding: 12px 20px;
+  background-color: #19997d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.save-btn:hover {
+  background-color: #137d66;
+}
 
 .new-address-card {
   border: 1px solid #ddd;
@@ -333,4 +368,29 @@
 }
 .back-btn:hover {
   text-decoration: underline;
+}
+.delete-message {
+  position: fixed;
+  top: -100px; /* bắt đầu ngoài màn hình */
+  right: 20px;
+  background-color: #f87171;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-weight: bold;
+  animation: slideDown 0.5s ease forwards;
+}
+
+/* Hiệu ứng trượt từ trên xuống */
+@keyframes slideDown {
+  from {
+    top: -100px;
+    opacity: 0;
+  }
+  to {
+    top: 20px;
+    opacity: 1;
+  }
 }

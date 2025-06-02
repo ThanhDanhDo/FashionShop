@@ -2,12 +2,11 @@ import React, { useState } from "react";
 import { FaTrashAlt, FaEdit } from "react-icons/fa";
 import "./Payment.css";
 import { useNavigate } from "react-router-dom";
-
+import { toast } from 'react-toastify';
 const Payment = () => {
   const [addresses, setAddresses] = useState([
     {
       id: 1,
-      name: "User",
       phone: "0123456789",
       street: "Ấp Cái Đôi",
       ward: "Xã Phú Tân",
@@ -15,11 +14,12 @@ const Payment = () => {
       province: "Tỉnh Cà Mau",
     },
   ]);
-
+  const [editingId, setEditingId] = useState(null);
+  const [tempAddress, setTempAddress] = useState({});
+  const [deleteMessage, setDeleteMessage] = useState("");
   const [selectedAddress, setSelectedAddress] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [newAddress, setNewAddress] = useState({
-    name: "",
     phone: "",
     street: "",
     ward: "",
@@ -38,19 +38,38 @@ const Payment = () => {
   const handleDeleteAddress = (id) => {
     const updated = addresses.filter((addr) => addr.id !== id);
     setAddresses(updated);
+
     if (selectedAddress === id && updated.length > 0) {
       setSelectedAddress(updated[0].id);
     }
+
+    if (editingId === id) {
+      setEditingId(null);
+      setTempAddress({});
+    }
+
+    setDeleteMessage("Address has been deleted.");
+    setTimeout(() => setDeleteMessage(""), 3000);
   };
+
 
   const handleEditAddress = (id) => {
     const addr = addresses.find((a) => a.id === id);
     if (addr) {
-      setNewAddress(addr);
-      setShowForm(true);
+      setEditingId(id);
+      setTempAddress({ ...addr });
     }
   };
 
+  const handleSaveEdit = () => {
+    const updated = addresses.map((a) =>
+      a.id === editingId ? { ...tempAddress, id: editingId } : a
+    );
+    setAddresses(updated);
+    setSelectedAddress(editingId);
+    setEditingId(null);
+    setTempAddress({});
+  };
   const handleAddAddress = () => {
     const isEditing = newAddress.id != null;
     if (isEditing) {
@@ -68,7 +87,6 @@ const Payment = () => {
     }
 
     setNewAddress({
-      name: "",
       phone: "",
       street: "",
       ward: "",
@@ -80,6 +98,11 @@ const Payment = () => {
 
   return (
     <div className="payment-container">
+      {deleteMessage && (
+        <div className="delete-message">
+          {deleteMessage}
+        </div>
+      )}
       <button className="back-btn" onClick={() => navigate('/cart')}>
         ← Back to Cart
       </button>
@@ -101,10 +124,6 @@ const Payment = () => {
                   checked={selectedAddress === addr.id}
                   onChange={() => setSelectedAddress(addr.id)}
                 />
-                <label className="address-name">
-                  {addr.name}
-                  {selectedAddress === addr.id}
-                </label>
                 <div className="address-actions">
                   <button
                     className="edit-btn"
@@ -126,23 +145,64 @@ const Payment = () => {
                   </button>
                 </div>
               </div>
-              <p><strong>Province:</strong> {addr.province} {selectedAddress === addr.id}</p>
-              <p><strong>District:</strong> {addr.district}</p>
-              <p><strong>Ward:</strong> {addr.ward}</p>
-              <p><strong>Full Address:</strong> {addr.street}, {addr.ward}, {addr.district}, {addr.province}</p>
-              <p><strong>Phone:</strong> {addr.phone}</p>
+
+              {editingId === addr.id ? (
+                <>
+                  {["phone", "street", "ward", "district", "province"].map((field) => (
+                    <div className="form-group" key={field}>
+                      <label>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
+                      <input
+                        type="text"
+                        value={tempAddress[field]}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) =>
+                          setTempAddress({ ...tempAddress, [field]: e.target.value })
+                        }
+                      />
+                    </div>
+                  ))}
+                  <button
+                    className="cancel-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingId(null);
+                      setTempAddress({});
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="save-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSaveEdit();
+                    }}
+                  >
+                    Save
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p><strong>Province:</strong> {addr.province}</p>
+                  <p><strong>District:</strong> {addr.district}</p>
+                  <p><strong>Ward:</strong> {addr.ward}</p>
+                  <p><strong>Full Address:</strong> {addr.street}, {addr.ward}, {addr.district}, {addr.province}</p>
+                  <p><strong>Phone:</strong> {addr.phone}</p>
+                </>
+              )}
             </div>
           ))}
 
-          {/* Toggle New Address Form */}
-          <button className="toggle-form-btn" onClick={() => setShowForm(!showForm)}>
-            {showForm ? "Cancel" : "Add New Address"}
-          </button>
+          {!showForm && !newAddress.id && (
+            <button className="toggle-form-btn" onClick={() => setShowForm(true)}>
+              Add New Address
+            </button>
+          )}
 
           {showForm && (
             <div className="new-address-card">
               <h4 className="card-title">{newAddress.id ? "Edit Address" : "Add New Address"}</h4>
-              {["name", "phone", "street", "ward", "district", "province"].map((field) => (
+              {["phone", "street", "ward", "district", "province"].map((field) => (
                 <div className="form-group" key={field}>
                   <label>{field.charAt(0).toUpperCase() + field.slice(1)}</label>
                   <input
@@ -152,6 +212,22 @@ const Payment = () => {
                   />
                 </div>
               ))}
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setShowForm(false);
+                  setNewAddress({
+                    phone: "",
+                    street: "",
+                    ward: "",
+                    district: "",
+                    province: "",
+                  });
+                }}
+                style={{ marginBottom: "10px" }} // tạo khoảng cách
+              >
+                Cancel
+              </button>
               <button className="add-btn" onClick={handleAddAddress}>
                 Save Address
               </button>
