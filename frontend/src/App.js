@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './styles/theme';
-import Layout from './components/Layout/Layout';
+import LayoutAdmin from './components/LayoutAdmin/LayoutAdmin';
 import Dashboard from './pages/Admin/Dashboard/Dashboard';
 import ProductsAdmin from './pages/Admin/ProductsAdmin/ProductsAdmin';
 import OrdersAdmin from './pages/Admin/Orders-admin/Orders-admin';
@@ -63,7 +63,7 @@ function App() {
              <Route path="/delivery-address" element={<DeliveryAddress />} />
 
             {/* Admin routes */}
-            <Route element={<Layout />}>
+            <Route element={<LayoutAdmin />}>
               <Route
                 path="/dashboard"
                 element={
