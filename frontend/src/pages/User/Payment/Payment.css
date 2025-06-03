@@ -171,7 +171,7 @@
   margin-top: 20px;
   width: 100%;
   padding: 12px;
-  background-color: #0070ba;
+  background-color: #007bff;
   color: white;
   font-size: 16px;
   border: none;
@@ -180,7 +180,7 @@
 }
 
 .checkout-btn:hover {
-  background: #137d66;
+  background-color: #0056b3;
 }
 
 .new-address-form {
@@ -218,7 +218,6 @@
   cursor: pointer;
   width: 100%;
   transition: background-color 0.2s;
-  margin-bottom: 10px; /* tạo khoảng cách với nút Save Address */
 }
 
 .cancel-btn:hover {
@@ -236,12 +235,12 @@
   cursor: pointer;
   width: 100%;
   transition: background-color 0.2s;
+  margin-bottom: 10px;
 }
 
 .add-btn:hover {
   background-color: #137d66;
 }
-
 
 .save-btn {
   padding: 12px 20px;
@@ -254,6 +253,7 @@
   cursor: pointer;
   width: 100%;
   transition: background-color 0.2s;
+  margin-bottom: 10px;
 }
 
 .save-btn:hover {
@@ -336,9 +336,12 @@
   color: #333;
 }
 
-.edit-btn:hover,
-.delete-btn:hover {
+.edit-btn:hover {
   color: #007bff;
+}
+
+.delete-btn:hover {
+  color: #f44336 !important;
 }
 
 .toggle-form-btn {
@@ -393,4 +396,11 @@
     top: 20px;
     opacity: 1;
   }
+}
+
+.default-label {
+  color: green;
+  font-weight: bold;
+  font-size: 14px;
+  margin-left: 8px;
 }

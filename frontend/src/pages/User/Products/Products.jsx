@@ -12,6 +12,7 @@ import { filterProducts } from "../../../services/productService";
 import { getCategoryById } from "../../../services/categoryService";
 import CustomBreadcrumb from '../../../components/Breadcrumb';
 import FooterComponent from '../../../components/Footer/Footer';
+import FullPageSpin from '../../../components/ListSpin';
 
 const Products = () => {
   const navigate = useNavigate();
@@ -488,7 +489,28 @@ const Products = () => {
               {/* Product Grid */}
               <div className="product-grid">
                 {loading ? (
-                  <div>Loading products...</div>
+                  <div
+                    style={{
+                      width: "100%",
+                      minHeight: 300,
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      alignItems: "flex-start",
+                      position: "relative",
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: "150%",
+                        top: 40,
+                        transform: "translateX(-50%)",
+                        zIndex: 10,
+                      }}
+                    >
+                      <FullPageSpin />
+                    </div>
+                  </div>
                 ) : error ? (
                   <div style={{ color: "red", textAlign: "center" }}>{error}</div>
                 ) : products.length > 0 ? (
@@ -606,7 +628,7 @@ const Products = () => {
                     </div>
                   ))
                 ) : (
-                  <div>Không có sản phẩm nào.</div>
+                  <div>There are no products.</div>
                 )}
               </div>
             </Grid>
