@@ -1,0 +1,126 @@
+.change-account {
+  max-width: 100% !important;
+  margin: 0 auto;
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+.change-account h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 32px;
+  font-weight: 600;
+}
+
+.change-account .ant-form-item-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.change-account .ant-form-item-label > label {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.change-account .ant-input,
+.change-account .ant-select-selector {
+  font-size: 15px;
+  padding: 8px 12px;
+  border: 1px solid #ddd !important;
+  border-radius: 5px;
+}
+
+.change-account .ant-input:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+}
+
+.change-account .action-bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.change-account .ant-btn.cancel-button {
+  padding: 10px 15px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.change-account .ant-btn.cancel-button:hover {
+  background-color: #d32f2f;
+}
+
+.change-account .ant-btn.save-button {
+  padding: 10px 15px;
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.change-account .ant-btn.save-button:hover {
+  background-color: #155bb5;
+}
+
+.change-account .ant-btn.change-role-btn {
+  padding: 10px 15px;
+  background-color: #fc5858;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.change-account .ant-btn.change-role-btn:hover {
+  background-color: #737373;
+}
+
+.change-account .ant-modal-content {
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.change-account .ant-modal-body {
+  padding: 20px;
+  text-align: center;
+}
+
+.change-account .ant-modal-body p {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.change-account .ant-modal-footer .ant-btn {
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.change-account .ant-modal-footer .ant-btn-primary {
+  background-color: #1a73e8;
+  color: white;
+}
+
+.change-account .ant-modal-footer .ant-btn-primary:hover {
+  background-color: #155bb5;
+}
+
+.change-account .ant-modal-footer .ant-btn-default {
+  background-color: #f44336;
+  color: white;
+  border: none;
+}
+
+.change-account .ant-modal-footer .ant-btn-default:hover {
+  background-color: #d32f2f;
+}

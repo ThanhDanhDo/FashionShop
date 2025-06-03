@@ -1,0 +1,27 @@
+.main {
+    background-color: #ffffff;
+    flex-grow: 1;
+    height: calc(100vh - 64px);
+    overflow: auto;
+    padding: 24px;
+}
+
+.ant-menu-item, .ant-menu-submenu-title {
+    font-size: 14px !important;
+    height: 52px !important;
+    line-height: 52px !important;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    padding-right: 24px !important;
+    padding-left: 24px !important;
+}
+
+.ant-menu-item .anticon, .ant-menu-submenu-title .anticon {
+    font-size: 22px !important;
+    margin-right: 16px !important;
+    min-width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

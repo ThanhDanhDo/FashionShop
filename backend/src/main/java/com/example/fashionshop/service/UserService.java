@@ -28,7 +28,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public Page<User> getAllUser(Pageable pageable) {
-        return userRepository.findAllByRole(Role.USER, pageable);
+        return userRepository.findAll(pageable);
     }
 
     public Page<User> searchUser(String firstName, String email, Pageable pageable) {
@@ -38,6 +38,14 @@ public class UserService {
     public User getUserById(Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public User createUser(User newUser) throws Exception {
+        if (userRepository.findByEmail(newUser.getEmail()) != null) {
+            throw new Exception("Email already exists");
+        }
+        newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        return userRepository.save(newUser);
     }
 
     public Long getCurrentUserId(Authentication authentication) {

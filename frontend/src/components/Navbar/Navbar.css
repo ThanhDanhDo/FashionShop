@@ -27,7 +27,7 @@
 }
 
 .logo-img {
-  height: 30px; /* hoặc 30px tùy bạn muốn nhỏ cỡ nào */
+  height: 30px;
   width: auto;
   object-fit: contain;
   margin-top: 5px;
@@ -53,11 +53,10 @@
   font-weight: 500;
 }
 
-/* Tăng kích thước ngang của thanh tìm kiếm và đặt icon bên trái */
 .search-bar {
   display: flex;
   align-items: center;
-  width: 200px; /* Tăng chiều rộng */
+  width: 200px;
   background-color: #f5f5f5;
   border-radius: 20px;
   padding: 5px 15px;
@@ -70,7 +69,7 @@
   padding: 8px;
   outline: none;
   width: 100%;
-  margin-left: 10px; /* Tạo khoảng cách giữa icon và chữ */
+  margin-left: 10px;
 }
 
 .search-button {
@@ -131,6 +130,21 @@
 }
 
 .product-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.product-column-content {
+  text-align: left;
+  width: 150px; /* Adjust this value as needed */
+}
+
+.product-column-content h4 span,
+.product-column-content ul li span {
+  display: block;
+  width: 100%;
   text-align: left;
 }
 
@@ -195,7 +209,6 @@
 
 .nav-link {
   display: block;
-  /* padding: 15px 0px; tăng vùng bấm và hover */
 }
 
 .men-popup {
@@ -218,33 +231,29 @@
   color: #0066ff;
 }
 
-/* Điều chỉnh popup men chỉ có 5 cột */
 .men-popup .product-grid {
   grid-template-columns: repeat(5, 1fr);
 }
 
-/* Bỏ border góc dưới của navbar khi hover vào products, women, men */
 .navbar-hovered {
   border-radius: 45px 45px 0 0;
 }
 
-/* Overlay làm đen màn hình */
 .search-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* Làm tối màn hình */
-  z-index: 1999; /* Đảm bảo overlay nằm trên các thành phần khác */
-  display: none; /* Ẩn mặc định */
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1999;
+  display: none;
 }
 
 .search-overlay.active {
-  display: block; /* Hiển thị khi active */
+  display: block;
 }
 
-/* Popup tìm kiếm */
 .search-popup {
   position: fixed;
   top: 0;
@@ -254,29 +263,30 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 2000;
   padding: 20px 40px;
-  display: none; /* Chỉ giữ display: none để ẩn mặc định */
+  display: none;
   border-radius: 10px;
-  flex-direction: column; /* Di chuyển các thuộc tính flex vào đây nhưng không cần display */
+  flex-direction: column;
   gap: 20px;
   align-items: center;
 }
+
 .search-popup.active {
-  display: flex; /* Hiển thị dưới dạng flex khi active */
+  display: flex;
 }
 
 .search-popup .search-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  max-width: 800px; /* Giới hạn chiều rộng */
+  width: 1200px;
+  max-width: 800px;
 }
 
 .search-popup input {
-  width: 80%; /* Chiếm 80% chiều rộng */
+  width: 80%;
   padding: 10px;
   font-size: 16px;
-  border: 1px solid #ddd; /* Thêm border */
+  border: 1px solid #ddd;
   border-radius: 45px;
   outline: none;
 }
@@ -286,14 +296,14 @@
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
-  margin-left: 20px; /* Khoảng cách giữa input và cancel */
+  margin-left: 20px;
 }
 
 .search-popup .popular-terms {
   display: flex;
-  flex-wrap: wrap; /* Cho phép xuống dòng nếu không đủ chỗ */
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 10px; /* Khoảng cách giữa các gợi ý */
+  gap: 10px;
   margin-top: 10px;
 }
 

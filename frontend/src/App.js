@@ -3,7 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './styles/theme';
-import Layout from './components/Layout/Layout';
+import './styles/index.css';
+import LayoutAdmin from './components/LayoutAdmin/LayoutAdmin';
 import Dashboard from './pages/Admin/Dashboard/Dashboard';
 import ProductsAdmin from './pages/Admin/ProductsAdmin/ProductsAdmin';
 import OrdersAdmin from './pages/Admin/Orders-admin/Orders-admin';
@@ -26,6 +27,8 @@ import PrivateRoute from './components/PrivateRoute';
 import DeliveryAddress from './pages/User/DeliveryAddress/DeliveryAddress';
 import NotificationProvider from './components/NotificationProvider';
 import ConfirmOtp from './pages/confirm_otp/confirm_otp';
+import ChangeAccount from './pages/Admin/Users-admin/Change-account';
+import AddAccount from './pages/Admin/Users-admin/Add-account';
 import ProductDetailAdmin from './pages/Admin/ProductsAdmin/ProductDetailAdmin';
 
 function App() {
@@ -61,7 +64,7 @@ function App() {
              <Route path="/delivery-address" element={<DeliveryAddress />} />
 
             {/* Admin routes */}
-            <Route element={<Layout />}>
+            <Route element={<LayoutAdmin />}>
               <Route
                 path="/dashboard"
                 element={
@@ -111,6 +114,22 @@ function App() {
                 }
               />
 
+              <Route
+                path="/users-admin/Change-account/:accountId"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <ChangeAccount />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/users-admin/Add-account"
+                element={
+                  <PrivateRoute requiredRole="ADMIN">
+                    <AddAccount />
+                  </PrivateRoute>
+                }
+              />
               <Route
                 path="/Products-admin/Product-detail/:id"
                 element={
