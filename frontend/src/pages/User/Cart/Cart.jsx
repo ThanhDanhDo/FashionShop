@@ -7,6 +7,7 @@ import Navbar from '../../../components/Navbar/Navbar';
 import { useNavigate } from 'react-router-dom';
 import CustomBreadcrumb from '../../../components/Breadcrumb';
 import FooterComponent from '../../../components/Footer/Footer';
+import { useLoading } from '../../../context/LoadingContext';
 
 // Hàm định dạng tiền tệ
 const formatCurrency = (value) => {
@@ -15,7 +16,6 @@ const formatCurrency = (value) => {
 
 function Cart() {
   const [cartItems, setCartItems] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -27,19 +27,21 @@ function Cart() {
   // Cache cho getProductById
   const productCache = new Map();
 
+  const { setLoading } = useLoading();
+
   useEffect(() => {
     if (!isLoggedIn) {
       navigate('/login');
       return;
     }
-    fetchCartItems();
+    setLoading(true);
+    fetchCartItems().finally(() => setLoading(false));
   }, [isLoggedIn, cartId]);
 
   const fetchCartItems = async () => {
     try {
-      setLoading(true);
+      // KHÔNG setLoading ở đây nữa, chỉ set ở useEffect
       let currentCartId = cartId;
-  
       if (!currentCartId) {
         const activeCart = await getActiveCart();
         if (activeCart && activeCart.id) {
@@ -50,7 +52,6 @@ function Cart() {
           return;
         }
       }
-  
       const items = await getCartItems(currentCartId);
       const enrichedItems = await Promise.all(
         items.map(async (item) => {
@@ -69,8 +70,6 @@ function Cart() {
       setCartItems(enrichedItems);
     } catch (error) {
       setError('Không thể lấy thông tin giỏ hàng: ' + error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -131,7 +130,6 @@ function Cart() {
     return cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
   };
 
-  if (loading) return <div>Loading...</div>;
   if (error) return <div>Lỗi: {error}</div>;
 
   const subtotal = calculateSubtotal();
@@ -142,15 +140,17 @@ function Cart() {
     <div>
       <Navbar />
       <CustomBreadcrumb
-          items={[
-            {
-              title: 'Cart',
-            },
-          ]}
-        />
+        items={[
+          {
+            title: 'Cart',
+          },
+        ]}
+      />
 
       <div className="cart-page-container">
-        <h1 className="cart-main-title">YOUR CART</h1>
+        <div class="cart-header">
+          <h1 class="cart-main-title">Your Cart</h1>
+        </div>
         {successMessage && <div className="success-message">{successMessage}</div>}
 
         {cartItems.length > 0 ? (
@@ -225,7 +225,7 @@ function Cart() {
               <div className="cart-actions">
                 <button
                   className="checkout-button-main"
-                  onClick={() => navigate('/checkout')}
+                  onClick={() => navigate('/Payment ')}
                   disabled={updating}
                 >
                   CHECKOUT

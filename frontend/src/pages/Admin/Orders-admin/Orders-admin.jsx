@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import './Orders-admin.css';
+import { Select } from 'antd';
+import 'antd/dist/reset.css';
 
 const mockOrders = [
   {
@@ -108,16 +110,21 @@ const Orders = () => {
                   </div>
                 </div>
                 <div>
-                  <select
-                    className={`status-dropdown status-${order.status}`}
-                    value={order.status}
-                    onChange={(e) => handleStatusChange(order.orderId, e.target.value)}
-                  >
-                    <option value="ORDERED">ORDERED</option>
-                    <option value="COMPLETED">COMPLETED</option>
-                    <option value="CANCELED">CANCELED</option>
-                    <option value="PENDING">PENDING</option>
-                  </select>
+                  <div>
+                    <Select
+                      value={order.status}
+                      style={{ width: 150 }}
+                      onChange={(value) => handleStatusChange(order.orderId, value)}
+                      dropdownStyle={{ borderRadius: '8px' }}
+                      className={`status-select status-${order.status}`}
+                      options={[
+                        { label: 'ORDERED', value: 'ORDERED' },
+                        { label: 'COMPLETED', value: 'COMPLETED' },
+                        { label: 'CANCELED', value: 'CANCELED' },
+                        { label: 'PENDING', value: 'PENDING' },
+                      ]}
+                    />
+                  </div>
                 </div>
               </div>
 

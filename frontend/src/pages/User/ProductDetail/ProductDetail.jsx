@@ -8,6 +8,9 @@ import { AuthContext } from '../../../context/AuthContext';
 import CustomBreadcrumb from '../../../components/Breadcrumb';
 import FooterComponent from '../../../components/Footer/Footer';
 import ProductCard from '../../../components/ProductCard';
+import { Image } from 'antd';
+import { useLoading } from '../../../context/LoadingContext';
+import SpinPage from '../../../components/SpinPage';
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -16,12 +19,12 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState("");
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { isLoggedIn, cartId, updateCartId, refreshCartItemCount } = useContext(AuthContext);
   const [cartMessage, setCartMessage] = useState('');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const { loading, setLoading } = useLoading();
 
   // Mock data for relatedProducts (can be replaced with API later)
   const relatedProducts = [
@@ -88,7 +91,7 @@ const ProductDetail = () => {
       }
     };
     fetchProduct();
-  }, [id]);
+  }, [id, setLoading]);
 
   const handleAddToCart = async () => {
     if (!isLoggedIn) {
@@ -97,21 +100,22 @@ const ProductDetail = () => {
     }
   
     if (!selectedSize || !selectedColor) {
-      setCartMessage('Vui lòng chọn size và màu sắc');
+      setCartMessage('Please select size and color');
       return;
     }
   
     if (!product.price || product.price <= 0) {
-      setCartMessage('Sản phẩm này hiện không có giá bán');
+      setCartMessage('This product is currently not for sale');
       return;
     }
-  
+
     if (!product.stock || product.stock <= 0) {
-      setCartMessage('Sản phẩm này đã hết hàng');
+      setCartMessage('This product is currently out of stock');
       return;
     }
   
     setIsAddingToCart(true);
+    setLoading(true);
     try {
       let currentCartId = cartId;
   
@@ -123,7 +127,7 @@ const ProductDetail = () => {
             updateCartId(currentCartId);
           }
         } catch (error) {
-          console.warn('Không tìm thấy giỏ hàng, tạo giỏ hàng mới:', error);
+          console.warn('Could not find cart, creating a new one:', error);
           const newCart = await createCart();
           currentCartId = newCart.id;
           updateCartId(currentCartId);
@@ -142,26 +146,27 @@ const ProductDetail = () => {
       setCartMessage('Added to cart successfully!');
       await refreshCartItemCount();
     } catch (error) {
-      if (error.message.includes('Phiên đăng nhập hết hạn')) {
+      if (error.message.includes('Session expired')) {
         navigate('/login');
-        setCartMessage('Vui lòng đăng nhập lại để tiếp tục!');
+        setCartMessage('Please log in again to continue!');
       } else {
-        setCartMessage('Không thể thêm vào giỏ hàng: ' + error.message);
+        setCartMessage('Could not add to cart: ' + error.message);
       }
     } finally {
       setIsAddingToCart(false);
+      setLoading(false);
     }
   };
 
-  if (loading) return <div>Đang tải...</div>;
-  if (error) return <div>Lỗi: {error}</div>;
-  if (!product) return <div>Không tìm thấy sản phẩm</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!product) return <div>No products found</div>;
 
   const filteredImages = product.imgurls || [];
   const formattedDescription = product.description.replaceAll("\\n", "\n");
 
   return (
     <>
+      <SpinPage spinning={loading} />
       <Navbar />
       <CustomBreadcrumb
         items={[
@@ -225,7 +230,7 @@ const ProductDetail = () => {
                 </div>
                 {/* Main image */}
                 <div>
-                  <img
+                  <Image
                     src={filteredImages[selectedImageIndex]}
                     alt={product.name}
                     style={{
@@ -235,9 +240,15 @@ const ProductDetail = () => {
                       height: "auto",
                       objectFit: "contain",
                       borderRadius: "12px",
-                      display: "flex",
-                      justifyContent: "flex-end",
                     }}
+                    placeholder={
+                      <Image
+                        preview={false}
+                        src={`${filteredImages[selectedImageIndex]}?x-oss-process=image/blur,r_50,s_50/quality,q_1/resize,m_mfit,h_500,w_400`}
+                        width={400}
+                        height={500}
+                      />
+                    }
                   />
                 </div>
               </div>
@@ -457,7 +468,7 @@ const ProductDetail = () => {
         </div>
         {/* Related Products */}
         <div style={{ marginTop: "60px", textAlign: "center" }}>
-          <h2 style={{ marginBottom: "20px" }}>Sản phẩm được quan tâm</h2>
+          <h2 style={{ marginBottom: "20px" }}>Recommended products</h2>
           <div
             style={{
               display: "flex",

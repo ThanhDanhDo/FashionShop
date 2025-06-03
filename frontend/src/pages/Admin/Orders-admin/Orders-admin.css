@@ -1,5 +1,5 @@
 .orders-container {
-  background-color: #ecfafd;
+  background-color: #f5f8fa;
   padding: 20px;
   min-height: 100vh;
   border-radius: 8px;
@@ -57,29 +57,6 @@
   transition: all 0.3s ease;
 }
 
-.status-ORDERED {
-  background-color: #e3f0ff;
-  border: 2px solid #007bff;
-}
-
-.status-PENDING {
-  background-color: #fff5e0;
-  border: 2px solid #e69500;
-}
-
-.status-COMPLETED {
-  background-color: #e6f9ed;
-  border: 2px solid #28a745;
-}
-
-.status-CANCELED {
-  background-color: #ffe6e6;
-  border: 2px solid #dc3545;
-}
-
-
-
-
 .order-products {
   border-top: 1px dashed #ccc;
   padding-top: 12px;
@@ -112,9 +89,14 @@
 .toggle-button {
   background-color: transparent;
   border: none;
-  color: #007bff;
-  font-weight: bold;
+  color: #1890ff;
+  font-weight: 500;
+  font-size: 16px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .order-footer {
@@ -122,4 +104,49 @@
   justify-content: space-between;
   align-items: center;
   margin-top: 8px;
+}
+
+.status-ORDERED .ant-select-selector {
+  border-color: #007bff;
+  color: #007bff;
+}
+
+.status-COMPLETED .ant-select-selector {
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.status-CANCELED .ant-select-selector {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.status-PENDING .ant-select-selector {
+  border-color: #e69500;
+  color: #e69500;
+}
+
+.toggle-button .arrow-icon {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.toggle-button.expanded .arrow-icon {
+  transform: rotate(180deg);
+}
+
+.order-products {
+  animation: fadeSlideDown 0.3s ease;
+}
+
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

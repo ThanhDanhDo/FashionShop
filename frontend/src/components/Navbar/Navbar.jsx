@@ -128,7 +128,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('all', 'Outerwear')} style={{ cursor: 'pointer' }}>
+                      <span
+                        onClick={() => handleFilterNavigation('all', 'Outerwear')}
+                        style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                      >
                         Outerwear
                       </span>
                     </h4>
@@ -149,7 +152,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('all', 'T-shirt')} style={{ cursor: 'pointer' }}>
+                      <span 
+                        onClick={() => handleFilterNavigation('all', 'T-shirt')} 
+                        style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                        >
                         T-shirt
                       </span>
                     </h4>
@@ -170,7 +176,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('all', 'Shirt')} style={{ cursor: 'pointer' }}>
+                      <span 
+                        onClick={() => handleFilterNavigation('all', 'Shirt')} 
+                        style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                        >
                         Shirt
                       </span>
                     </h4>
@@ -191,7 +200,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('all', 'Dresses')} style={{ cursor: 'pointer' }}>
+                      <span 
+                        onClick={() => handleFilterNavigation('all', 'Dresses')} 
+                        style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                        >
                         Dresses
                       </span>
                     </h4>
@@ -212,7 +224,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('all', 'Bottoms')} style={{ cursor: 'pointer' }}>
+                      <span 
+                        onClick={() => handleFilterNavigation('all', 'Bottoms')} 
+                        style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                        >
                         Bottoms
                       </span>
                     </h4>
@@ -233,7 +248,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('all', 'Accessories')} style={{ cursor: 'pointer' }}>
+                      <span 
+                        onClick={() => handleFilterNavigation('all', 'Accessories')} 
+                        style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                        >
                         Accessories
                       </span>
                     </h4>
@@ -274,7 +292,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Women', 'Outerwear')} style={{ cursor: 'pointer' }}>
+                      <span 
+                        onClick={() => handleFilterNavigation('Women', 'Outerwear')} 
+                        style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                        >
                         Outerwear
                       </span>
                     </h4>
@@ -295,7 +316,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Women', 'T-shirt')} style={{ cursor: 'pointer' }}>
+                      <span 
+                      onClick={() => handleFilterNavigation('Women', 'T-shirt')} 
+                      style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                      >
                         T-shirt
                       </span>
                     </h4>
@@ -316,7 +340,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Women', 'Shirt')} style={{ cursor: 'pointer' }}>
+                      <span 
+                        onClick={() => handleFilterNavigation('Women', 'Shirt')} 
+                        style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                        >
                         Shirt
                       </span>
                     </h4>
@@ -337,7 +364,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Women', 'Dresses')} style={{ cursor: 'pointer' }}>
+                      <span 
+                        onClick={() => handleFilterNavigation('Women', 'Dresses')} 
+                        style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                        >
                         Dresses
                       </span>
                     </h4>
@@ -358,7 +388,10 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Women', 'Bottoms')} style={{ cursor: 'pointer' }}>
+                      <span 
+                        onClick={() => handleFilterNavigation('Women', 'Bottoms')} 
+                        style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}
+                        >
                         Bottoms
                       </span>
                     </h4>
@@ -379,7 +412,7 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Women', 'Accessories')} style={{ cursor: 'pointer' }}>
+                      <span onClick={() => handleFilterNavigation('Women', 'Accessories')} style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}>
                         Accessories
                       </span>
                     </h4>
@@ -420,7 +453,7 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Men', 'Outerwear')} style={{ cursor: 'pointer' }}>
+                      <span onClick={() => handleFilterNavigation('Men', 'Outerwear')} style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}>
                         Outerwear
                       </span>
                     </h4>
@@ -441,7 +474,7 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Men', 'T-shirt')} style={{ cursor: 'pointer' }}>
+                      <span onClick={() => handleFilterNavigation('Men', 'T-shirt')} style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}>
                         T-shirt
                       </span>
                     </h4>
@@ -462,7 +495,7 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Men', 'Shirt')} style={{ cursor: 'pointer' }}>
+                      <span onClick={() => handleFilterNavigation('Men', 'Shirt')} style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}>
                         Shirt
                       </span>
                     </h4>
@@ -483,7 +516,7 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Men', 'Bottoms')} style={{ cursor: 'pointer' }}>
+                      <span onClick={() => handleFilterNavigation('Men', 'Bottoms')} style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}>
                         Bottoms
                       </span>
                     </h4>
@@ -504,7 +537,7 @@ const Navbar = () => {
                 <div className="product-column">
                   <div className="product-column-content">
                     <h4>
-                      <span onClick={() => handleFilterNavigation('Men', 'Accessories')} style={{ cursor: 'pointer' }}>
+                      <span onClick={() => handleFilterNavigation('Men', 'Accessories')} style={{ cursor: 'pointer', fontWeight: 'bold', fontSize: '18px' }}>
                         Accessories
                       </span>
                     </h4>

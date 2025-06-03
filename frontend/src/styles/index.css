@@ -12,3 +12,13 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
+/* Breadcrumb responsive padding */
+.breadcrumb-responsive {
+  padding: 10px 48px;
+}
+@media (max-width: 768px) {
+  .breadcrumb-responsive {
+    padding: 10px 12px;
+  }
+}

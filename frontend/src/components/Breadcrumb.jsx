@@ -3,7 +3,6 @@ import { HomeOutlined } from '@ant-design/icons';
 import { Breadcrumb } from 'antd';
 
 const CustomBreadcrumb = ({ items }) => {
-  // Thêm trang chủ làm mục đầu tiên mặc định
   const breadcrumbItems = [
     {
       href: '/',
@@ -14,11 +13,11 @@ const CustomBreadcrumb = ({ items }) => {
         </>
       ),
     },
-    ...items, // Thêm các mục truyền từ props
+    ...items,
   ];
 
   return (
-    <div style={{ padding: '10px 48px' }}> {/* Thêm padding trái */}
+    <div className="breadcrumb-responsive">
       <Breadcrumb items={breadcrumbItems} />
     </div>
   );

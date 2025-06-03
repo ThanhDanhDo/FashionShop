@@ -1,8 +1,11 @@
 .payment-container {
-  max-width: 1000px;
-  margin: 30px auto;
+  max-width: 1200px;
+  margin: 40px auto;
   padding: 20px;
-  font-family: sans-serif;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-family: Arial, sans-serif;
 }
 
 .section-title {
@@ -11,30 +14,75 @@
 }
 
 .payment-grid {
-  display: flex;
-  gap: 20px;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 2fr 1fr; 
+  gap: 30px;
 }
 
-.left-panel,
-.right-panel {
-  flex: 1;
+.left-panel {
+  flex: 0 0 58%; /* hoặc width: 58% */
+  padding: 20px;
   background: #fff;
+}
+.right-panel {
+  flex: 0 0 38%; /* hoặc width: 38% */
+  padding: 20px;
+  border-left: 1px solid #ddd;
+  background-color: #fdfdfd;
+  max-width: 400px;
 }
 
 .address-box {
   border: 1px solid #ccc;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
   position: relative;
-  background: #fff;
-  transition: box-shadow 0.3s;
+  border-radius: 10px;
+  background-color: #fafafa;
 }
 
 .address-box.selected {
   border: 2px solid #007bff;
   box-shadow: 0 0 10px rgba(0, 123, 255, 0.15);
+}
+
+.address-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.address-name {
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+.address-header input[type="radio"] {
+  margin-top: 4px;
+}
+
+.address-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.address-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem; /* Tăng kích thước icon một chút */
+  color: #555;
+  padding: 5px; /* Thêm padding để dễ click hơn */
+  display: flex; /* Đảm bảo icon bên trong nút được căn giữa */
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease; /* Thêm transition cho màu */
+}
+
+.address-actions button:hover {
+  color: #007bff;
 }
 
 .radio-group {
@@ -48,10 +96,16 @@
   color: #19997d;
   cursor: pointer;
   font-weight: bold;
-  padding: 10px;
-  border: 1px dashed #19997d;
-  border-radius: 6px;
+  padding: 12px;
+  border: 2px dashed #19997d;
+  border-radius: 8px;
   text-align: center;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.add-new-address:hover {
+  background-color: #19997d;
+  color: #fff;
 }
 
 .right-panel {
@@ -98,6 +152,7 @@
 .summary-row span:last-child {
   font-weight: bold;
 }
+
 .summary-total {
   display: flex;
   justify-content: space-between;
@@ -108,7 +163,6 @@
   margin-top: 12px;
 }
 
-
 .free {
   color: green;
 }
@@ -117,7 +171,7 @@
   margin-top: 20px;
   width: 100%;
   padding: 12px;
-  background-color: #0070ba;
+  background-color: #007bff;
   color: white;
   font-size: 16px;
   border: none;
@@ -126,8 +180,9 @@
 }
 
 .checkout-btn:hover {
-  background: #137d66;
+  background-color: #0056b3;
 }
+
 .new-address-form {
   margin-top: 15px;
   display: flex;
@@ -152,73 +207,200 @@
   min-height: 60px;
 }
 
+.cancel-btn {
+  padding: 12px 20px;
+  background-color: #f44336; /* đỏ tươi */
+  color: white;              /* chữ trắng */
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+   background-color: #d32f2f;
+}
+
 .add-btn {
-  padding: 10px;
+  padding: 12px 20px;
   background-color: #19997d;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: bold;
+  font-size: 15px;
   cursor: pointer;
+  width: 100%;
   transition: background-color 0.2s;
+  margin-bottom: 10px;
 }
 
 .add-btn:hover {
   background-color: #137d66;
 }
 
-.delete-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: #dc3545;
+.save-btn {
+  padding: 12px 20px;
+  background-color: #19997d;
   color: white;
   border: none;
   border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 12px;
+  font-weight: bold;
+  font-size: 15px;
   cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+  margin-bottom: 10px;
 }
-.delete-btn:hover {
-  background-color: #b02a37;
+
+.save-btn:hover {
+  background-color: #137d66;
 }
+
 .new-address-card {
-  background: #fefefe;
   border: 1px solid #ddd;
-  border-radius: 12px;
   padding: 20px;
-  margin-top: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin-top: 1rem;
+  background: #fefefe;
+  border-radius: 10px;
   animation: fadeIn 0.3s ease-in-out;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
+
 .card-title {
   font-size: 18px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   font-weight: 600;
+  color: #19997d;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 8px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
   color: #333;
 }
-.form-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 12px;
-}
-.form-group label {
-  margin-bottom: 4px;
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
   font-size: 14px;
-  color: #555;
+  background-color: #fff;
+  transition: border-color 0.2s;
 }
-.form-group input,
+.form-group input:focus {
+  border-color: #19997d;
+  outline: none;
+}
+
 .form-group textarea {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 14px;
 }
+
 .form-group textarea {
   resize: vertical;
   min-height: 80px;
 }
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.edit-btn{
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #333;
+}
+.delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #333;
+}
+
+.edit-btn:hover {
+  color: #007bff;
+}
+
+.delete-btn:hover {
+  color: #f44336 !important;
+}
+
+.toggle-form-btn {
+  padding: 12px 16px;
+  background-color: #19997d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 1rem;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+.toggle-form-btn:hover {
+  background-color: #137d66;
+}
+
+.back-btn {
+  margin-bottom: 1rem;
+  background: none;
+  border: none;
+  color: #007bff;
+  font-size: 16px;
+  cursor: pointer;
+}
+.back-btn:hover {
+  text-decoration: underline;
+}
+.delete-message {
+  position: fixed;
+  top: -100px; /* bắt đầu ngoài màn hình */
+  right: 20px;
+  background-color: #f87171;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-weight: bold;
+  animation: slideDown 0.5s ease forwards;
+}
+
+/* Hiệu ứng trượt từ trên xuống */
+@keyframes slideDown {
+  from {
+    top: -100px;
+    opacity: 0;
+  }
+  to {
+    top: 20px;
+    opacity: 1;
+  }
+}
+
+.default-label {
+  color: green;
+  font-weight: bold;
+  font-size: 14px;
+  margin-left: 8px;
 }
