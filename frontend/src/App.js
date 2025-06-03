@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './styles/theme';
+import './styles/index.css';
 import LayoutAdmin from './components/LayoutAdmin/LayoutAdmin';
 import Dashboard from './pages/Admin/Dashboard/Dashboard';
 import ProductsAdmin from './pages/Admin/ProductsAdmin/ProductsAdmin';
