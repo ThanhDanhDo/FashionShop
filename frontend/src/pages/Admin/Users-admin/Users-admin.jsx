@@ -1,110 +1,73 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Space, Table, Tag, Input, Select, Button, Modal, message, Tooltip } from 'antd';
+import { Table, Tag, Input, Dropdown, Button, Modal, message, Tooltip, Typography, Space } from 'antd';
+import { MoreOutlined, EditOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons';
+import { searchUsers } from '../../../services/userService';
 import './Users-admin.css';
 
 const { Column } = Table;
-const { Option } = Select;
 
 const UsersAdmin = () => {
-  const [accounts, setAccounts] = useState([
-    {
-      key: '1',
-      id: 1,
-      firstName: 'Đỗ',
-      lastName: 'Danh',
-      email: 'thanhdanhd1701@gmail.com',
-      gender: 'Men',
-      role: 'ADMIN',
-    },
-    {
-      key: '2',
-      id: 2,
-      firstName: 'Quyen',
-      lastName: 'Ngo',
-      email: 'quyen@gmail.com',
-      gender: 'Women',
-      role: 'USER',
-    },
-    {
-      key: '3',
-      id: 3,
-      firstName: 'Phạm',
-      lastName: 'Dương',
-      email: 'ThanhBongToiV1d@gmail.com',
-      gender: 'Men',
-      role: 'USER',
-    },
-  ]);
-
+  const [accounts, setAccounts] = useState([]);
+  const [totalElements, setTotalElements] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('');
-  const [genderFilter, setGenderFilter] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState(null);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [sortBy, setSortBy] = useState('id');
+  const [sortDir, setSortDir] = useState('asc');
+  const [genderFilter, setGenderFilter] = useState(null);
+  const [roleFilter, setRoleFilter] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Handle updated accounts from ChangeAccount.jsx or AddAccount.jsx
-  useEffect(() => {
-    if (location.state?.updatedAccounts && Array.isArray(location.state.updatedAccounts)) {
-      const maxId = Math.max(...accounts.map((acc) => acc.id || 0), 0);
-      const newAccounts = location.state.updatedAccounts.filter(
-        (account) => !account.id // New accounts won't have an id yet
-      );
-      let updatedAccounts = [...accounts];
-
-      if (newAccounts.length > 0) {
-        // Handle new accounts
-        updatedAccounts = [
-          ...updatedAccounts,
-          ...newAccounts.map((account, index) => ({
-            ...account,
-            id: maxId + index + 1, // Assign incremental id for new accounts
-            created_at: new Date().toISOString().replace('T', ' ').substring(0, 19), // Current timestamp, e.g., 2025-06-01 19:44:00
-          })),
-        ];
-      } else {
-        // Handle updates from ChangeAccount.jsx
-        updatedAccounts = accounts.map((existingAccount) => {
-          const updatedAccount = location.state.updatedAccounts.find(
-            (acc) => acc.id === existingAccount.id
-          );
-          return updatedAccount || existingAccount;
-        });
-      }
-
-      // Strip created_at from accounts state
-      const accountsWithoutCreatedAt = updatedAccounts.map(({ created_at, ...rest }) => rest);
-      setAccounts(accountsWithoutCreatedAt);
-      navigate(location.pathname, { replace: true, state: {} });
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await searchUsers({ searchType, searchTerm, page, size: pageSize, sortBy, sortDir });
+      const users = response.content.map(user => ({
+        key: user.id.toString(),
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        gender: user.gender,
+        role: user.role,
+        created_at: user.createdAt,
+        // Lấy address mặc định từ object address
+        defaultFullAddress: user.address ? user.address.fullAddress : null,
+        defaultPhone: user.address ? user.address.phone : null,
+      }));
+      setAccounts(users);
+      setTotalElements(response.totalElements);
+    } catch (error) {
+      message.error('Không thể tải danh sách người dùng!');
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-  }, [location, navigate]); // Removed accounts from dependencies to prevent re-triggering
+  };
 
-  // Handle search
+  useEffect(() => {
+    fetchUsers();
+  }, [searchTerm, searchType, page, pageSize, sortBy, sortDir]);
+
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setPage(0);
   };
 
-  const handleSearchTypeChange = (value) => {
-    setSearchType(value);
+  const handleSearchTypeChange = ({ key }) => {
+    setSearchType(key);
+    setPage(0);
   };
 
-  const handleGenderChange = (value) => {
-    setGenderFilter(value);
-  };
-
-  const handleRoleChange = (value) => {
-    setRoleFilter(value);
-  };
-
-  // Handle row selection
-  const onSelectChange = (newSelectedRowKeys, selectedRows) => {
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
+  const onSelectChange = (newSelectedRowKeys) => setSelectedRowKeys(newSelectedRowKeys);
 
   const rowSelection = {
     selectedRowKeys,
@@ -116,186 +79,156 @@ const UsersAdmin = () => {
     }),
   };
 
-  // Handle delete
-  const handleDeleteClick = (key) => {
-    setAccountToDelete(key);
-    setShowModal(true);
-  };
-
-  const handleDeleteSelected = () => {
-    setAccountToDelete(null);
-    setShowModal(true);
-  };
-
+  const handleDeleteClick = (key) => { setAccountToDelete(key); setShowModal(true); };
+  const handleDeleteSelected = () => { setAccountToDelete(null); setShowModal(true); };
   const handleConfirmDelete = () => {
     if (accountToDelete) {
       setAccounts((prev) => prev.filter((account) => account.key !== accountToDelete));
       setSelectedRowKeys((prev) => prev.filter((key) => key !== accountToDelete));
-      message.success('Account deleted successfully');
     } else {
       setAccounts((prev) => prev.filter((account) => !selectedRowKeys.includes(account.key)));
       setSelectedRowKeys([]);
-      message.success(`${selectedRowKeys.length} account(s) deleted successfully`);
     }
+    message.success('Account(s) deleted successfully');
     setAccountToDelete(null);
     setShowModal(false);
   };
+  const handleCancelDelete = () => setShowModal(false);
+  const handleAddAccount = () => navigate('/Users-admin/add-account', { state: { accounts } });
+  const handleChangeAccount = (id) => navigate(`/Users-admin/Change-account/${id}`, { state: { accounts } });
 
-  const handleCancelDelete = () => {
-    setAccountToDelete(null);
-    setShowModal(false);
-  };
-
-  const handleAddAccount = () => {
-    console.log('Add account clicked'); // Debug log
-    navigate('/Users-admin/add-account', {
-      state: { accounts },
-    });
-  };
-
-  const handleChangeAccount = (accountId) => {
-    console.log('Change account clicked for id:', accountId); // Debug log
-    const account = accounts.find((acc) => acc.id === accountId);
-    if (!account) {
-      console.log('Account not found for id:', accountId); // Debug log
-      message.error('Account not found');
-      return;
+  const handleTableChange = (pagination, filters, sorter) => {
+    setPage(pagination.current - 1);
+    setPageSize(pagination.pageSize);
+    if (sorter.field) {
+      setSortBy(sorter.field === 'created_at' ? 'createdAt' : sorter.field);
+      setSortDir(sorter.order === 'descend' ? 'desc' : 'asc');
     }
-    // Add created_at when navigating
-    const accountsWithCreatedAt = accounts.map((acc) =>
-      acc.id === accountId
-        ? { ...acc, created_at: '2025-05-18 20:53:54.655363' }
-        : acc
-    );
-    navigate(`/Users-admin/Change-account/${accountId}`, {
-      state: { accounts: accountsWithCreatedAt },
-    });
+    if (filters.gender) {
+      setGenderFilter(filters.gender);
+    } else {
+      setGenderFilter(null);
+    }
+    if (filters.role) {
+      setRoleFilter(filters.role);
+    } else {
+      setRoleFilter(null);
+    }
   };
 
-  // Memoized filtered accounts
-  const filteredAccounts = useMemo(() => {
-    return accounts.filter((account) => {
-      const searchMatch = searchType
-        ? searchType === 'First name'
-          ? account.firstName.toLowerCase().includes(searchTerm.toLowerCase())
-          : searchType === 'Last name'
-          ? account.lastName.toLowerCase().includes(searchTerm.toLowerCase())
-          : (account.id || '').toString().includes(searchTerm)
-        : account.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          account.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (account.id || '').toString().includes(searchTerm);
+  const filteredAccounts = accounts.filter((account) => {
+    let genderMatch = true;
+    let roleMatch = true;
+    if (genderFilter) {
+      genderMatch = genderFilter.includes(account.gender);
+    }
+    if (roleFilter) {
+      roleMatch = roleFilter.includes(account.role);
+    }
+    return genderMatch && roleMatch;
+  });
 
-      const genderMatch = genderFilter ? account.gender === genderFilter : true;
-      const roleMatch = roleFilter ? account.role === roleFilter : true;
-
-      return searchMatch && genderMatch && roleMatch;
-    });
-  }, [accounts, searchTerm, searchType, genderFilter, roleFilter]);
-
-  // Created at timestamps for display in tooltip
-  const createdAtMap = useMemo(() => {
-    const map = {};
-    accounts.forEach((account) => {
-      if (account.id) {
-        map[account.id] = account.created_at || '2025-05-18 20:53:54.655363'; // Default for existing accounts
-      }
-    });
-    return map;
-  }, [accounts]);
+  const searchTypeItems = [
+    { key: '', label: 'All' },
+    { key: 'ID', label: 'ID' },
+    { key: 'Name', label: 'Name' },
+    { key: 'Email', label: 'Email' },
+  ];
 
   return (
     <div className="user-admin">
       <div className="main-content">
-        <div className="filters">
-          <Input
-            placeholder="Search in type"
-            className="search-input"
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-          <Select
-            placeholder="Choose type"
-            className="filter-select"
-            value={searchType}
-            onChange={handleSearchTypeChange}
-          >
-            <Option value="">Choose type</Option>
-            <Option value="First name">First name</Option>
-            <Option value="Last name">Last name</Option>
-            <Option value="ID">ID</Option>
-          </Select>
-          <Select
-            placeholder="Gender"
-            className="filter-select"
-            value={genderFilter}
-            onChange={handleGenderChange}
-          >
-            <Option value="">Gender</Option>
-            <Option value="Men">Men</Option>
-            <Option value="Women">Women</Option>
-          </Select>
-          <Select
-            placeholder="Role"
-            className="filter-select"
-            value={roleFilter}
-            onChange={handleRoleChange}
-          >
-            <Option value="">Role</Option>
-            <Option value="ADMIN">ADMIN</Option>
-            <Option value="USER">USER</Option>
-          </Select>
-          <Button
-            type="primary"
-            className="add-account-btn"
-            onClick={handleAddAccount}
-          >
-            Add account
-          </Button>
-          {selectedRowKeys.length > 0 && (
-            <Button
-              danger
-              className="delete-selected-btn"
-              onClick={handleDeleteSelected}
+        <div className="filters" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Input placeholder="Search in type" className="search-input" value={searchTerm} onChange={handleSearch} />
+            <Dropdown
+              menu={{
+                items: searchTypeItems,
+                selectable: true,
+                selectedKeys: [searchType],
+                onSelect: handleSearchTypeChange,
+              }}
             >
-              Delete Selected
-            </Button>
-          )}
+              <Typography.Link className="filter-select">
+                <Space>
+                  {searchType || 'All'}
+                  <DownOutlined />
+                </Space>
+              </Typography.Link>
+            </Dropdown>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {selectedRowKeys.length > 0 && <Button danger className="delete-selected-btn" onClick={handleDeleteSelected}>Delete Selected</Button>}
+            <Button className="new-user-btn" onClick={handleAddAccount}>New User</Button>
+          </div>
         </div>
 
         <Table
           rowSelection={rowSelection}
           dataSource={filteredAccounts}
-          pagination={{ pageSize: 10 }}
+          pagination={{
+            current: page + 1,
+            pageSize,
+            total: totalElements,
+            position: ['bottomCenter'],
+            showSizeChanger: true,
+          }}
           className="user-table"
+          onChange={handleTableChange}
+          loading={loading}
         >
           <Column
             title="ID"
             dataIndex="id"
             key="id"
-            sorter={(a, b) => (a.id || 0) - (b.id || 0)}
-            render={(id) => (
-              <Tooltip title={`Created at: ${createdAtMap[id] || '2025-05-18 20:53:54.655363'}`}>
-                <span className="id-tooltip">{id || 'N/A'}</span>
-              </Tooltip>
+            sorter
+            render={(id) => <Tooltip title={`Created at: ${id}`}><span className="id-tooltip">{id}</span></Tooltip>}
+          />
+          <Column
+            title="Name"
+            key="name"
+            render={(_, record) => (
+              <div>
+                <div>{`${record.lastName} ${record.firstName}`}</div>
+                <div style={{ color: '#888', fontSize: '13px' }}>{record.email}</div>
+              </div>
             )}
           />
           <Column
-            title="First Name"
-            dataIndex="firstName"
-            key="firstName"
-            sorter={(a, b) => a.firstName.localeCompare(b.firstName)}
+            title="Address (default)"
+            key="defaultAddress"
+            render={(_, record) => (
+              <div>
+                <div>{record.defaultFullAddress || <span style={{ color: '#bbb' }}>No address</span>}</div>
+                <div style={{ color: '#888', fontSize: '13px' }}>{record.defaultPhone || ''}</div>
+              </div>
+            )}
           />
           <Column
-            title="Last Name"
-            dataIndex="lastName"
-            key="lastName"
-            sorter={(a, b) => a.lastName.localeCompare(b.lastName)}
-          />
-          <Column
-            title="Email"
-            dataIndex="email"
-            key="email"
-            sorter={(a, b) => a.email.localeCompare(b.email)}
+            title="Created at"
+            dataIndex="created_at"
+            key="created_at"
+            sorter
+            render={(created_at) => {
+              const date = new Date(created_at);
+              const formattedDate = date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              });
+              const formattedTime = date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+              });
+              return (
+                <div>
+                  <div>{formattedDate}</div>
+                  <div style={{ fontSize: '13px', color: '#888' }}>{formattedTime}</div>
+                </div>
+              );
+            }}
           />
           <Column
             title="Gender"
@@ -304,42 +237,68 @@ const UsersAdmin = () => {
             filters={[
               { text: 'Men', value: 'Men' },
               { text: 'Women', value: 'Women' },
+              { text: 'Unisex', value: 'Unisex' },
             ]}
+            filteredValue={genderFilter}
             onFilter={(value, record) => record.gender === value}
-            filterSearch={true}
+            render={(gender) => {
+              let color = '#1890ff';
+              let bgColor = '#e6f7ff';
+              if (gender === 'Women') {
+                color = '#eb2f96';
+                bgColor = '#fff0f6';
+              } else if (gender === 'Unisex') {
+                color = '#722ed1';
+                bgColor = '#f3e8ff';
+              }
+              return <Tag style={{ color, backgroundColor: bgColor, border: `1px solid ${color}` }}>{gender.toUpperCase()}</Tag>;
+            }}
           />
           <Column
             title="Role"
             dataIndex="role"
             key="role"
+            filters={[{ text: 'ADMIN', value: 'ADMIN' }, { text: 'USER', value: 'USER' }]}
+            filteredValue={roleFilter}
+            onFilter={(value, record) => record.role === value}
             render={(role) => {
-              const color = role === 'ADMIN' ? '#1890ff' : '#13c2c2';
-              return <Tag color={color} key={role}>{role.toUpperCase()}</Tag>;
+              let color = '#1890ff';
+              let bgColor = '#e6f7ff';
+              if (role === 'USER') {
+                color = '#389e0d';
+                bgColor = '#f6ffed';
+              }
+              return <Tag style={{ color, backgroundColor: bgColor, border: `1px solid ${color}` }}>{role.toUpperCase()}</Tag>;
             }}
           />
           <Column
             title="Action"
             key="action"
+            align="center"
             render={(_, record) => (
-              <Space size="middle">
-                <Button
-                  type="primary"
-                  className="change-account-btn"
-                  onClick={() => handleChangeAccount(record.id)}
-                  aria-label={`Edit account for ${record.firstName} ${record.lastName}`}
-                >
-                  Change
-                </Button>
-                <Button
-                  danger
-                  className="delete-account-btn"
-                  onClick={() => handleDeleteClick(record.key)}
-                  aria-label={`Delete account for ${record.firstName} ${record.lastName}`}
-                  disabled={record.role === 'ADMIN'}
-                >
-                  Delete
-                </Button>
-              </Space>
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      key: 'edit',
+                      icon: <EditOutlined />,
+                      label: 'Edit',
+                      onClick: () => handleChangeAccount(record.id),
+                    },
+                    {
+                      key: 'delete',
+                      icon: <DeleteOutlined style={{ color: 'red' }} />,
+                      label: 'Delete',
+                      onClick: () => handleDeleteClick(record.key),
+                      disabled: record.role === 'ADMIN',
+                    },
+                  ],
+                }}
+                trigger={['click']}
+                placement="bottomRight"
+              >
+                <MoreOutlined style={{ fontSize: '20px', cursor: 'pointer' }} />
+              </Dropdown>
             )}
           />
         </Table>
@@ -353,11 +312,7 @@ const UsersAdmin = () => {
           cancelText="No"
           okButtonProps={{ danger: true }}
         >
-          <p>
-            {accountToDelete
-              ? 'Are you sure you want to delete this account?'
-              : `Are you sure you want to delete ${selectedRowKeys.length} selected account(s)?`}
-          </p>
+          <p>{accountToDelete ? 'Are you sure you want to delete this account?' : `Are you sure you want to delete ${selectedRowKeys.length} selected account(s)?`}</p>
         </Modal>
       </div>
     </div>

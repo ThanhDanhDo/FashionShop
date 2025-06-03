@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Select, Button, message } from 'antd';
+import { createUserByAdmin } from '../../../services/userService';
 import './Add-account.css';
 
 const { Option } = Select;
@@ -8,6 +9,7 @@ const { Option } = Select;
 const genderOptions = [
   { value: 'Men', label: 'Men' },
   { value: 'Women', label: 'Women' },
+  { value: 'Unisex', label: 'Unisex' },
 ];
 
 const roleOptions = [
@@ -20,27 +22,25 @@ const AddAccount = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
-  const onFinish = (values) => {
-    if (loading) return; // Prevent multiple submissions
+  const onFinish = async (values) => {
+    if (loading) return;
     setLoading(true);
     const newAccount = {
-      key: (Date.now() + Math.random()).toString(), // Temporary unique key
-      firstName: values.firstName,
       lastName: values.lastName,
+      firstName: values.firstName,
       email: values.email,
+      password: values.password,
       gender: values.gender,
       role: values.role,
     };
 
     try {
-      const accounts = window.history.state?.usr?.accounts || [];
-      const updatedAccounts = [...accounts, newAccount];
-      navigate('/Users-admin', { state: { updatedAccounts, isNewAccount: true } });
-      setTimeout(() => {
-        message.success('Account added successfully');
-      }, 100); // Slight delay to ensure message appears after navigation
+      await createUserByAdmin(newAccount);
+      message.success('Account added successfully');
+      navigate('/Users-admin');
     } catch (e) {
-      message.error('Failed to add account');
+      message.error(e.message || 'Failed to add account');
+    } finally {
       setLoading(false);
     }
   };
@@ -71,6 +71,13 @@ const AddAccount = () => {
         <div className="form-container">
           <div className="left-column">
             <Form.Item
+              label="Last Name"
+              name="lastName"
+              rules={[{ required: true, message: 'Please enter last name' }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
               label="First Name"
               name="firstName"
               rules={[{ required: true, message: 'Please enter first name' }]}
@@ -78,12 +85,37 @@ const AddAccount = () => {
               <Input />
             </Form.Item>
             <Form.Item
-              label="Last Name"
-              name="lastName"
-              rules={[{ required: true, message: 'Please enter last name' }]}
+              label="Password"
+              name="password"
+              rules={[
+                { required: true, message: 'Please enter password' },
+                { min: 6, message: 'Password must be at least 6 characters' },
+              ]}
+              hasFeedback
             >
-              <Input />
+              <Input.Password />
             </Form.Item>
+            <Form.Item
+              label="Confirm Password"
+              name="confirmPassword"
+              dependencies={['password']}
+              hasFeedback
+              rules={[
+                { required: true, message: 'Please confirm password' },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('password') === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error('Passwords do not match!'));
+                  },
+                }),
+              ]}
+            >
+              <Input.Password />
+            </Form.Item>
+          </div>
+          <div className="right-column">
             <Form.Item
               label="Email"
               name="email"
@@ -94,8 +126,6 @@ const AddAccount = () => {
             >
               <Input />
             </Form.Item>
-          </div>
-          <div className="right-column">
             <Form.Item
               label="Gender"
               name="gender"
