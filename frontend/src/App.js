@@ -32,6 +32,7 @@ import AddAccount from './pages/Admin/Users-admin/Add-account';
 import ProductDetailAdmin from './pages/Admin/ProductsAdmin/ProductDetailAdmin';
 import { LoadingProvider, useLoading } from './context/LoadingContext';
 import SpinPage from './components/SpinPage';
+import PayPalSuccess from './pages/User/PayPalSuccess/PayPalSuccess';
 
 function App() {
   return (
@@ -58,14 +59,15 @@ function App() {
               <Route path="/products/:categoryType/:categoryId" element={<Products />} />
               <Route path="/wishList" element={<WishList />} />
               <Route path="/Payment" element={<Payment />} />
-              
+              <Route path='/payment-success/' element={<PayPalSuccess />} />
+
               {/* Home route */}
               <Route path="/" element={<Home />} />
-              
+
               {/* User routes */}
               <Route path="/orders" element={<OrderList />} />
               <Route path="/user-account" element={<UserAccount />} />
-               <Route path="/delivery-address" element={<DeliveryAddress />} />
+              <Route path="/delivery-address" element={<DeliveryAddress />} />
 
               {/* Admin routes */}
               <Route element={<LayoutAdmin />}>

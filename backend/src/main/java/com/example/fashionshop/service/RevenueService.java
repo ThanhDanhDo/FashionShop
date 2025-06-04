@@ -77,9 +77,23 @@ public class RevenueService {
     public Report getReport() {
         Report report = reportRepository.findById(1L).orElseGet(() -> {
             Report newReport = new Report();
+
+            newReport.setTotalRevenue(orderRepository.sumTotalRevenue());
+            newReport.setTotalRefunds(orderRepository.sumTotalRefunds());
+            newReport.setTotalOrders(orderRepository.countAllOrders());
+            newReport.setTotalUsers(userRepository.countAllUsers());
+            newReport.setCanceledOrders(orderRepository.countCanceledOrders());
+
             return reportRepository.save(newReport);
         });
-        return report;
+
+        report.setTotalRevenue(orderRepository.sumTotalRevenue());
+        report.setTotalRefunds(orderRepository.sumTotalRefunds());
+        report.setTotalOrders(orderRepository.countAllOrders());
+        report.setTotalUsers(userRepository.countAllUsers());
+        report.setCanceledOrders(orderRepository.countCanceledOrders());
+
+        return reportRepository.save(report);
     }
 
     public Report updateReport(Report report) {

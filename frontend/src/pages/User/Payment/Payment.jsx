@@ -1,11 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { Modal } from "antd";
 import "./Payment.css";
+import { AuthContext } from '../../../context/AuthContext';
 import { useNavigate } from "react-router-dom";
 import { getUserAddresses, addUserAddress, deleteUserAddress, updateUserAddress } from "../../../services/userService";
+import { createPaypalPaymentLink } from '../../../services/paypalService';
 import { useNotification } from "../../../components/NotificationProvider";
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useLoading } from '../../../context/LoadingContext';
+
+const formatCurrency = (value) => {
+  return value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }).replace('₫', 'đ');
+};
 
 const Payment = () => {
   const [addresses, setAddresses] = useState([]);
@@ -20,15 +27,16 @@ const Payment = () => {
     district: "",
     province: "",
   });
+  const { setLoading } = useLoading();
+  const amount = Number(localStorage.getItem("totalPriceToPay"))
   const api = useNotification();
 
   const navigate = useNavigate();
 
-  const [subtotal] = useState(500000);
-  const [discount] = useState(50000);
-  const [shipping] = useState(10000);
+  const [subtotal] = useState(amount);
+  const [shipping] = useState(30000);
 
-  const total = subtotal - discount + shipping;
+  const total = subtotal + shipping;
 
   useEffect(() => {
     fetchAddresses();
@@ -42,7 +50,7 @@ const Payment = () => {
         is_default: addr.isDefault ?? addr.is_default ?? addr.default
       }));
       // Sort addresses: default address at the top
-      const sortedAddresses = normalized.sort((a, b) => 
+      const sortedAddresses = normalized.sort((a, b) =>
         a.is_default === true ? -1 : b.is_default === true ? 1 : 0
       );
       setAddresses(sortedAddresses);
@@ -141,6 +149,19 @@ const Payment = () => {
       [name]: value,
     }));
   };
+
+  const handleCheckOut = async () => {
+    setLoading(true);
+    try {
+      localStorage.setItem("shippingAddress", selectedAddress);
+      const res = await createPaypalPaymentLink(total);
+      window.location.href = res.payment_link_url;
+    } catch (error) {
+      console.log("Lỗi Checkout: ", error)
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="payment-container">
@@ -309,21 +330,22 @@ const Payment = () => {
           <div className="summary-box">
             <div className="summary-row">
               <span>Subtotal</span>
-              <span>{subtotal} VND</span>
-            </div>
-            <div className="summary-row">
-              <span>Discount</span>
-              <span>-{discount} VND</span>
+              <span>{formatCurrency(subtotal)}</span>
             </div>
             <div className="summary-row">
               <span>Shipping</span>
-              <span>{shipping} VND</span>
+              <span>{formatCurrency(shipping)}</span>
             </div>
             <div className="summary-total">
               <span>Total</span>
-              <span>{total} VND</span>
+              <span>{formatCurrency(total)}</span>
             </div>
-            <button className="checkout-btn">CHECKOUT</button>
+            <button
+              className="checkout-btn"
+              onClick={handleCheckOut}
+            >
+              CHECKOUT
+            </button>
           </div>
         </div>
       </div>

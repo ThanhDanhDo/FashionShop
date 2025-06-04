@@ -186,3 +186,20 @@
     color: #666;
     margin-top: 4px;
   }
+
+  .cancel-order-btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  border-radius: 999px;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-order-btn:hover {
+  background-color: #e74c3c;
+  color: white;
+}

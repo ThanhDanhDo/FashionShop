@@ -95,42 +95,6 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersOfCurrentUser(authentication, pageable));
     }
 
-    @PreAuthorize("hasAuthority('USER')")
-    @PostMapping("/create")
-    public ResponseEntity<PaymentLinkResponse> createOrderHandler(
-            Authentication authentication, @RequestBody Address shippingAddress) throws Exception{
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
-        }
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email);
-        Cart cart = cartService.getCartByUserId(user.getId());
-        if (cart == null || cart.getTotalItems() == 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, user.getId() + " Cart is empty");
-        }
-        // Lấy địa chỉ giao hàng từ request
-        Address address;
-        if (shippingAddress.getId() == null) {
-            // Chưa có id => đây là địa chỉ mới, cần addAddress
-            address = addressService.addAddress(email, shippingAddress);
-        } else {
-            // Có id => lấy địa chỉ cũ ra
-            address = addressService.getAddressById(shippingAddress.getId());
-            if (address == null || !user.getAddresses().contains(address)) {
-                address = addressService.addAddress(email, shippingAddress);
-            }
-        }
-
-        Order order = orderService.createOrder(user, cart, address);
-        PaymentOrder paymentOrder = paymentService.createOrder(user, order);
-        PaymentLinkResponse res = new PaymentLinkResponse();
-        String paypalPaymentLink = paymentService.createPaypalPaymentLink(user, paymentOrder.getAmount() ,order);
-        res.setPayment_link_url(paypalPaymentLink);
-        paymentOrderRepository.save(paymentOrder);
-
-        return new ResponseEntity<>(res, HttpStatus.OK);
-    }
-
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{orderId}/status")
@@ -144,10 +108,10 @@ public class OrderController {
     @PutMapping("/{orderId}/cancel")
     public ResponseEntity<Order> cancelOrder(Authentication authentication, @PathVariable Long orderId) {
         Order order = orderService.cancelOrder(authentication, orderId);
-        Report report = revenueService.getReport();
-        report.setCanceledOrders(report.getCanceledOrders() + 1);
-        report.setTotalRefunds(report.getTotalRefunds() + order.getTotalOrderPrice());
-        revenueService.updateReport(report);
+//        Report report = revenueService.getReport();
+//        report.setCanceledOrders(report.getCanceledOrders() + 1);
+//        report.setTotalRefunds(report.getTotalRefunds() + order.getTotalOrderPrice());
+//        revenueService.updateReport(report);
         return ResponseEntity.ok(order);
     }
 

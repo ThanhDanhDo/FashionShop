@@ -136,6 +136,11 @@ function Cart() {
   const tax = subtotal * 0.1;
   const orderTotal = subtotal + tax;
 
+  const handleCheckout = () => {
+    localStorage.setItem("totalPriceToPay", orderTotal);
+    navigate('/Payment ');
+  }
+
   return (
     <div>
       <Navbar />
@@ -225,7 +230,7 @@ function Cart() {
               <div className="cart-actions">
                 <button
                   className="checkout-button-main"
-                  onClick={() => navigate('/Payment ')}
+                  onClick={handleCheckout}
                   disabled={updating}
                 >
                   CHECKOUT
