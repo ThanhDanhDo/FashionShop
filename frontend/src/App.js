@@ -27,6 +27,7 @@ import DeliveryAddress from './pages/User/DeliveryAddress/DeliveryAddress';
 import NotificationProvider from './components/NotificationProvider';
 import ConfirmOtp from './pages/confirm_otp/confirm_otp';
 import ProductDetailAdmin from './pages/Admin/ProductsAdmin/ProductDetailAdmin';
+import ContactUs from'./pages/User/ContactUs/ContactUs';
 
 function App() {
   return (
@@ -51,7 +52,7 @@ function App() {
             <Route path="/products/:categoryType/:categoryId" element={<Products />} />
             <Route path="/wishList" element={<WishList />} />
             <Route path="/Payment" element={<Payment />} />
-            
+            <Route path="/ContactUs" element={<ContactUs />} />
             {/* Home route */}
             <Route path="/" element={<Home />} />
             
