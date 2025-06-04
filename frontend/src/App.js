@@ -33,6 +33,8 @@ import ProductDetailAdmin from './pages/Admin/ProductsAdmin/ProductDetailAdmin';
 import { LoadingProvider, useLoading } from './context/LoadingContext';
 import SpinPage from './components/SpinPage';
 import PayPalSuccess from './pages/User/PayPalSuccess/PayPalSuccess';
+import Recommend from './pages/Admin/RecommendAdmin/Recommend';
+import Interact from './pages/Admin/RecommendAdmin/Interact';
 
 function App() {
   return (
@@ -141,6 +143,23 @@ function App() {
                   element={
                     <PrivateRoute requiredRole="ADMIN">
                       <ProductDetailAdmin />
+                    </PrivateRoute>
+                  }
+                />
+                {/* Recommendation System routes */}
+                <Route
+                  path="/recommend-products"
+                  element={
+                    <PrivateRoute requiredRole="ADMIN">
+                      <Recommend />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/user-interactions"
+                  element={
+                    <PrivateRoute requiredRole="ADMIN">
+                      <Interact />
                     </PrivateRoute>
                   }
                 />

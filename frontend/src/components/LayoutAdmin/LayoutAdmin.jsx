@@ -24,7 +24,10 @@ import {
   AppstoreOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  UserOutlined, 
+  UserOutlined,
+  ClusterOutlined, // Add this Ant Design icon for Recommendation System
+  BulbOutlined,    // For Recommend Products
+  InteractionOutlined, // For User Interactions
 } from '@ant-design/icons';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
@@ -58,6 +61,7 @@ const Layout = () => {
 
   const isPopoverOpen = Boolean(anchorEl);
 
+  // Add submenu for Recommendation System
   const menuItems = [
     {
       key: 'dashboard',
@@ -80,11 +84,62 @@ const Layout = () => {
     {
       key: 'users',
       icon: <UserOutlined />,
-      label: 'Users', // Đảm bảo là chuỗi
+      label: 'Users',
       onClick: () => navigate('/users-admin'),
+    },
+    {
+      key: 'recommendation',
+      icon: <ClusterOutlined />,
+      label: 'Recommendation',
+      children: [
+        {
+          key: 'recommend-products',
+          icon: <BulbOutlined />,
+          label: 'Recommend Products',
+          onClick: () => navigate('/recommend-products'),
+        },
+        {
+          key: 'user-interactions',
+          icon: <InteractionOutlined />,
+          label: 'User Interactions',
+          onClick: () => navigate('/user-interactions'),
+        },
+      ],
     },
   ];
 
+  // For submenu open state
+  const [openKeys, setOpenKeys] = useState([]);
+  const getLevelKeys = (items1) => {
+    const key = {};
+    const func = (items2, level = 1) => {
+      items2.forEach(item => {
+        if (item.key) key[item.key] = level;
+        if (item.children) func(item.children, level + 1);
+      });
+    };
+    func(items1);
+    return key;
+  };
+  const levelKeys = getLevelKeys(menuItems);
+
+  const onOpenChange = (openKeysNew) => {
+    const currentOpenKey = openKeysNew.find(key => openKeys.indexOf(key) === -1);
+    if (currentOpenKey !== undefined) {
+      const repeatIndex = openKeysNew
+        .filter(key => key !== currentOpenKey)
+        .findIndex(key => levelKeys[key] === levelKeys[currentOpenKey]);
+      setOpenKeys(
+        openKeysNew
+          .filter((_, index) => index !== repeatIndex)
+          .filter(key => levelKeys[key] <= levelKeys[currentOpenKey]),
+      );
+    } else {
+      setOpenKeys(openKeysNew);
+    }
+  };
+
+  // Update selected key logic to support new menu
   const getSelectedKey = () => {
     const path = window.location.pathname.split('/').pop() || 'dashboard';
     const pathToKeyMap = {
@@ -92,6 +147,8 @@ const Layout = () => {
       'products-admin': 'products',
       'orders-admin': 'orders',
       'users-admin': 'users',
+      'recommend-products': 'recommend-products',
+      'user-interactions': 'user-interactions',
     };
     return pathToKeyMap[path] || 'dashboard';
   };
@@ -133,6 +190,15 @@ const Layout = () => {
           inlineCollapsed={collapsed}
           items={menuItems}
           selectedKeys={[getSelectedKey()]}
+          openKeys={openKeys}
+          onOpenChange={onOpenChange}
+          onClick={({ key, item }) => {
+            // Call onClick if defined in menu item
+            const found = menuItems
+              .flatMap(i => i.children ? [i, ...i.children] : [i])
+              .find(i => i.key === key);
+            if (found && found.onClick) found.onClick();
+          }}
         />
       </Box>
       <Box
