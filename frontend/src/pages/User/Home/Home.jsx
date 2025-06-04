@@ -8,7 +8,7 @@ import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import Navbar from '../../../components/Navbar/Navbar';
 import FooterComponent from '../../../components/Footer/Footer';
-import ProductCard from '../../../components/ProductCard'; // Import ProductCard
+import ProductCard from '../../../components/ProductCard';
 
 const images = [
     "/images/banner1.png",
@@ -20,46 +20,6 @@ const images = [
     "/images/banner7.png",
     "/images/banner8.png",
 ];
-
-// Dữ liệu relatedProducts từ ProductDetail.jsx
-// const relatedProducts = [
-//     {
-//         name: "Cotton Tencel Jacket Relaxed Fit",
-//         image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/476941/item/vngoods_02_476941_3x4.jpg?width=423",
-//         sizes: "S, M, L",
-//         colors: ["White", "Black"],
-//         price: 1275000,
-//         rating: 4.5,
-//         reviewCount: 10,
-//     },
-//     {
-//         name: "Miracle Air Double Jacket",
-//         image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474943/item/vngoods_03_474943_3x4.jpg?width=369",
-//         sizes: "S, M, L",
-//         colors: ["Gray", "Dark Gray", "Black"],
-//         price: 1471000,
-//         rating: 4.8,
-//         reviewCount: 15,
-//     },
-//     {
-//         name: "Knitted Short Jacket",
-//         image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474981/item/vngoods_00_474981_3x4.jpg?width=369",
-//         sizes: "S, M, L, XL",
-//         colors: ["White", "Black"],
-//         price: 784000,
-//         rating: 4.2,
-//         reviewCount: 8,
-//     },
-//     {
-//         name: "Oversized Shirt Coat",
-//         image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474941/item/vngoods_57_474941_3x4.jpg?width=369",
-//         sizes: "S, M, L, XL",
-//         colors: ["Olive", "Navy"],
-//         price: 1471000,
-//         rating: 4.7,
-//         reviewCount: 12,
-//     },
-// ];
 
 const bestSellingProducts = [
     {
@@ -89,27 +49,26 @@ const bestSellingProducts = [
 ];
 
 const Home = () => {
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [currentIndex, setCurrentIndex] = useState(0); // Sửa lỗi cú pháp, xóa "abortion"
     const [hoveredIndex, setHoveredIndex] = useState(null);
     const [likedItems, setLikedItems] = useState({});
-    const [favoriteStates, setFavoriteStates] = useState(
-        new Array(relatedProducts.length).fill(false) // Trạng thái yêu thích cho Hot Sales
-    );
+    const [favoriteStates, setFavoriteStates] = useState([]);
     const [relatedProducts, setRelatedProducts] = useState([]);
-    
+    const [error, setError] = useState(null);
+
     useEffect(() => {
         const fetchRecommendations = async () => {
             try {
                 const res = await fetch("/api/recommendations");
                 if (!res.ok) throw new Error("Failed to fetch recommendations");
-        
                 const data = await res.json();
                 setRelatedProducts(data);
+                setFavoriteStates(new Array(data.length).fill(false));
             } catch (err) {
                 setError(err.message);
             }
         };
-    
+
         fetchRecommendations();
     }, []);
 
@@ -138,18 +97,18 @@ const Home = () => {
     useEffect(() => {
         const interval = setInterval(() => {
             goToNext();
-        }, 10000); // Tự động chuyển sau 10 giây
+        }, 10000);
         return () => clearInterval(interval);
     }, []);
 
+    if (error) {
+        return <Typography color="error">Error: {error}</Typography>;
+    }
+
     return (
         <div>
-            {/* Sử dụng Navbar */}
             <Navbar isLoggedIn={false} />
-
-            {/* Container cho banner, HOT SALES, và sản phẩm bán chạy */}
             <div style={{ padding: "0 48px" }}>
-                {/* Banner responsive với nút và chấm */}
                 <div style={{ 
                     position: "relative", 
                     textAlign: "center", 
@@ -160,9 +119,9 @@ const Home = () => {
                     <div style={{
                         position: "relative",
                         width: "100%",
-                        aspectRatio: "1588.44 / 630", // Tỷ lệ của ảnh hiện tại (≈2.52:1)
-                        maxHeight: "80vh", // Giới hạn chiều cao tối đa trên màn hình lớn
-                        minHeight: "400px", // Đảm bảo chiều cao tối thiểu trên mobile
+                        aspectRatio: "1588.44 / 630",
+                        maxHeight: "80vh",
+                        minHeight: "400px",
                     }}>
                         <img
                             src={images[currentIndex]}
@@ -180,7 +139,6 @@ const Home = () => {
                             onMouseOver={(e) => e.target.style.transform = "scale(1.1)"}
                             onMouseOut={(e) => e.target.style.transform = "scale(1.05)"}
                         />
-                        {/* Nút Previous */}
                         <IconButton
                             onClick={goToPrev}
                             style={{
@@ -196,7 +154,6 @@ const Home = () => {
                         >
                             <NavigateBeforeIcon />
                         </IconButton>
-                        {/* Nút Next */}
                         <IconButton
                             onClick={goToNext}
                             style={{
@@ -213,7 +170,6 @@ const Home = () => {
                             <NavigateNextIcon />
                         </IconButton>
                     </div>
-                    {/* Chấm hiển thị số trang */}
                     <div style={{
                         position: "absolute",
                         bottom: "10px",
@@ -237,7 +193,6 @@ const Home = () => {
                             />
                         ))}
                     </div>
-                    {/* CSS cho hiệu ứng fadeIn */}
                     <style>
                         {`
                             @keyframes fadeIn {
@@ -250,7 +205,6 @@ const Home = () => {
 
                 <Divider sx={{ my: 4 }} />
 
-                {/* HOT SALES */}
                 <div style={{ textAlign: 'center', margin: '20px 0' }}>
                     <Typography variant="h5" gutterBottom>
                         HOT SALES
@@ -260,7 +214,7 @@ const Home = () => {
                             <Grid item key={index} xs={12} sm={4} md={3}>
                                 <ProductCard
                                     product={product}
-                                    isFavorite={favoriteStates[index]}
+                                    isFavorite={favoriteStates[index] || false}
                                     onToggleFavorite={handleToggleFavorite}
                                     index={index}
                                 />
@@ -271,7 +225,6 @@ const Home = () => {
 
                 <Divider sx={{ my: 4 }} />
 
-                {/* Sản phẩm bán chạy */}
                 <div style={{ textAlign: "center", margin: "40px 0" }}>
                     <Typography variant="h6" gutterBottom>Sản phẩm bán chạy</Typography>
                     <Grid container spacing={2} justifyContent="center">
@@ -342,7 +295,6 @@ const Home = () => {
                     </Grid>
                 </div>
             </div>
-
             <FooterComponent />
         </div>
     );

@@ -36,14 +36,17 @@ const ProductDetail = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ productId: id })
+          body: JSON.stringify({ productId: id }),
+          credentials: "include", // Thêm dòng này
         });
   
         if (!interactRes.ok) throw new Error("Failed to add interact");
-        
-        const res = await fetch("/api/rec");
+  
+        const res = await fetch("/api/rec", {
+          credentials: "include", // Thêm dòng này
+        });
         if (!res.ok) throw new Error("Failed to fetch recommendations");
-
+  
         const data = await res.json();
         setRelatedProducts(data);
       } catch (err) {
