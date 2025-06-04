@@ -53,16 +53,38 @@ public class InteractService {
         String newItemId = productIds.remove(productIds.size() - 1);
         String sequence = String.join(",", productIds);
 
-        ProcessBuilder pb = new ProcessBuilder(
-                "./run_recommend.sh",
-                userId,
-                newItemId,
-                sequence
+        String os = System.getProperty("os.name").toLowerCase();
+        String pythonCmd = os.contains("win") ? "python" : "python3";
+        
+        // Cài đặt Requirements
+        ProcessBuilder installPb = new ProcessBuilder(
+            pythonCmd, "-m", "pip", "install", "-r", "requirements.txt"
         );
+        installPb.directory(new File("recommendation/JAVA_REC"));
+        installPb.redirectErrorStream(true);
+        Process installProcess = installPb.start();
+        int installExit = installProcess.waitFor();
+        if (installExit != 0) {
+            throw new RuntimeException("Cài đặt requirements thất bại với mã: " + installExit);
+        }
+        
+        // Chạy script chính
+        ProcessBuilder pb;
+        if (os.contains("win")) {
+            pb = new ProcessBuilder(
+                pythonCmd, "recommendation.py", userId, newItemId, sequence
+            );
+        } else if (os.contains("nix") || os.contains("nux") || os.contains("mac")) {
+            pb = new ProcessBuilder(
+                "./run_recommend.sh", userId, newItemId, sequence
+            );
+        } else {
+            throw new RuntimeException("Unsupported OS: " + os);
+        }
         pb.directory(new File("recommendation/JAVA_REC"));
         pb.redirectErrorStream(true);
         Process process = pb.start();
-
+        
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         StringBuilder output = new StringBuilder();
         String line;
