@@ -26,45 +26,73 @@ const ProductDetail = () => {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const { loading, setLoading } = useLoading();
 
+  const [relatedProducts, setRelatedProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        const interactRes = await fetch("/api/rec/add_interact", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ productId: id })
+        });
+  
+        if (!interactRes.ok) throw new Error("Failed to add interact");
+        
+        const res = await fetch("/api/rec");
+        if (!res.ok) throw new Error("Failed to fetch recommendations");
+
+        const data = await res.json();
+        setRelatedProducts(data);
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchRecommendations();
+  }, []);
+
   // Mock data for relatedProducts (can be replaced with API later)
-  const relatedProducts = [
-    {
-      name: "Cotton Tencel Jacket Relaxed Fit",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/476941/item/vngoods_02_476941_3x4.jpg?width=423",
-      sizes: "S, M, L",
-      colors: ["White", "Black"],
-      price: 1275000,
-      rating: 4.5,
-      reviewCount: 10,
-    },
-    {
-      name: "Miracle Air Double Jacket",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474943/item/vngoods_03_474943_3x4.jpg?width=369",
-      sizes: "S, M, L",
-      colors: ["Gray", "Dark Gray", "Black"],
-      price: 1471000,
-      rating: 4.8,
-      reviewCount: 15,
-    },
-    {
-      name: "Knitted Short Jacket",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474981/item/vngoods_00_474981_3x4.jpg?width=369",
-      sizes: "S, M, L, XL",
-      colors: ["White", "Black"],
-      price: 784000,
-      rating: 4.2,
-      reviewCount: 8,
-    },
-    {
-      name: "Oversized Shirt Coat",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474941/item/vngoods_57_474941_3x4.jpg?width=369",
-      sizes: "S, M, L, XL",
-      colors: ["Olive", "Navy"],
-      price: 1471000,
-      rating: 4.7,
-      reviewCount: 12,
-    },
-  ];
+  // const relatedProducts = [
+  //   {
+  //     name: "Cotton Tencel Jacket Relaxed Fit",
+  //     image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/476941/item/vngoods_02_476941_3x4.jpg?width=423",
+  //     sizes: "S, M, L",
+  //     colors: ["White", "Black"],
+  //     price: 1275000,
+  //     rating: 4.5,
+  //     reviewCount: 10,
+  //   },
+  //   {
+  //     name: "Miracle Air Double Jacket",
+  //     image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474943/item/vngoods_03_474943_3x4.jpg?width=369",
+  //     sizes: "S, M, L",
+  //     colors: ["Gray", "Dark Gray", "Black"],
+  //     price: 1471000,
+  //     rating: 4.8,
+  //     reviewCount: 15,
+  //   },
+  //   {
+  //     name: "Knitted Short Jacket",
+  //     image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474981/item/vngoods_00_474981_3x4.jpg?width=369",
+  //     sizes: "S, M, L, XL",
+  //     colors: ["White", "Black"],
+  //     price: 784000,
+  //     rating: 4.2,
+  //     reviewCount: 8,
+  //   },
+  //   {
+  //     name: "Oversized Shirt Coat",
+  //     image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474941/item/vngoods_57_474941_3x4.jpg?width=369",
+  //     sizes: "S, M, L, XL",
+  //     colors: ["Olive", "Navy"],
+  //     price: 1471000,
+  //     rating: 4.7,
+  //     reviewCount: 12,
+  //   },
+  // ];
 
   const [favoriteStates, setFavoriteStates] = useState(
     new Array(relatedProducts.length).fill(false)
