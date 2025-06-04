@@ -25,3 +25,20 @@
     align-items: center;
     justify-content: center;
 }
+
+.ant-menu-sub .ant-menu-item {
+    font-size: 13px !important;
+    padding-left: 36px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+}
+
+/* Thu nhỏ icon của submenu (Recommend Products, User Interactions) */
+.ant-menu-sub .ant-menu-item .anticon {
+    font-size: 17px !important;
+    min-width: 22px;
+    margin-right: 12px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
