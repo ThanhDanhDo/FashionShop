@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.fashionshop.config.ColabConfig;
 import com.example.fashionshop.model.Product;
+import com.example.fashionshop.model.User;
 import com.example.fashionshop.model.Recommendation;
 import com.example.fashionshop.repository.RecommendationRepository;
 import com.example.fashionshop.repository.ProductRepository;
@@ -42,7 +43,8 @@ public class RecommendationService {
         }
     }
 
-    public List<Product> findRecommendationByUserId(int userId) {
+    public List<Product> findRecommendationByUserId(User user) {
+        Integer userId = user.getId().intValue();
         Optional<Recommendation> optionalRec = recommendationRepository.findByUserId(userId);
     
         if (optionalRec.isEmpty()) {

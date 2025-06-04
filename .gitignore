@@ -40,3 +40,7 @@ package-lock.json
 *.sqlite
 *.sql~  # Backup SQL files
 
+
+# Bỏ qua virtual env
+**/venv/
+**/__pycache__/
