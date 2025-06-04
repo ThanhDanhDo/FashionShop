@@ -54,4 +54,7 @@ public class Product {
     @Enumerated(EnumType.STRING)
     @Column(name = "gender", nullable = false) // , columnDefinition = "gender_type"
     private Gender gender;
+
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT true")
+    private Boolean isActive = true;
 }

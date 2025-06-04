@@ -77,6 +77,7 @@ const Home = () => {
                 setIsPageLoading(true); // Start full-page loading
                 setIsLoadingRecommendations(true); // Start recommendations loading
                 const data = await getRecommendations();
+                console.log("rec - ", data);
                 setRelatedProducts(data);
                 setFavoriteStates(new Array(data.length).fill(false));
             } catch (err) {

@@ -2,8 +2,12 @@ package com.example.fashionshop.service;
 
 import com.example.fashionshop.enums.Role;
 import com.example.fashionshop.model.Address;
+import com.example.fashionshop.model.Cart;
+import com.example.fashionshop.model.Order;
 import com.example.fashionshop.model.User;
 import com.example.fashionshop.repository.AddressRepository;
+import com.example.fashionshop.repository.CartRepository;
+import com.example.fashionshop.repository.OrderRepository;
 import com.example.fashionshop.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -26,6 +31,8 @@ public class UserService {
     final UserRepository userRepository;
     final AddressRepository addressRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CartRepository cartRepository;
+    private final OrderRepository orderRepository;
 
     public Page<User> getAllUser(Pageable pageable) {
         return userRepository.findAll(pageable);
@@ -146,5 +153,31 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
+
+        // 1. Xoá Cart (sẽ tự xoá CartItem nhờ cascade)
+        Cart cart = cartRepository.findByUserId(user.getId());
+        if (cart != null) {
+            cartRepository.delete(cart);
+        }
+
+        // 2. Xoá Order (sẽ tự xoá OrderItem nhờ cascade)
+        List<Order> orders = orderRepository.findByUserId(user.getId());
+        if (!orders.isEmpty()) {
+            orderRepository.deleteAll(orders);
+        }
+
+        // 3. Xoá Interact (vì không ràng buộc JPA, dùng userId thủ công)
+//        interactRepository.deleteByUserId(user.getId().intValue());
+
+        // 4. Address sẽ tự xoá nhờ cascade trong User
+
+        // 5. Cuối cùng xoá User
+        userRepository.delete(user);
     }
 }

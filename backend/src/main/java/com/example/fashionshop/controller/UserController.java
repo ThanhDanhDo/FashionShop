@@ -152,4 +152,18 @@ public class UserController {
         userService.changePassword(authentication, request.getCurrentPassword(), request.getNewPassword());
         return ResponseEntity.ok(new ApiResponse("Password changed successfully", true, null));
     }
+
+    @DeleteMapping("/user/delete/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.ok("User with ID " + id + " deleted successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Internal server error: " + e.getMessage());
+        }
+    }
+
+
 }
