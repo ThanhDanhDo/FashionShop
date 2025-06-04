@@ -10,7 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/recommendations")
@@ -21,12 +21,17 @@ public class RecommendationController {
 
     @GetMapping("")
     public ResponseEntity<List<Product>> getRecommendations(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+    
         String email = authentication.getName();
         User user = userRepository.findByEmail(email);
-
+    
         List<Product> recommendations = recommendationService.findRecommendationByUserId(user);
         return ResponseEntity.ok(recommendations);
     }
+    
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/start_training")
