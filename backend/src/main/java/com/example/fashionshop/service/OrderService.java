@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -176,6 +177,50 @@ public class OrderService {
         }
 
         return orderRepository.findByUserId(user.getId(), pageable);
+    }
+
+    public Page<Order> searchOrder(Long id, Long userId, Long addressId, Long itemId, String fromDateStr, String toDateStr, OrderStatus orderStatus, PaymentStatus paymentStatus, Pageable pageable) {
+        if (id != null || userId != null || addressId != null || itemId != null) {
+            if (id != null) {
+                return orderRepository.findById(id, pageable);
+            }
+            if (userId != null) {
+                return orderRepository.findByUserId(userId, pageable);
+            }
+            if (addressId != null) {
+                return orderRepository.findByAddressId(addressId, pageable);
+            }
+            if (itemId != null) {
+                return orderRepository.findByOrderItems_Product_Id(itemId, pageable);
+            }
+        }
+
+        // Nếu có điều kiện vùng 2: ngày
+        if (fromDateStr != null || toDateStr != null) {
+            LocalDateTime fromDate = fromDateStr != null
+                    ? LocalDateTime.parse(fromDateStr)
+                    : LocalDateTime.MIN;
+
+            LocalDateTime toDate = toDateStr != null
+                    ? LocalDateTime.parse(toDateStr)
+                    : LocalDateTime.now();
+
+            return orderRepository.findByOrderDateBetween(fromDate, toDate, pageable);
+        }
+
+        // Nếu có điều kiện vùng 3: status
+        if (orderStatus != null || paymentStatus != null) {
+            if (orderStatus != null && paymentStatus != null) {
+                return orderRepository.findByOrderStatusAndPaymentStatus(orderStatus, paymentStatus, pageable);
+            } else if (orderStatus != null) {
+                return orderRepository.findByOrderStatus(orderStatus, pageable);
+            } else {
+                return orderRepository.findByPaymentStatus(paymentStatus, pageable);
+            }
+        }
+
+        // Nếu không có điều kiện nào
+        return orderRepository.findAll(pageable);
     }
 
 }
