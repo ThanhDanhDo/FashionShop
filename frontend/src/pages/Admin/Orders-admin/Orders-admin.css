@@ -17,17 +17,34 @@
 
 .filter-button {
   margin: 0 8px;
-  padding: 6px 12px;
-  background-color: #f0f0f0;
-  border: none;
-  border-radius: 4px;
+  padding: 7px 20px;
+  background-color: #fff;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 20px;
   cursor: pointer;
+  color: #1976d2;
+  font-weight: 500;
+  font-size: 16px;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border 0.2s,
+    box-shadow 0.2s;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(25, 118, 210, 0.04);
+}
+
+.filter-button:hover {
+  border: 1.5px solid #1976d2;
+  color: #1565c0;
+  background: #f0f7ff;
 }
 
 .filter-button.active {
-  background-color: #007bff;
-  color: white;
-  font-weight: bold;
+  background-color: #1976d2;
+  color: #fff;
+  border: 1.5px solid #1976d2;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
 }
 
 
@@ -148,5 +165,39 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+.order-details.order-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 24px;
+}
+.order-details.order-details-grid > div > p {
+  margin: 0 0 4px 0;
+}
+.order-details.order-details-grid-fix {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+.order-details-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 2px;
+}
+.order-details-row span {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+}
+@media (max-width: 900px) {
+  .order-details.order-details-grid {
+    grid-template-columns: 1fr;
+  }
+  .order-details-row {
+    flex-direction: column;
+    gap: 2px;
   }
 }
