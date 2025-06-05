@@ -30,6 +30,7 @@ import ConfirmOtp from './pages/confirm_otp/confirm_otp';
 import ChangeAccount from './pages/Admin/Users-admin/Change-account';
 import AddAccount from './pages/Admin/Users-admin/Add-account';
 import ProductDetailAdmin from './pages/Admin/ProductsAdmin/ProductDetailAdmin';
+import ContactUs from'./pages/User/ContactUs/ContactUs';
 import { LoadingProvider, useLoading } from './context/LoadingContext';
 import SpinPage from './components/SpinPage';
 import PayPalSuccess from './pages/User/PayPalSuccess/PayPalSuccess';
@@ -62,6 +63,7 @@ function App() {
               <Route path="/wishList" element={<WishList />} />
               <Route path="/Payment" element={<Payment />} />
               <Route path='/payment-success/' element={<PayPalSuccess />} />
+               <Route path="/ContactUs" element={<ContactUs />} />
 
               {/* Home route */}
               <Route path="/" element={<Home />} />
