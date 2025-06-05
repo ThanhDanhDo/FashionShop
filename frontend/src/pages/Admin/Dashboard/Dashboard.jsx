@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Grid,
   Paper,
@@ -19,16 +19,24 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DownOutlined } from '@ant-design/icons';
 import { Dropdown, Space, Typography as AntdTypography } from 'antd';
+import { getReport, getRevenueChart } from '../../../services/dashboardService'
+import { useLoading } from '../../../context/LoadingContext';
+import { Spin } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
 
-const data = [
-  { date: "Oct 23", value: 55 },
-  { date: "Oct 27", value: 75 },
-  { date: "Oct 31", value: 65 },
-  { date: "Nov 04", value: 70 },
-  { date: "Nov 08", value: 80 },
-  { date: "Nov 12", value: 85 },
-  { date: "Nov 16", value: 82 },
-];
+const antIcon = <LoadingOutlined style={{ fontSize: 32 }} spin />;
+
+const formatCurrency = (value) => {
+  if (typeof value !== 'number') {
+    value = Number(value);
+  }
+  return value.toLocaleString('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).replace('₫', 'đ');
+};
 
 const StatCard = ({ title, value, icon: Icon }) => (
   <Paper
@@ -91,12 +99,62 @@ const dashboardDropdownHover = {
 };
 
 const Dashboard = () => {
+  const { setLoading } = useLoading();
   const [type, setType] = useState('daily');
   const [dropdownHover, setDropdownHover] = useState(false);
+  const [data, setData] = useState([]);
+  const [report, setReport] = useState(null);
 
   const handleMenuClick = ({ key }) => {
     setType(key);
   };
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const result = await getRevenueChart(type);
+      if (result) {
+        setData(result);
+      }
+    } catch (error) {
+      console.log("Lỗi lấy dữ liệu chart: ", error);
+    } finally {
+      setLoading(false)
+    }
+  };
+
+  const fetchStatsData = async () => {
+    try {
+      const res = await getReport();
+      setReport(res);
+      console.log(res);
+    } catch (error) {
+      console.log("Lỗi lấy dữ liệu chart: ", error);
+    }
+  }
+  useEffect(() => {
+    fetchData();
+  }, [type]);
+
+  useEffect(() => {
+    fetchStatsData();
+  }, []);
+
+  if (!report) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '70vh',
+          flexDirection: 'column',
+        }}
+      >
+        <Spin indicator={antIcon} />
+      </Box>
+    );
+  }
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -119,7 +177,7 @@ const Dashboard = () => {
                 <Typography
                   variant="h5"
                   gutterBottom
-                  sx={{ mr: 2, mt: "5px" }} 
+                  sx={{ mr: 2, mt: "5px" }}
                 >
                   Deals Analytics
                 </Typography>
@@ -166,7 +224,9 @@ const Dashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip
+                      formatter={(value) => formatCurrency(value)}
+                    />
                     <Line
                       type="monotone"
                       dataKey="value"
@@ -182,19 +242,19 @@ const Dashboard = () => {
 
           {/* Stats Cards - Row 1 */}
           <Grid item xs={12} md={4} sx={{ mt: 3 }}>
-            <StatCard title="Total revenue" value="30 000" icon={AttachMoney} />
+            <StatCard title="Total revenue" value={formatCurrency(report.totalRevenue)} icon={AttachMoney} />
           </Grid>
           <Grid item xs={12} md={4} sx={{ mt: 3 }}>
             <StatCard
               title="Total orders"
-              value="30 000"
+              value={report.totalOrders}
               icon={ShoppingCart}
             />
           </Grid>
           <Grid item xs={12} md={4} sx={{ mt: 3 }}>
             <StatCard
               title="Total users"
-              value="30 000"
+              value={report.totalUsers}
               icon={Group}
             />
           </Grid>
@@ -203,14 +263,14 @@ const Dashboard = () => {
           <Grid item xs={12} md={4} sx={{ mt: 3 }}>
             <StatCard
               title="Total Refunds"
-              value="1 000"
+              value={formatCurrency(report.totalRefunds)}
               icon={Replay}
             />
           </Grid>
           <Grid item xs={12} md={4} sx={{ mt: 3 }}>
             <StatCard
               title="Canceled Orders"
-              value="500"
+              value={report.canceledOrders}
               icon={Cancel}
             />
           </Grid>
