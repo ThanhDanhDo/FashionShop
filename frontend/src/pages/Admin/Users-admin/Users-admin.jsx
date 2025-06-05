@@ -4,6 +4,7 @@ import { Table, Tag, Input, Dropdown, Button, Modal, message, Tooltip, Typograph
 import { MoreOutlined, EditOutlined, DeleteOutlined, DownOutlined } from '@ant-design/icons';
 import { searchUsers } from '../../../services/userService';
 import './Users-admin.css';
+import { deleteUser } from '../../../services/userService'
 
 const { Column } = Table;
 
@@ -79,9 +80,12 @@ const UsersAdmin = () => {
     }),
   };
 
-  const handleDeleteClick = (key) => { setAccountToDelete(key); setShowModal(true); };
+  const handleDeleteClick = (key) => {
+    setAccountToDelete(key);
+    setShowModal(true);
+  };
   const handleDeleteSelected = () => { setAccountToDelete(null); setShowModal(true); };
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (accountToDelete) {
       setAccounts((prev) => prev.filter((account) => account.key !== accountToDelete));
       setSelectedRowKeys((prev) => prev.filter((key) => key !== accountToDelete));
@@ -89,6 +93,18 @@ const UsersAdmin = () => {
       setAccounts((prev) => prev.filter((account) => !selectedRowKeys.includes(account.key)));
       setSelectedRowKeys([]);
     }
+
+    setLoading(true)
+    try {
+      const res = await deleteUser(accountToDelete);
+      console.log(res);
+      await fetchUsers();
+    } catch (error) {
+      console.log("Không thể xoá user: ", error)
+    } finally {
+      setLoading(false)
+    }
+
     message.success('Account(s) deleted successfully');
     setAccountToDelete(null);
     setShowModal(false);

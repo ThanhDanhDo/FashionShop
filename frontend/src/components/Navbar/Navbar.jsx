@@ -10,7 +10,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { AuthContext } from '../../context/AuthContext';
 
 const Navbar = () => {
-  const { isLoggedIn, userName, logout, cartId, cartItemCount, refreshCartItemCount } = useContext(AuthContext);
+  const { isLoggedIn, userName, logout, cartId, cartItemCount, refreshCartItemCount, orderCount, wishlistCount, refreshOrderCount, refreshWishlistCount } = useContext(AuthContext);
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [isProductHovered, setIsProductHovered] = useState(false);
@@ -47,7 +47,11 @@ const Navbar = () => {
     if (isLoggedIn && cartId) {
       refreshCartItemCount();
     }
-  }, [isLoggedIn, cartId, refreshCartItemCount]);
+    if (isLoggedIn) {
+      refreshOrderCount();
+      refreshWishlistCount();
+    }
+  }, [isLoggedIn, cartId, refreshCartItemCount, refreshOrderCount, refreshWishlistCount]);
 
   const handleAvatarClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -574,14 +578,14 @@ const Navbar = () => {
               </Link>
               <Link to="/orders" className="order-link">
                 <IconButton>
-                  <Badge badgeContent={0} color="error">
+                  <Badge badgeContent={orderCount} color="error">
                     <ReceiptIcon />
                   </Badge>
                 </IconButton>
               </Link>
               <Link to="/wishList" className="wishlist-link">
                 <IconButton>
-                  <Badge badgeContent={5} color="error">
+                  <Badge badgeContent={wishlistCount} color="error">
                     <FavoriteIcon />
                   </Badge>
                 </IconButton>

@@ -129,3 +129,16 @@ export const createUserByAdmin = async (userData) => {
   }
   return response.json();
 };
+
+export const deleteUser = async (id) => {
+  try {
+    const res = await fetch(`/api/user/delete/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Không thể xoá user');
+    return res
+  } catch (error) {
+    console.log("Không thể xoá user: ", error)
+  }
+}
