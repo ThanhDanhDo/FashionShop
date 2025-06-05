@@ -2,10 +2,14 @@ package com.example.fashionshop.service;
 
 import com.example.fashionshop.model.Interact;
 import com.example.fashionshop.model.Product;
+import com.example.fashionshop.model.Recommendation;
 import com.example.fashionshop.model.User;
 import com.example.fashionshop.repository.InteractRepository;
 import com.example.fashionshop.repository.ProductRepository;
 import lombok.AllArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -102,6 +106,18 @@ public class InteractService {
         List<Product> recommendedProducts = productRepository.findByIdIn(recommended);
 
         return recommendedProducts;
+    }
+
+    public Page<Interact> searchInteract(Long id, Integer userId, Long productId, Pageable pageable) {
+        if (id != null) {
+            return interactRepository.findById(id, pageable);
+        } else if (userId != null) {
+            return interactRepository.findByUserId(userId, pageable);
+        } else if (productId != null) {
+            return interactRepository.findByProductId(productId, pageable);
+        } else {
+            return interactRepository.findAll(pageable);
+        }
     }
 
 }

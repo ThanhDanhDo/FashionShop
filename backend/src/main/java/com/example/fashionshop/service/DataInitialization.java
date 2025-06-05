@@ -17,7 +17,7 @@ public class DataInitialization implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        initializeAdminUser();
+        // initializeAdminUser();
     }
 
     private void initializeAdminUser() {
