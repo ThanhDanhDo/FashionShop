@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { getUserProfile } from '../services/userService';
 import { getActiveCart, getCartItems } from '../services/cartService';
 import { logoutApi } from '../services/authService';
+import { getMyOrders } from '../services/orderService';
+import { getWishlist } from '../services/wishlistService';
 
 export const AuthContext = createContext();
 
@@ -12,6 +14,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [cartId, setCartId] = useState(null);
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [orderCount, setOrderCount] = useState(0);
+  const [wishlistCount, setWishlistCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -131,6 +135,34 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Hàm cập nhật số lượng order
+  const refreshOrderCount = async () => {
+    try {
+      const res = await getMyOrders();
+      setOrderCount(res?.content?.length || 0);
+    } catch {
+      setOrderCount(0);
+    }
+  };
+
+  // Hàm cập nhật số lượng wishlist
+  const refreshWishlistCount = async () => {
+    try {
+      const res = await getWishlist();
+      setWishlistCount(res?.products?.length || 0);
+    } catch {
+      setWishlistCount(0);
+    }
+  };
+
+  // Gọi khi user login hoặc reload
+  useEffect(() => {
+    if (user) {
+      refreshOrderCount();
+      refreshWishlistCount();
+    }
+  }, [user]);
+
   const isLoggedIn = !!user;
   const userName = user ? `${user.lastName} ${user.firstName} ` : 'Guest';
 
@@ -151,6 +183,10 @@ export const AuthProvider = ({ children }) => {
         updateCartId,
         cartItemCount,
         refreshCartItemCount,
+        orderCount,
+        wishlistCount,
+        refreshOrderCount,
+        refreshWishlistCount,
       }}
     >
       {children}
