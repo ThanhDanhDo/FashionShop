@@ -28,6 +28,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT COUNT(o) FROM Order o WHERE o.orderStatus = 'CANCELLED'")
     int countCanceledOrders();
 
-    @Query("SELECT o FROM Order o WHERE o.orderStatus = 'CANCELED'")
+    @Query("SELECT o FROM Order o WHERE o.orderStatus = 'CANCELLED'")
     List<Order> findCanceledOrders();
+
+    @Query("SELECT COALESCE(SUM(o.totalOrderPrice), 0) FROM Order o WHERE o.paymentStatus = 'COMPLETED'")
+    double sumTotalRevenue();
+
+    @Query("SELECT COALESCE(SUM(o.totalOrderPrice), 0) FROM Order o WHERE o.orderStatus = 'CANCELLED'")
+    double sumTotalRefunds();
+
+    Optional<Order> findByPaymentString(String paymentString);
 }

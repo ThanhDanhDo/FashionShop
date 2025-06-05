@@ -21,33 +21,14 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final PaypalService paypalService;
 
-    public PaymentOrder createOrder(User user, Order order) {
-        double amount = order.getTotalOrderPrice();
-        PaymentOrder paymentOrder = new PaymentOrder();
-        paymentOrder.setUser(user);
-        paymentOrder.setAmount(amount);
-        paymentOrder.setOrder(order);
-
-        return paymentOrderRepository.save(paymentOrder);
-    }
-
-
-    public PaymentOrder getPaymentOrderByOrderId(Long orderId) throws Exception {
-        PaymentOrder paymentOrder = paymentOrderRepository.findByOrderId(orderId);
-        if (paymentOrder == null) {
-            throw new Exception("PaymentOrder with orderId " + orderId + " not found.");
-        }
-        return paymentOrder;
-    }
-
-    public String createPaypalPaymentLink(User user, double amount, Order order) throws PayPalRESTException {
+    public String createPaypalPayment(User user, double amount) throws PayPalRESTException {
         double totalPriceVnd = amount;
         String currency = "USD"; // PayPal dùng USD
         String method = "paypal";
         String intent = "sale";
-        String description = "Payment for order #" + order.getId();
-        String cancelUrl = "http://localhost:8080/payment/cancel"; //link về frontend báo thanh toán bị cancel
-        String successUrl = "http://localhost:8080/payment-success/" + order.getId();
+        String description = "Payment for order of " + user.getEmail();
+        String cancelUrl = "http://localhost:3000/cart"; //link về frontend báo thanh toán bị cancel
+        String successUrl = "http://localhost:3000/payment-success/";
 
         Payment payment = paypalService.createPayment(
                 totalPriceVnd, currency, method, intent, description, cancelUrl, successUrl
@@ -60,6 +41,5 @@ public class PaymentService {
         }
         throw new PayPalRESTException("payment link not found");
     }
-
 
 }

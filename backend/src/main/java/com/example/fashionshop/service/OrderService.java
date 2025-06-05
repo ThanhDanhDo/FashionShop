@@ -31,7 +31,7 @@ public class OrderService {
     private final ProductRepository productRepository;
 
     @Transactional //tạo đơn hàng từ các sản phẩm trong giỏ hàng
-    public Order createOrder(User user, Cart cart, Address shippingAddress) {
+    public Order addNewOrder(User user, Cart cart, Long addressId, Double totalPrice) {
         if (user == null || cart == null || cart.getCartItems().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cart is empty or invalid user.");
         }
@@ -48,26 +48,20 @@ public class OrderService {
         if (email == null) {
             throw new IllegalArgumentException("Email not found.");
         }
-
-//        Address shippingAddress;
-//        Optional<Address> optionalAddress = addressRepository.findById(address.getId());
-//        if (optionalAddress.isEmpty() || !user.getAddresses().contains(address)) {
-//            shippingAddress = addressService.addAddress(email, address);
-//        } else {
-//            shippingAddress = optionalAddress.get();
-//        }
+        Address shippingAddress = addressRepository.findById(addressId)
+                .filter(address -> user.getAddresses().contains(address))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid shipping address."));
 
         List<CartItem> cartItems = cart.getCartItems();
-        double totalOrderPrice = cartItems.stream().mapToDouble( cartItem -> cartItem.getTotalPrice()).sum();
         int totalItems = cartItems.stream().mapToInt(cartItem -> cartItem.getQuantity()).sum();
 
         Order newOrder = new Order();
         newOrder.setUser(user);
         newOrder.setAddress(shippingAddress);
-        newOrder.setTotalOrderPrice(totalOrderPrice);
+        newOrder.setTotalOrderPrice(totalPrice);
         newOrder.setTotalItems(totalItems);
         newOrder.setOrderStatus(OrderStatus.PENDING);
-        newOrder.setPaymentStatus(PaymentStatus.PENDING);
+        newOrder.setPaymentStatus(PaymentStatus.COMPLETED);
 
         Order savedOrder = orderRepository.save(newOrder);
 

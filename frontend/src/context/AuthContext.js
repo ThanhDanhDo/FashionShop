@@ -135,7 +135,7 @@ export const AuthProvider = ({ children }) => {
   const userName = user ? `${user.lastName} ${user.firstName} ` : 'Guest';
 
   if (loading) {
-    return <div>Loading...</div>;
+    return null; // Để SpinPage (loading toàn cục) hiển thị overlay
   }
 
   return (

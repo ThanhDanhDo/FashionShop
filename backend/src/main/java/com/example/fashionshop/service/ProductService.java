@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Service
 public class ProductService {
@@ -207,8 +208,13 @@ public class ProductService {
     public void deleteProduct(Long id) {
         Product product = getProductById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
-
-        productRepository.deleteById(id);
+        try {
+            productRepository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            // Nếu bị lỗi ràng buộc khóa ngoại, thì set isActive = false
+            product.setIsActive(false);
+            productRepository.save(product);
+        }
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")

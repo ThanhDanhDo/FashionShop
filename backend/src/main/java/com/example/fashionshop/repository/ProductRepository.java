@@ -69,4 +69,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("subCategoryId") Long subCategoryId,
             Pageable pageable
         );
+        List<Product> findByIdIn(List<Long> ids);
+
 }

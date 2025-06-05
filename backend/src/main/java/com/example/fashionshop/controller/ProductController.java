@@ -56,12 +56,12 @@ public class ProductController {
     public ResponseEntity<Product> getProductById(Authentication authentication, @PathVariable Long id) {
         Optional<Product> product = productService.getProductById(id);
 
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email);
-        if (product.isPresent() && user != null) {
-            Product prod = product.get();
-            Interact interact = interactService.addInteract(user, prod);
-        }
+//        String email = authentication.getName();
+//        User user = userRepository.findByEmail(email);
+//        if (product.isPresent() && user != null) {
+//            Product prod = product.get();
+//            Interact interact = interactService.addInteract(user, prod);
+//        }
 
         return product.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());

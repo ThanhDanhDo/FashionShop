@@ -4,7 +4,7 @@ import { Dropdown, Space, Typography, Table, Button, Flex, Modal } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import './ProductAdmin.css';
 import { adminFilterProducts} from '../../../services/productService';
-import FullPageSpin from '../../../components/FullPageSpin';
+import FullPageSpin from '../../../components/ListSpin';
 
 const categoryData = [
   { id: 1, name: "Outerwear", parent_id: null },

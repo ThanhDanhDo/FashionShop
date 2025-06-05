@@ -49,6 +49,8 @@ public class Order {
 
     private LocalDateTime orderDate = LocalDateTime.now();
 
+    private String paymentString;
+
     public void updateTotalPrice() {
         this.totalItems = this.orderItems.size();
         this.totalOrderPrice = this.orderItems.stream()
