@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import './Orders-admin.css';
-import { Select } from 'antd';
+import { Select, DatePicker, Space } from 'antd';
 import 'antd/dist/reset.css';
+
+const { RangePicker } = DatePicker;
 
 const mockOrders = [
   {
@@ -68,6 +70,8 @@ const Orders = () => {
   const [orders, setOrders] = useState(mockOrders);
   const [filteredStatus, setFilteredStatus] = useState("ALL");
   const [expandedOrders, setExpandedOrders] = useState({});
+  const [searchOrderId, setSearchOrderId] = useState('');
+  const [dateRange, setDateRange] = useState([]);
 
   const handleStatusFilter = (status) => {
     setFilteredStatus(status);
@@ -88,10 +92,23 @@ const Orders = () => {
     }));
   };
 
+  // Lọc theo Order ID và ngày
   const filteredOrders =
-    filteredStatus === "ALL"
-      ? orders
-      : orders.filter((order) => order.status === filteredStatus);
+    orders.filter(order => {
+      // Lọc theo status
+      if (filteredStatus !== "ALL" && order.status !== filteredStatus) return false;
+      // Lọc theo Order ID
+      if (searchOrderId && !order.orderId.toLowerCase().includes(searchOrderId.toLowerCase())) return false;
+      // Lọc theo ngày
+      if (dateRange && dateRange.length === 2) {
+        const orderDate = new Date(order.date);
+        const start = dateRange[0]?.startOf?.('day') ? dateRange[0].startOf('day').toDate() : dateRange[0]?.toDate?.();
+        const end = dateRange[1]?.endOf?.('day') ? dateRange[1].endOf('day').toDate() : dateRange[1]?.toDate?.();
+        if (start && orderDate < start) return false;
+        if (end && orderDate > end) return false;
+      }
+      return true;
+    });
 
   return (
     <div
@@ -108,97 +125,117 @@ const Orders = () => {
         boxSizing: "border-box",
       }}
     >
-      <h1 className="orders-title">Order history</h1>
-
-      <div className="order-filter centered">
-        {["ALL", "ORDERED", "COMPLETED", "CANCELED", "PENDING"].map((status) => (
-          <button
-            key={status}
-            onClick={() => handleStatusFilter(status)}
-            className={filteredStatus === status ? "filter-button active" : "filter-button"}
-          >
-            {status}
-          </button>
-        ))}
+      {/* Bộ lọc */}
+      <div className="order-filter centered" style={{ marginBottom: 24 }}>
+        {/* Hàng trên: Search + Date */}
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
+          <input
+            type="text"
+            placeholder="Search Order ID"
+            className="search-input"
+            style={{ width: 200 }}
+            value={searchOrderId}
+            onChange={e => setSearchOrderId(e.target.value)}
+          />
+          <RangePicker
+            style={{ height: 38, borderRadius: 5 }}
+            value={dateRange}
+            onChange={setDateRange}
+            allowClear
+          />
+        </div>
+        {/* Hàng dưới: Status filter buttons */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {["ALL", "ORDERED", "COMPLETED", "CANCELED", "PENDING"].map((status) => (
+            <button
+              key={status}
+              onClick={() => setFilteredStatus(status)}
+              className={filteredStatus === status ? "filter-button active" : "filter-button"}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="orders-list">
         {filteredOrders.length === 0 ? (
           <p>There are no orders with this status.</p>
-        ) : (
-          filteredOrders.map((order) => (
-            <div key={order.orderId} className="order-card">
-              <div className="order-header">
-                <div>
-                  <p>
-                    <strong>OrderID:</strong> {order.orderId} &nbsp;&nbsp;
-                    <strong>Payment ID:</strong> {order.paymentId} &nbsp;&nbsp;
-                    <strong>Order Date:</strong> {order.date}
-                  </p>
-                  <p>
-                    <strong>Address:</strong> {order.address} &nbsp;&nbsp;
-                    <strong>Phone:</strong> {order.phone}
-                  </p>
-                  <p>
-                    <strong>Total price:</strong> {order.total.toLocaleString()} VND &nbsp;&nbsp;
-                    <strong>Total items:</strong> {order.products.reduce((sum, p) => sum + p.quantity, 0)} &nbsp;&nbsp;
-                  </p>
-                  <div className="order-footer">
-                    <button className="toggle-button" onClick={() => toggleExpand(order.orderId)}>
-                      {expandedOrders[order.orderId] ? 'Less ▲' : 'More ▼'}
-                    </button>
-                  </div>
-                </div>
-                <div>
+        ) :
+          (
+            filteredOrders.map((order) => (
+              <div key={order.orderId} className="order-card">
+                <div className="order-header">
                   <div>
-                    <Select
-                      value={order.status}
-                      style={{ width: 150 }}
-                      onChange={(value) => handleStatusChange(order.orderId, value)}
-                      dropdownStyle={{ borderRadius: '8px' }}
-                      className={`status-select status-${order.status}`}
-                      options={[
-                        { label: 'ORDERED', value: 'ORDERED' },
-                        { label: 'COMPLETED', value: 'COMPLETED' },
-                        { label: 'CANCELED', value: 'CANCELED' },
-                        { label: 'PENDING', value: 'PENDING' },
-                      ]}
-                    />
+                    <p>
+                      <strong>OrderID:</strong> {order.orderId} &nbsp;&nbsp;
+                      <strong>Payment ID:</strong> {order.paymentId} &nbsp;&nbsp;
+                      <strong>Order Date:</strong> {order.date}
+                    </p>
+                    <p>
+                      <strong>Address:</strong> {order.address} &nbsp;&nbsp;
+                      <strong>Phone:</strong> {order.phone}
+                    </p>
+                    <p>
+                      <strong>Total price:</strong> {order.total.toLocaleString()} VND &nbsp;&nbsp;
+                      <strong>Total items:</strong> {order.products.reduce((sum, p) => sum + p.quantity, 0)} &nbsp;&nbsp;
+                    </p>
+                    <div className="order-footer">
+                      <button className="toggle-button" onClick={() => toggleExpand(order.orderId)}>
+                        {expandedOrders[order.orderId] ? 'Less ▲' : 'More ▼'}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <div>
+                      <Select
+                        value={order.status}
+                        style={{ width: 150 }}
+                        onChange={(value) => handleStatusChange(order.orderId, value)}
+                        dropdownStyle={{ borderRadius: '8px' }}
+                        className={`status-select status-${order.status}`}
+                        options={[
+                          { label: 'ORDERED', value: 'ORDERED' },
+                          { label: 'COMPLETED', value: 'COMPLETED' },
+                          { label: 'CANCELED', value: 'CANCELED' },
+                          { label: 'PENDING', value: 'PENDING' },
+                        ]}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {expandedOrders[order.orderId] && (
-                <div className="order-products">
-                  {order.products.map((product) => (
-                    <div key={product.id} className="order-item">
-                      <img src={product.image} alt={product.name} className="order-image" />
-                      <div className="order-details order-details-grid-fix">
-                        {/* Hàng 1 */}
-                        <div className="order-details-row">
-                          <span><strong>Product Name:</strong> {product.name}</span>
-                          <span><strong>Gender:</strong> {product.gender}</span>
-                          <span><strong>Main Category:</strong> {product.mainCategory}</span>
-                        </div>
-                        {/* Hàng 2 */}
-                        <div className="order-details-row">
-                          <span><strong>Product ID:</strong> {product.id}</span>
-                          <span><strong>Size:</strong> {product.size}</span>
-                          <span><strong>Sub Category:</strong> {product.subCategory}</span>
-                        </div>
-                        {/* Hàng 3 */}
-                        <div className="order-details-row">
-                          <span><strong>Quantity:</strong> {product.quantity}</span>
-                          <span><strong>Color:</strong> {product.color}</span>
-                          <span><strong>Price:</strong> {product.price.toLocaleString()} VND</span>
+                {expandedOrders[order.orderId] && (
+                  <div className="order-products">
+                    {order.products.map((product) => (
+                      <div key={product.id} className="order-item">
+                        <img src={product.image} alt={product.name} className="order-image" />
+                        <div className="order-details order-details-grid-fix">
+                          {/* Hàng 1 */}
+                          <div className="order-details-row">
+                            <span><strong>Product Name:</strong> {product.name}</span>
+                            <span><strong>Gender:</strong> {product.gender}</span>
+                            <span><strong>Main Category:</strong> {product.mainCategory}</span>
+                          </div>
+                          {/* Hàng 2 */}
+                          <div className="order-details-row">
+                            <span><strong>Product ID:</strong> {product.id}</span>
+                            <span><strong>Size:</strong> {product.size}</span>
+                            <span><strong>Sub Category:</strong> {product.subCategory}</span>
+                          </div>
+                          {/* Hàng 3 */}
+                          <div className="order-details-row">
+                            <span><strong>Quantity:</strong> {product.quantity}</span>
+                            <span><strong>Color:</strong> {product.color}</span>
+                            <span><strong>Price:</strong> {product.price.toLocaleString()} VND</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
         )}
       </div>
     </div>
