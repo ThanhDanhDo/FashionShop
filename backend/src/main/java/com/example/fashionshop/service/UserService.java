@@ -5,10 +5,7 @@ import com.example.fashionshop.model.Address;
 import com.example.fashionshop.model.Cart;
 import com.example.fashionshop.model.Order;
 import com.example.fashionshop.model.User;
-import com.example.fashionshop.repository.AddressRepository;
-import com.example.fashionshop.repository.CartRepository;
-import com.example.fashionshop.repository.OrderRepository;
-import com.example.fashionshop.repository.UserRepository;
+import com.example.fashionshop.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +30,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
+    private final WishlistRepository wishlistRepository;
 
     public Page<User> getAllUser(Pageable pageable) {
         return userRepository.findAll(pageable);
@@ -172,7 +170,10 @@ public class UserService {
             orderRepository.deleteAll(orders);
         }
 
-        // 3. Xoá Interact (vì không ràng buộc JPA, dùng userId thủ công)
+        // 3.1 Xoá Wishlist nếu tồn tại
+        wishlistRepository.findByUserId(user.getId()).ifPresent(wishlistRepository::delete);
+
+        // 3. Xoá Interact
 //        interactRepository.deleteByUserId(user.getId().intValue());
 
         // 4. Address sẽ tự xoá nhờ cascade trong User
