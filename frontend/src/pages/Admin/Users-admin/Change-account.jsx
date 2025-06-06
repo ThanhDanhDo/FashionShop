@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Form, Input, Select, Button, Modal, message, Spin } from 'antd';
+import { getUserAddresses, addUserAddress, deleteUserAddress, updateUserAddress } from '../../../services/userService';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useNotification } from '../../../components/NotificationProvider';
 import './Change-account.css';
 
 const { Option } = Select;
@@ -23,8 +26,21 @@ const ChangeAccount = () => {
   const [roleChangeModalVisible, setRoleChangeModalVisible] = useState(false);
   const [newRole, setNewRole] = useState('');
   const [loading, setLoading] = useState(true);
+  const api = useNotification();
 
-  // Initialize form with account data
+  const [addresses, setAddresses] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [tempAddress, setTempAddress] = useState({});
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [newAddress, setNewAddress] = useState({
+    phone: "",
+    fullAddress: "",
+    ward: "",
+    district: "",
+    province: "",
+  });
+
   useEffect(() => {
     const fetchAccount = () => {
       setLoading(true);
@@ -44,6 +60,7 @@ const ChangeAccount = () => {
           email: account.email,
           gender: account.gender,
           role: account.role,
+          phone: account.phone || '',
         });
         setNewRole(account.role);
       } catch (e) {
@@ -54,7 +71,115 @@ const ChangeAccount = () => {
       }
     };
     fetchAccount();
+    fetchAddresses();
   }, [accountId, form, navigate]);
+
+  const fetchAddresses = async () => {
+    try {
+      const data = await getUserAddresses();
+      const normalized = (data || []).map(addr => ({
+        ...addr,
+        is_default: addr.isDefault ?? addr.is_default ?? addr.default
+      }));
+      const sortedAddresses = normalized.sort((a, b) => 
+        a.is_default === true ? -1 : b.is_default === true ? 1 : 0
+      );
+      setAddresses(sortedAddresses);
+      if (sortedAddresses.length > 0) {
+        setSelectedAddress(sortedAddresses[0].id);
+      }
+    } catch {
+      api.error({
+        message: 'Failed to load addresses',
+        description: 'Could not fetch your addresses. Please try again later.',
+      });
+    }
+  };
+
+  const handleDeleteAddress = async (id) => {
+    Modal.confirm({
+      title: 'Remove Address',
+      content: 'Are you sure you want to remove this address?',
+      okText: 'Remove',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          await deleteUserAddress(id);
+          api.success({
+            message: 'Address removed',
+            description: 'The address has been deleted successfully.',
+          });
+          fetchAddresses();
+          if (selectedAddress === id && addresses.length > 1) {
+            setSelectedAddress(addresses.find(addr => addr.id !== id).id);
+          } else if (addresses.length === 1) {
+            setSelectedAddress(null);
+          }
+        } catch {
+          api.error({
+            message: 'Remove failed',
+            description: 'Could not remove address. Please try again.',
+          });
+        }
+      },
+    });
+  };
+
+  const handleEditAddress = (address) => {
+    setTempAddress({ ...address });
+    setEditingId(address.id);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      await updateUserAddress(editingId, tempAddress);
+      api.success({
+        message: 'Address updated',
+        description: 'The address has been updated successfully.',
+      });
+      setEditingId(null);
+      setTempAddress({});
+      fetchAddresses();
+    } catch {
+      api.error({
+        message: 'Update failed',
+        description: 'Could not update address. Please try again.',
+      });
+    }
+  };
+
+  const handleAddAddress = async () => {
+    try {
+      await addUserAddress(newAddress);
+      api.success({
+        message: 'Address added successfully',
+        description: 'Your new address has been saved.',
+      });
+      setNewAddress({
+        phone: "",
+        fullAddress: "",
+        ward: "",
+        district: "",
+        province: "",
+      });
+      setShowForm(false);
+      fetchAddresses();
+    } catch {
+      api.error({
+        message: 'Add address failed',
+        description: 'Could not add address. Please try again.',
+      });
+    }
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setTempAddress((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const onFinish = (values) => {
     setShowModal(true);
@@ -71,6 +196,7 @@ const ChangeAccount = () => {
       email: values.email,
       gender: values.gender,
       role: values.role,
+      phone: values.phone,
     };
 
     try {
@@ -134,64 +260,238 @@ const ChangeAccount = () => {
           style={{ width: '100%' }}
         >
           <div className="form-container">
-            <div className="left-column">
-              <Form.Item label="Account ID" name="id">
-                <Input disabled />
-              </Form.Item>
-              <Form.Item label="Created At" name="created_at">
-                <Input disabled />
-              </Form.Item>
-              <Form.Item
-                label="First Name"
-                name="firstName"
-                rules={[{ required: true, message: 'Please enter first name' }]}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                label="Last Name"
-                name="lastName"
-                rules={[{ required: true, message: 'Please enter last name' }]}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
-                label="Email"
-                name="email"
-                rules={[
-                  { required: true, message: 'Please enter email' },
-                  { type: 'email', message: 'Please enter a valid email' },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-            </div>
-            <div className="right-column">
-              <Form.Item
-                label="Gender"
-                name="gender"
-                rules={[{ required: true, message: 'Please select gender' }]}
-              >
-                <Select options={genderOptions} placeholder="Select gender" />
-              </Form.Item>
-              <Form.Item
-                label="Role"
-                name="role"
-                rules={[{ required: true, message: 'Please select role' }]}
-              >
-                <Input disabled value={form.getFieldValue('role')} />
-              </Form.Item>
-              <Form.Item>
-                <Button
-                  className="change-role-btn"
-                  onClick={handleRoleChangeClick}
-                  aria-label="Change user role"
+            <div className="form-column">
+              <div className="row">
+                <Form.Item label="Account ID" name="id">
+                  <Input disabled />
+                </Form.Item>
+                <Form.Item label="Created At" name="created_at">
+                  <Input disabled />
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item
+                  label="First Name"
+                  name="firstName"
+                  rules={[{ required: true, message: 'Please enter first name' }]}
                 >
-                  Change Role
-                </Button>
-              </Form.Item>
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="Last Name"
+                  name="lastName"
+                  rules={[{ required: true, message: 'Please enter last name' }]}
+                >
+                  <Input />
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item
+                  label="Email"
+                  name="email"
+                  rules={[
+                    { required: true, message: 'Please enter email' },
+                    { type: 'email', message: 'Please enter a valid email' },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="Gender"
+                  name="gender"
+                  rules={[{ required: true, message: 'Please select gender' }]}
+                >
+                  <Select options={genderOptions} placeholder="Select gender" />
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item
+                  label="Phone Number"
+                  name="phone"
+                  rules={[
+                    { required: true, message: 'Please enter phone number' },
+                    {
+                      pattern: /^[0-9]{10,15}$/,
+                      message: 'Please enter a valid phone number (10-15 digits)',
+                    },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="Role"
+                  name="role"
+                  rules={[{ required: true, message: 'Please select role' }]}
+                >
+                  <Input disabled value={form.getFieldValue('role')} />
+                  <Button
+                    style={{ marginTop: 10 }}
+                    className="change-role-btn"
+                    onClick={handleRoleChangeClick}
+                    aria-label="Change user role"
+                  >
+                    Change Role
+                  </Button>
+                </Form.Item>
+              </div>
             </div>
           </div>
+
+          {/* Address Section */}
+          <div className="address-section">
+            <h2 className="section-title">Select Delivery Address
+            {!showForm && (
+              <button className="toggle-form-btn" onClick={() => setShowForm(true)}>
+                Add New Address
+              </button>
+            )}
+            </h2>
+            {addresses.length === 0 ? (
+              <p>No addresses found.</p>
+            ) : (
+              addresses.map((addr) => (
+                <div
+                  key={addr.id}
+                  className={`address-box ${selectedAddress === addr.id ? "selected" : ""}`}
+                  onClick={() => setSelectedAddress(addr.id)}
+                >
+                  <div className="address-header">
+                    <div className="radio-group">
+                      <input
+                        type="radio"
+                        name="address"
+                        checked={selectedAddress === addr.id}
+                        onChange={() => setSelectedAddress(addr.id)}
+                      />
+                      {addr.is_default && <span className="default-label">Default</span>}
+                    </div>
+                    <div className="address-actions">
+                      <button
+                        className="edit-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditAddress(addr);
+                        }}
+                      >
+                        <EditOutlined />
+                      </button>
+                      <button
+                        className="delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAddress(addr.id);
+                        }}
+                      >
+                        <DeleteOutlined />
+                      </button>
+                    </div>
+                  </div>
+
+                  {editingId === addr.id ? (
+                    <>
+                      {["province", "district", "ward", "fullAddress", "phone"].map((field) => (
+                        <div className="form-group" key={field}>
+                          <label>
+                            {field === "fullAddress"
+                              ? "Full Address"
+                              : field.charAt(0).toUpperCase() + field.slice(1)}
+                          </label>
+                          <input
+                            type="text"
+                            name={field}
+                            value={tempAddress[field] || ""}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={handleEditChange}
+                          />
+                        </div>
+                      ))}
+                      <div className= "action-bar">
+                      <button
+                        className="cancel-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingId(null);
+                          setTempAddress({});
+                        }}
+                        style={{ marginBottom: "10px", width:'auto'}}
+                      >
+                        Cancel Edit
+                      </button>
+                      <button
+                        className="add-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSaveEdit();
+                        }}
+                        style={{ marginLeft: "10px", width:'auto'}}
+                      >
+                        Save Edit
+                      </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p><strong>Province:</strong> {addr.province}</p>
+                      <p><strong>District:</strong> {addr.district}</p>
+                      <p><strong>Ward:</strong> {addr.ward}</p>
+                      <p><strong>Full Address:</strong> {addr.fullAddress}</p>
+                      <p><strong>Phone:</strong> {addr.phone}</p>
+                    </>
+                  )}
+                </div>
+              ))
+            )}
+
+            {showForm && (
+              <div className="new-address-card">
+                <h4 className="card-title">Add New Address</h4>
+                {["province", "district", "ward", "fullAddress", "phone"].map((field) => (
+                  <div className="form-group" key={field}>
+                    <label>
+                      {field === "fullAddress"
+                        ? "Full Address"
+                        : field.charAt(0).toUpperCase() + field.slice(1)}
+                    </label>
+                    <input
+                      type="text"
+                      name={field}
+                      value={newAddress[field]}
+                      onChange={(e) =>
+                        setNewAddress({
+                          ...newAddress,
+                          [field]: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                ))}
+                <div class = "action-bar">
+                <button
+                  className="cancel-btn"
+                  onClick={() => {
+                    setShowForm(false);
+                    setNewAddress({
+                      phone: "",
+                      fullAddress: "",
+                      ward: "",
+                      district: "",
+                      province: "",
+                    });
+                  }}
+                  style={{ marginBottom: "10px", width:'auto'}}
+                >
+                  Cancel Address
+                </button>                
+                <button className="add-btn" 
+                onClick={handleAddAddress}
+                style={{ marginLeft: "10px", width:'auto'}}>
+                  Save Address
+                </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="action-bar">
             <Button
               className="cancel-button"
@@ -229,7 +529,7 @@ const ChangeAccount = () => {
       >
         <p>Are you sure you want to change the role of this user?</p>
         <Select
-          style={{ width: '100%', border: '1px solid #ddd'}}
+          style={{ width: '100%', border: '1px solid #ddd' }}
           value={newRole}
           onChange={setNewRole}
           placeholder="Select new role"
