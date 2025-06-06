@@ -58,6 +58,7 @@ public class RecommendationController {
         recommendationService.triggerTraining();
         return ResponseEntity.ok("Training triggered successfully");
     }
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/searchRecommendation")
     public ResponseEntity<?> searchRecommendations(
@@ -87,5 +88,4 @@ public class RecommendationController {
                 "size", recPage.getSize()
         ));
     }
-
 }
