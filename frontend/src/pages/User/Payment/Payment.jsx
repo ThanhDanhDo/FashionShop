@@ -329,7 +329,7 @@ const Payment = () => {
 
           <div className="summary-box">
             <div className="summary-row">
-              <span>Subtotal</span>
+              <span>Subtotal (include tax)</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             <div className="summary-row">

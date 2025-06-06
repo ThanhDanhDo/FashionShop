@@ -40,6 +40,11 @@ public class InteractController {
 
     @PostMapping("/add_interact")
     public ResponseEntity<?> addInteract(@RequestBody Map<String, Object> payload, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            // Bỏ qua, trả về thành công nhưng không thêm tương tác
+            return ResponseEntity.ok().body("Không có user đăng nhập, bỏ qua thao tác tương tác");
+        }
+
         String email = authentication.getName();
         User user = userRepository.findByEmail(email);
 
@@ -57,6 +62,12 @@ public class InteractController {
 
         List<Product> recommend = interactService.getInteractToRecommendation(user);
 
+        return ResponseEntity.ok(recommend);
+    }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<List<Product>> getContentBasedRecommendation(@PathVariable Long productId) throws Exception {
+        List<Product> recommend = interactService.getContentBasedRecommendation(productId);
         return ResponseEntity.ok(recommend);
     }
 

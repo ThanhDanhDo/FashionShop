@@ -18,7 +18,7 @@ export const createPaypalPaymentLink = async (amount) => {
     }
 }
 
-export const handleSuccessPayment = async (paymentId, payerId, addressId, totalPrice) => {
+export const handleSuccessPayment = async (paymentId, payerId, addressId, totalPrice, product, quantity, color, size) => {
     try {
         const res = await fetch(`${API_BASE_URL}/payment-success`, {
             method: 'POST',
@@ -31,10 +31,14 @@ export const handleSuccessPayment = async (paymentId, payerId, addressId, totalP
                 payerId,
                 addressId,
                 totalPrice,
+                product,
+                quantity,
+                color,
+                size
             }),
         });
-        
-        return res.json()
+
+        return res.json();
     } catch (error) {
         console.error('Lỗi khi tạo đơn:', error);
         throw error;

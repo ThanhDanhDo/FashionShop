@@ -1,0 +1,47 @@
+.button-group {
+  display: flex;
+  justify-content: flex-start;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-weight: bold;
+  font-size: 18px;
+  width: 250px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-cart {
+  background: black;
+  color: white;
+}
+
+.btn-buy {
+  background: red;
+  color: white;
+  width: 250px; /* same width as cart */
+}
+
+/* Hover effects */
+.btn-cart:hover:not(.disabled) {
+  background: #333;
+}
+
+.btn-buy:hover:not(.disabled) {
+  background: rgb(255, 110, 110);
+}
+
+/* Disabled state */
+.btn.disabled {
+  background: #ccc !important;
+  cursor: not-allowed;
+}
