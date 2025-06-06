@@ -12,6 +12,8 @@ import { filterProducts } from "../../../services/productService";
 import { getCategoryById } from "../../../services/categoryService";
 import CustomBreadcrumb from '../../../components/Breadcrumb';
 import FooterComponent from '../../../components/Footer/Footer';
+import FullPageSpin from '../../../components/ListSpin';
+import { getWishlist, toggleWishlistItem } from '../../../services/wishlistService'
 
 const Products = () => {
   const navigate = useNavigate();
@@ -33,7 +35,48 @@ const Products = () => {
     material: true,
     color: true,
   });
+
   const [favorites, setFavorites] = useState({});
+  const fetchWishlist = async () => {
+    setLoading(true);
+    try {
+      const res = await getWishlist();
+      // setWishListItems(res.products);
+
+      // Map product ids in wishlist to true
+      const favMap = {};
+      res.products.forEach((p) => {
+        favMap[p.id] = true;
+      });
+      setFavorites(favMap);
+
+    } catch (error) {
+      console.error("Lỗi khi lấy wishlist:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchWishlist();
+  }, []);
+
+  const toggleFavorite = async (productId) => {
+    setLoading(true);
+    try {
+      await toggleWishlistItem(productId);
+
+      setFavorites((prev) => ({
+        ...prev,
+        [productId]: !prev[productId],
+      }));
+
+    } catch (error) {
+      console.error("Lỗi khi update wishlist:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const [categoryMap, setCategoryMap] = useState({});
   const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 
@@ -50,9 +93,9 @@ const Products = () => {
         console.log("Danh mục chính đã lấy:", categories);
         return categories.map((cat) => ({
           ...cat,
-          name: /dress/i.test(cat.name.trim().toLowerCase()) ? "Dresses" : 
-                /bottom/i.test(cat.name.trim().toLowerCase()) ? "Bottoms" : 
-                cat.name.trim(),
+          name: /dress/i.test(cat.name.trim().toLowerCase()) ? "Dresses" :
+            /bottom/i.test(cat.name.trim().toLowerCase()) ? "Bottoms" :
+              cat.name.trim(),
         }));
       } catch (error) {
         console.error(`Lỗi khi lấy danh mục chính (thử ${i + 1}/${retries}):`, error);
@@ -296,12 +339,13 @@ const Products = () => {
     await applyFilters(newFilters);
   };
 
-  const toggleFavorite = (productId) => {
-    setFavorites((prev) => ({
-      ...prev,
-      [productId]: !prev[productId],
-    }));
-  };
+  // const toggleFavorite = (productId) => {
+  //   setFavorites((prev) => ({
+  //     ...prev,
+  //     [productId]: !prev[productId],
+  //   }));
+  // };
+  
 
   const handleSectionExpand = (sectionId) => {
     setExpandedSections((prev) => ({
@@ -391,104 +435,125 @@ const Products = () => {
       />
       <div className="main-content-container">
         <Container maxWidth="xl" sx={{ mt: 4 }}>
-        <Grid container spacing={3}>
-          {/* Sidebar */}
-          <Grid item xs={12} md={3}>
-            <div className="sidebar">
-              {/* Gender Filter */}
-              <div className="gender-filter">
-                <div className="gender-options">
-                  <span
-                    className={`gender-option ${filters.gender === "all" ? "active" : ""}`}
-                    onClick={() => handleGenderChange("all")}
-                  >
-                    ALL
-                  </span>
-                  <span
-                    className={`gender-option ${filters.gender === "Women" ? "active" : ""}`}
-                    onClick={() => handleGenderChange("Women")}
-                  >
-                    WOMEN
-                  </span>
-                  <span
-                    className={`gender-option ${filters.gender === "Men" ? "active" : ""}`}
-                    onClick={() => handleGenderChange("Men")}
-                  >
-                    MEN
-                  </span>
-                  <span
-                    className={`gender-option ${filters.gender === "Unisex" ? "active" : ""}`}
-                    onClick={() => handleGenderChange("Unisex")}
-                  >
-                    UNISEX
-                  </span>
-                </div>
-              </div>
-
-              {/* Product Titles Section */}
-              {categoriesLoaded ? (
-                <div className="category-section product-titles">
-                  {currentTitles.length > 0 ? (
-                    currentTitles.map((title) => (
-                      <div
-                        key={title.id}
-                        className={`category-item ${filters.selectedTitles.includes(title.id) ? "selected" : ""}`}
-                        onClick={() => handleTitleSelect(title.id)}
-                      >
-                        {title.name}
-                        {filters.selectedTitles.includes(title.id) && <CloseIcon className="remove-icon" />}
-                      </div>
-                    ))
-                  ) : (
-                    <div>Không có danh mục nào để hiển thị.</div>
-                  )}
-                </div>
-              ) : (
-                <div>Loading categories...</div>
-              )}
-
-              {/* Filter Sections */}
-              {categoriesLoaded &&
-                getFilterSections().map((section) => (
-                  <div key={section.id} className="category-section">
-                    <div
-                      className="category-header"
-                      onClick={() => handleSectionExpand(section.id)}
+          <Grid container spacing={3}>
+            {/* Sidebar */}
+            <Grid item xs={12} md={3}>
+              <div className="sidebar">
+                {/* Gender Filter */}
+                <div className="gender-filter">
+                  <div className="gender-options">
+                    <span
+                      className={`gender-option ${filters.gender === "all" ? "active" : ""}`}
+                      onClick={() => handleGenderChange("all")}
                     >
-                      <span className="category-title">{section.title}</span>
-                      {expandedSections[section.id] ? <ExpandLess /> : <ExpandMore />}
-                    </div>
-                    <Collapse in={expandedSections[section.id]}>
-                      <div className="category-list">
-                        {section.items.map((item) => (
-                          <div
-                            key={item}
-                            className={`category-item ${filters.selectedItems[section.id]?.[item] ? "selected" : ""}`}
-                            onClick={() => handleItemSelect(section.id, item)}
-                          >
-                            <span>{item}</span>
-                            <CloseIcon
-                              className="remove-icon"
-                              style={{
-                                opacity: filters.selectedItems[section.id]?.[item] ? 1 : 0,
-                                visibility: filters.selectedItems[section.id]?.[item] ? "visible" : "hidden",
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    </Collapse>
+                      ALL
+                    </span>
+                    <span
+                      className={`gender-option ${filters.gender === "Women" ? "active" : ""}`}
+                      onClick={() => handleGenderChange("Women")}
+                    >
+                      WOMEN
+                    </span>
+                    <span
+                      className={`gender-option ${filters.gender === "Men" ? "active" : ""}`}
+                      onClick={() => handleGenderChange("Men")}
+                    >
+                      MEN
+                    </span>
+                    <span
+                      className={`gender-option ${filters.gender === "Unisex" ? "active" : ""}`}
+                      onClick={() => handleGenderChange("Unisex")}
+                    >
+                      UNISEX
+                    </span>
                   </div>
-                ))}
-            </div>
-          </Grid>
+                </div>
 
-          {/* Main Content */}
-          <Grid item xs={12} md={9}>
+                {/* Product Titles Section */}
+                {categoriesLoaded ? (
+                  <div className="category-section product-titles">
+                    {currentTitles.length > 0 ? (
+                      currentTitles.map((title) => (
+                        <div
+                          key={title.id}
+                          className={`category-item ${filters.selectedTitles.includes(title.id) ? "selected" : ""}`}
+                          onClick={() => handleTitleSelect(title.id)}
+                        >
+                          {title.name}
+                          {filters.selectedTitles.includes(title.id) && <CloseIcon className="remove-icon" />}
+                        </div>
+                      ))
+                    ) : (
+                      <div>Không có danh mục nào để hiển thị.</div>
+                    )}
+                  </div>
+                ) : (
+                  <div>Loading categories...</div>
+                )}
+
+                {/* Filter Sections */}
+                {categoriesLoaded &&
+                  getFilterSections().map((section) => (
+                    <div key={section.id} className="category-section">
+                      <div
+                        className="category-header"
+                        onClick={() => handleSectionExpand(section.id)}
+                      >
+                        <span className="category-title">{section.title}</span>
+                        {expandedSections[section.id] ? <ExpandLess /> : <ExpandMore />}
+                      </div>
+                      <Collapse in={expandedSections[section.id]}>
+                        <div className="category-list">
+                          {section.items.map((item) => (
+                            <div
+                              key={item}
+                              className={`category-item ${filters.selectedItems[section.id]?.[item] ? "selected" : ""}`}
+                              onClick={() => handleItemSelect(section.id, item)}
+                            >
+                              <span>{item}</span>
+                              <CloseIcon
+                                className="remove-icon"
+                                style={{
+                                  opacity: filters.selectedItems[section.id]?.[item] ? 1 : 0,
+                                  visibility: filters.selectedItems[section.id]?.[item] ? "visible" : "hidden",
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </Collapse>
+                    </div>
+                  ))}
+              </div>
+            </Grid>
+
+            {/* Main Content */}
+            <Grid item xs={12} md={9}>
               {/* Product Grid */}
               <div className="product-grid">
                 {loading ? (
-                  <div>Loading products...</div>
+                  <div
+                    style={{
+                      width: "100%",
+                      minHeight: 300,
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      alignItems: "flex-start",
+                      position: "relative",
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: "150%",
+                        top: 40,
+                        transform: "translateX(-50%)",
+                        zIndex: 10,
+                      }}
+                    >
+                      <FullPageSpin />
+                    </div>
+                  </div>
                 ) : error ? (
                   <div style={{ color: "red", textAlign: "center" }}>{error}</div>
                 ) : products.length > 0 ? (
@@ -535,9 +600,11 @@ const Products = () => {
                           }}
                         />
                         <IconButton
+                          type="button"
                           className="favorite-button"
                           onClick={(e) => {
                             e.stopPropagation();
+                            e.preventDefault();
                             toggleFavorite(product.id);
                           }}
                           style={{
@@ -606,7 +673,7 @@ const Products = () => {
                     </div>
                   ))
                 ) : (
-                  <div>Không có sản phẩm nào.</div>
+                  <div>There are no products.</div>
                 )}
               </div>
             </Grid>

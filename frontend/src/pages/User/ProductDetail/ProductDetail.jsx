@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Typography, Grid, Container } from "@mui/material";
+import { Grid } from "@mui/material";
 import Navbar from "../../../components/Navbar/Navbar";
 import { getProductById } from "../../../services/productService";
 import { addToCart, createCart, getActiveCart } from '../../../services/cartService';
@@ -8,6 +8,14 @@ import { AuthContext } from '../../../context/AuthContext';
 import CustomBreadcrumb from '../../../components/Breadcrumb';
 import FooterComponent from '../../../components/Footer/Footer';
 import ProductCard from '../../../components/ProductCard';
+import { Image } from 'antd';
+import { useLoading } from '../../../context/LoadingContext';
+import SpinPage from '../../../components/SpinPage';
+import { getInteractRecommendations, addInteract } from '../../../services/interactService';
+import IconButton from "@mui/material/IconButton";
+import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import FullPageSpin from '../../../components/ListSpin'; // Import ListSpin.jsx
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -16,62 +24,17 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [selectedColor, setSelectedColor] = useState("");
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { isLoggedIn, cartId, updateCartId, refreshCartItemCount } = useContext(AuthContext);
   const [cartMessage, setCartMessage] = useState('');
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const { loading, setLoading } = useLoading();
 
-  // Mock data for relatedProducts (can be replaced with API later)
-  const relatedProducts = [
-    {
-      name: "Cotton Tencel Jacket Relaxed Fit",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/476941/item/vngoods_02_476941_3x4.jpg?width=423",
-      sizes: "S, M, L",
-      colors: ["White", "Black"],
-      price: 1275000,
-      rating: 4.5,
-      reviewCount: 10,
-    },
-    {
-      name: "Miracle Air Double Jacket",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474943/item/vngoods_03_474943_3x4.jpg?width=369",
-      sizes: "S, M, L",
-      colors: ["Gray", "Dark Gray", "Black"],
-      price: 1471000,
-      rating: 4.8,
-      reviewCount: 15,
-    },
-    {
-      name: "Knitted Short Jacket",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474981/item/vngoods_00_474981_3x4.jpg?width=369",
-      sizes: "S, M, L, XL",
-      colors: ["White", "Black"],
-      price: 784000,
-      rating: 4.2,
-      reviewCount: 8,
-    },
-    {
-      name: "Oversized Shirt Coat",
-      image: "https://image.uniqlo.com/UQ/ST3/vn/imagesgoods/474941/item/vngoods_57_474941_3x4.jpg?width=369",
-      sizes: "S, M, L, XL",
-      colors: ["Olive", "Navy"],
-      price: 1471000,
-      rating: 4.7,
-      reviewCount: 12,
-    },
-  ];
-
-  const [favoriteStates, setFavoriteStates] = useState(
-    new Array(relatedProducts.length).fill(false)
-  );
-
-  const handleToggleFavorite = (index) => {
-    const updatedFavorites = [...favoriteStates];
-    updatedFavorites[index] = !updatedFavorites[index];
-    setFavoriteStates(updatedFavorites);
-  };
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(true); // Thêm trạng thái loading
+  const RECOMMEND_PAGE_SIZE = 4;
+  const [recommendPage, setRecommendPage] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -88,7 +51,52 @@ const ProductDetail = () => {
       }
     };
     fetchProduct();
+  }, [id, setLoading]);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        setIsLoadingRecommendations(true); // Bắt đầu loading
+        await addInteract(id); // Gửi tương tác
+        const data = await getInteractRecommendations();
+        setRelatedProducts(data);
+        setFavoriteStates(new Array(data.length).fill(false));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoadingRecommendations(false); // Kết thúc loading
+      }
+    };
+    fetchRecommendations();
   }, [id]);
+
+  // cuộn lên đầu
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setRecommendPage(0); // Reset về trang đầu tiên của danh sách recommended products
+  }, [id]);
+
+  const totalRecommendPages = Math.ceil(relatedProducts.length / RECOMMEND_PAGE_SIZE);
+
+  const handleRecommendPrev = () => {
+    setRecommendPage((prev) => (prev - 1 + totalRecommendPages) % totalRecommendPages);
+  };
+
+  const handleRecommendNext = () => {
+    setRecommendPage((prev) => (prev + 1) % totalRecommendPages);
+  };
+
+  const handleRecommendDot = (idx) => setRecommendPage(idx);
+
+  const [favoriteStates, setFavoriteStates] = useState(
+    new Array(relatedProducts.length).fill(false)
+  );
+
+  const handleToggleFavorite = (index) => {
+    const updatedFavorites = [...favoriteStates];
+    updatedFavorites[index] = !updatedFavorites[index];
+    setFavoriteStates(updatedFavorites);
+  };
 
   const handleAddToCart = async () => {
     if (!isLoggedIn) {
@@ -97,21 +105,22 @@ const ProductDetail = () => {
     }
   
     if (!selectedSize || !selectedColor) {
-      setCartMessage('Vui lòng chọn size và màu sắc');
+      setCartMessage('Please select size and color');
       return;
     }
   
     if (!product.price || product.price <= 0) {
-      setCartMessage('Sản phẩm này hiện không có giá bán');
+      setCartMessage('This product is currently not for sale');
       return;
     }
-  
+
     if (!product.stock || product.stock <= 0) {
-      setCartMessage('Sản phẩm này đã hết hàng');
+      setCartMessage('This product is currently out of stock');
       return;
     }
   
     setIsAddingToCart(true);
+    setLoading(true);
     try {
       let currentCartId = cartId;
   
@@ -123,7 +132,7 @@ const ProductDetail = () => {
             updateCartId(currentCartId);
           }
         } catch (error) {
-          console.warn('Không tìm thấy giỏ hàng, tạo giỏ hàng mới:', error);
+          console.warn('Could not find cart, creating a new one:', error);
           const newCart = await createCart();
           currentCartId = newCart.id;
           updateCartId(currentCartId);
@@ -142,26 +151,27 @@ const ProductDetail = () => {
       setCartMessage('Added to cart successfully!');
       await refreshCartItemCount();
     } catch (error) {
-      if (error.message.includes('Phiên đăng nhập hết hạn')) {
+      if (error.message.includes('Session expired')) {
         navigate('/login');
-        setCartMessage('Vui lòng đăng nhập lại để tiếp tục!');
+        setCartMessage('Please log in again to continue!');
       } else {
-        setCartMessage('Không thể thêm vào giỏ hàng: ' + error.message);
+        setCartMessage('Could not add to cart: ' + error.message);
       }
     } finally {
       setIsAddingToCart(false);
+      setLoading(false);
     }
   };
 
-  if (loading) return <div>Đang tải...</div>;
-  if (error) return <div>Lỗi: {error}</div>;
-  if (!product) return <div>Không tìm thấy sản phẩm</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!product) return <div></div>;
 
   const filteredImages = product.imgurls || [];
   const formattedDescription = product.description.replaceAll("\\n", "\n");
 
   return (
     <>
+      <SpinPage spinning={loading} />
       <Navbar />
       <CustomBreadcrumb
         items={[
@@ -225,7 +235,7 @@ const ProductDetail = () => {
                 </div>
                 {/* Main image */}
                 <div>
-                  <img
+                  <Image
                     src={filteredImages[selectedImageIndex]}
                     alt={product.name}
                     style={{
@@ -235,9 +245,15 @@ const ProductDetail = () => {
                       height: "auto",
                       objectFit: "contain",
                       borderRadius: "12px",
-                      display: "flex",
-                      justifyContent: "flex-end",
                     }}
+                    placeholder={
+                      <Image
+                        preview={false}
+                        src={`${filteredImages[selectedImageIndex]}?x-oss-process=image/blur,r_50,s_50/quality,q_1/resize,m_mfit,h_500,w_400`}
+                        width={400}
+                        height={500}
+                      />
+                    }
                   />
                 </div>
               </div>
@@ -455,28 +471,96 @@ const ProductDetail = () => {
             {cartMessage && <p style={{ color: 'red', marginTop: '10px' }}>{cartMessage}</p>}
           </div>
         </div>
-        {/* Related Products */}
-        <div style={{ marginTop: "60px", textAlign: "center" }}>
-          <h2 style={{ marginBottom: "20px" }}>Sản phẩm được quan tâm</h2>
-          <div
-            style={{
-              display: "flex",
-              gap: "20px",
-              overflowX: "auto",
-              justifyContent: "flex-start",
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
-            }}
-          >
-            {relatedProducts.map((item, index) => (
-              <ProductCard
-                key={index}
-                product={item}
-                isFavorite={favoriteStates[index]}
-                onToggleFavorite={handleToggleFavorite}
-                index={index}
-              />
-            ))}
+        {/* Recommend Products (Interact) */}
+        <div style={{ marginTop: "60px", textAlign: "center", padding: "0 40px" }}>
+          <h2 style={{ marginBottom: "30px", fontWeight: "bold" }}>Recommended products</h2>
+          <div style={{ position: "relative", width: "100%", margin: "0 auto" }}>
+            {isLoadingRecommendations ? (
+              <FullPageSpin />
+            ) : (
+              <>
+                <Grid container spacing={2} justifyContent="center">
+                  {relatedProducts
+                    .slice(recommendPage * RECOMMEND_PAGE_SIZE, recommendPage * RECOMMEND_PAGE_SIZE + RECOMMEND_PAGE_SIZE)
+                    .map((item, index) => (
+                      <Grid item key={index} xs={12} sm={6} md={3}>
+                        <div
+                          style={{ height: "100%" }}
+                          onClick={() => navigate(`/product/${item.id}`)}
+                        >
+                          <ProductCard
+                            product={{
+                              ...item,
+                              image: item.imgurls && item.imgurls.length > 0
+                                ? item.imgurls[0]
+                                : "/images/default-product.jpg",
+                              sizes: item.size,
+                              colors: item.color,
+                              rating: item.rating || 4.8,
+                              reviewCount: item.reviewCount || 15,
+                            }}
+                            isFavorite={favoriteStates[recommendPage * RECOMMEND_PAGE_SIZE + index] || false}
+                            onToggleFavorite={handleToggleFavorite}
+                            index={recommendPage * RECOMMEND_PAGE_SIZE + index}
+                          />
+                        </div>
+                      </Grid>
+                    ))}
+                </Grid>
+                {totalRecommendPages > 1 && (
+                  <>
+                    <IconButton
+                      onClick={handleRecommendPrev}
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: 0,
+                        transform: "translateY(-50%)",
+                        background: "#fff",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                      }}
+                    >
+                      <NavigateBeforeIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={handleRecommendNext}
+                      style={{
+                        position: "absolute",
+                        top: "50%",
+                        right: 0,
+                        transform: "translateY(-50%)",
+                        background: "#fff",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                      }}
+                    >
+                      <NavigateNextIcon />
+                    </IconButton>
+                    <div style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginTop: 16,
+                      gap: 8,
+                    }}>
+                      {Array.from({ length: totalRecommendPages }).map((_, idx) => (
+                        <span
+                          key={idx}
+                          onClick={() => handleRecommendDot(idx)}
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: "50%",
+                            background: recommendPage === idx ? "#001F3F" : "#ccc",
+                            display: "inline-block",
+                            cursor: "pointer",
+                            transition: "background 0.3s",
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </div>
         <FooterComponent />

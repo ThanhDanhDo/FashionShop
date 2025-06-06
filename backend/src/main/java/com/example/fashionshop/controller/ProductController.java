@@ -29,6 +29,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.data.domain.Sort;
 
 import java.util.Optional;
 import java.util.List;
@@ -55,12 +56,12 @@ public class ProductController {
     public ResponseEntity<Product> getProductById(Authentication authentication, @PathVariable Long id) {
         Optional<Product> product = productService.getProductById(id);
 
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email);
-        if (product.isPresent() && user != null) {
-            Product prod = product.get();
-            Interact interact = interactService.addInteract(user, prod);
-        }
+//        String email = authentication.getName();
+//        User user = userRepository.findByEmail(email);
+//        if (product.isPresent() && user != null) {
+//            Product prod = product.get();
+//            Interact interact = interactService.addInteract(user, prod);
+//        }
 
         return product.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -162,5 +163,26 @@ public class ProductController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating products");
         }
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/admin-filter")
+    public ResponseEntity<Page<Product>> adminFilterProducts(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String gender,
+            @RequestParam(required = false) Long mainCategoryId,
+            @RequestParam(required = false) Long subCategoryId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false, defaultValue = "id") String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String sortOrder
+    ) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), sortBy);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Product> products = productService.adminFilterProducts(
+                name, id, gender, mainCategoryId, subCategoryId, pageable
+        );
+        return ResponseEntity.ok(products);
     }
 }

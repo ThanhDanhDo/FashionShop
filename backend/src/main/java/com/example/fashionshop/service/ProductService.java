@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Service
 public class ProductService {
@@ -164,7 +165,7 @@ public class ProductService {
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @Transactional // Hàm này update được có 4 thuộc tính à, size color hông được
+    @Transactional
     public Product updateProduct(Product updatedProduct) {
         Product existingProduct = productRepository.findById(updatedProduct.getId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -172,17 +173,32 @@ public class ProductService {
         if (updatedProduct.getName() != null) {
             existingProduct.setName(updatedProduct.getName());
         }
-
+        if (updatedProduct.getDescription() != null) {
+            existingProduct.setDescription(updatedProduct.getDescription());
+        }
         if (updatedProduct.getPrice() != null) {
             existingProduct.setPrice(updatedProduct.getPrice());
         }
-
+        if (updatedProduct.getStock() != null) {
+            existingProduct.setStock(updatedProduct.getStock());
+        }
         if (updatedProduct.getMainCategory() != null) {
             existingProduct.setMainCategory(processCategory(updatedProduct.getMainCategory()));
         }
-
         if (updatedProduct.getSubCategory() != null) {
             existingProduct.setSubCategory(processCategory(updatedProduct.getSubCategory()));
+        }
+        if (updatedProduct.getSize() != null) {
+            existingProduct.setSize(updatedProduct.getSize());
+        }
+        if (updatedProduct.getColor() != null) {
+            existingProduct.setColor(updatedProduct.getColor());
+        }
+        if (updatedProduct.getImgurls() != null) {
+            existingProduct.setImgurls(updatedProduct.getImgurls());
+        }
+        if (updatedProduct.getGender() != null) {
+            existingProduct.setGender(updatedProduct.getGender());
         }
 
         return productRepository.save(existingProduct);
@@ -192,8 +208,13 @@ public class ProductService {
     public void deleteProduct(Long id) {
         Product product = getProductById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
-
-        productRepository.deleteById(id);
+        try {
+            productRepository.deleteById(id);
+        } catch (DataIntegrityViolationException e) {
+            // Nếu bị lỗi ràng buộc khóa ngoại, thì set isActive = false
+            product.setIsActive(false);
+            productRepository.save(product);
+        }
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -230,5 +251,10 @@ public class ProductService {
         return Map.of(
                 "updated", updatedProducts,
                 "failed", failedProducts);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Page<Product> adminFilterProducts(String name, Long id, String gender, Long mainCategoryId, Long subCategoryId, Pageable pageable) {
+        return productRepository.adminFilterProducts(name, id, gender, mainCategoryId, subCategoryId, pageable);
     }
 }

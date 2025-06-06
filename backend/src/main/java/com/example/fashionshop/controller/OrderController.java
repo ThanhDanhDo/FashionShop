@@ -1,15 +1,22 @@
 package com.example.fashionshop.controller;
 
+import com.example.fashionshop.enums.PaymentStatus;
 import com.example.fashionshop.enums.OrderStatus;
 import com.example.fashionshop.model.*;
 import com.example.fashionshop.repository.AddressRepository;
 import com.example.fashionshop.repository.CartRepository;
 import com.example.fashionshop.repository.PaymentOrderRepository;
 import com.example.fashionshop.repository.UserRepository;
+import com.example.fashionshop.service.OrderService;
 import com.example.fashionshop.response.PaymentLinkResponse;
 import com.example.fashionshop.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -95,43 +102,6 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersOfCurrentUser(authentication, pageable));
     }
 
-    @PreAuthorize("hasAuthority('USER')")
-    @PostMapping("/create")
-    public ResponseEntity<PaymentLinkResponse> createOrderHandler(
-            Authentication authentication, @RequestBody Address shippingAddress) throws Exception{
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User is not authenticated");
-        }
-        String email = authentication.getName();
-        User user = userRepository.findByEmail(email);
-        Cart cart = cartService.getCartByUserId(user.getId());
-        if (cart == null || cart.getTotalItems() == 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, user.getId() + " Cart is empty");
-        }
-        // Lấy địa chỉ giao hàng từ request
-        Address address;
-        if (shippingAddress.getId() == null) {
-            // Chưa có id => đây là địa chỉ mới, cần addAddress
-            address = addressService.addAddress(email, shippingAddress);
-        } else {
-            // Có id => lấy địa chỉ cũ ra
-            address = addressService.getAddressById(shippingAddress.getId());
-            if (address == null || !user.getAddresses().contains(address)) {
-                address = addressService.addAddress(email, shippingAddress);
-            }
-        }
-
-        Order order = orderService.createOrder(user, cart, address);
-        PaymentOrder paymentOrder = paymentService.createOrder(user, order);
-        PaymentLinkResponse res = new PaymentLinkResponse();
-        String paypalPaymentLink = paymentService.createPaypalPaymentLink(user, paymentOrder.getAmount() ,order);
-        res.setPayment_link_url(paypalPaymentLink);
-        paymentOrderRepository.save(paymentOrder);
-
-        return new ResponseEntity<>(res, HttpStatus.OK);
-    }
-
-
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{orderId}/status")
     public ResponseEntity<Order> updateOrderStatus(
@@ -144,12 +114,71 @@ public class OrderController {
     @PutMapping("/{orderId}/cancel")
     public ResponseEntity<Order> cancelOrder(Authentication authentication, @PathVariable Long orderId) {
         Order order = orderService.cancelOrder(authentication, orderId);
-        Report report = revenueService.getReport();
-        report.setCanceledOrders(report.getCanceledOrders() + 1);
-        report.setTotalRefunds(report.getTotalRefunds() + order.getTotalOrderPrice());
-        revenueService.updateReport(report);
+//        Report report = revenueService.getReport();
+//        report.setCanceledOrders(report.getCanceledOrders() + 1);
+//        report.setTotalRefunds(report.getTotalRefunds() + order.getTotalOrderPrice());
+//        revenueService.updateReport(report);
         return ResponseEntity.ok(order);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/searchOrder")
+    public ResponseEntity<?> searchOrder(
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) Long addressId,
+            @RequestParam(required = false) Long itemId,
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) OrderStatus orderStatus,
+            @RequestParam(required = false) PaymentStatus paymentStatus,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir) {
 
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<Order> recPage = orderService.searchOrder(id, userId, addressId, itemId, fromDate, toDate, orderStatus, paymentStatus, pageable);
+
+        List<Map<String, Object>> recList = recPage.getContent().stream().map(order -> {
+            Map<String, Object> map = new HashMap<>();
+
+            map.put("orderId", order.getId());
+            map.put("date", order.getOrderDate().toLocalDate().toString());
+            map.put("status", order.getOrderStatus().name());
+            map.put("address", order.getAddress().getFullAddress());
+            map.put("phone", order.getAddress().getPhone());
+            map.put("paymentId", order.getPaymentString());
+            map.put("total", order.getTotalOrderPrice());
+
+            List<Map<String, Object>> products = order.getOrderItems().stream().map(item -> {
+                Map<String, Object> productMap = new HashMap<>();
+                Product p = item.getProduct();
+                productMap.put("id", p.getId());
+                productMap.put("name", p.getName());
+                productMap.put("image", p.getImgurls() != null && !p.getImgurls().isEmpty() ? p.getImgurls().get(0) : null);
+                productMap.put("quantity", item.getQuantity());
+                productMap.put("price", p.getPrice());
+                productMap.put("size", item.getSize());
+                productMap.put("color", item.getColor());
+                productMap.put("mainCategory", p.getMainCategory());
+                productMap.put("subCategory", p.getSubCategory());
+                productMap.put("gender", p.getGender());
+                return productMap;
+            }).toList();
+
+            map.put("products", products);
+
+            return map;
+        }).toList();
+
+
+        return ResponseEntity.ok(java.util.Map.of(
+                "content", recList,
+                "totalElements", recPage.getTotalElements(),
+                "number", recPage.getNumber(),
+                "size", recPage.getSize()
+        ));
+    }
 }

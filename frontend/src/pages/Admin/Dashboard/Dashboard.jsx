@@ -1,13 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Grid,
   Paper,
   Typography,
   Box,
-  Popover,
-  MenuItem,
-  Button,
-  TextField,
 } from "@mui/material";
 import {
   LineChart,
@@ -18,110 +14,29 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { AttachMoney, ShoppingCart, Group } from "@mui/icons-material";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { AttachMoney, ShoppingCart, Group, Replay, Cancel } from "@mui/icons-material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import dayjs from "dayjs";
+import { DownOutlined } from '@ant-design/icons';
+import { Dropdown, Space, Typography as AntdTypography } from 'antd';
+import { getReport, getRevenueChart } from '../../../services/dashboardService'
+import { useLoading } from '../../../context/LoadingContext';
+import { Spin } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
 
-const data = [
-  { date: "Oct 23", value: 55 },
-  { date: "Oct 27", value: 75 },
-  { date: "Oct 31", value: 65 },
-  { date: "Nov 04", value: 70 },
-  { date: "Nov 08", value: 80 },
-  { date: "Nov 12", value: 85 },
-  { date: "Nov 16", value: 82 },
-];
+const antIcon = <LoadingOutlined style={{ fontSize: 32 }} spin />;
 
-const activities = [
-  {
-    id: 1,
-    description: "Add Product #01 into table Clothes",
-    user: "User01",
-    time: "10:00:30 AM",
-    date: "28/03/2025",
-  },
-  {
-    id: 2,
-    description: "Add Product #02 into table Shoes",
-    user: "User02",
-    time: "11:00:30 AM",
-    date: "28/03/2025",
-  },
-  {
-    id: 3,
-    description: "Add Product #03 into table Accessories",
-    user: "User03",
-    time: "12:00:30 PM",
-    date: "28/03/2025",
-  },
-  {
-    id: 4,
-    description: "Add Product #04 into table Electronics",
-    user: "User04",
-    time: "01:00:30 PM",
-    date: "28/03/2025",
-  },
-  {
-    id: 5,
-    description: "Add Product #03 into table Accessories",
-    user: "User03",
-    time: "12:00:30 PM",
-    date: "28/03/2025",
-  },
-  {
-    id: 6,
-    description: "Add Product #04 into table Electronics",
-    user: "User04",
-    time: "01:00:30 PM",
-    date: "28/03/2025",
-  },
-  {
-    id: 7,
-    description: "Add Product #03 into table Accessories",
-    user: "User03",
-    time: "12:00:30 PM",
-    date: "28/03/2025",
-  },
-  {
-    id: 8,
-    description: "Add Product #04 into table Electronics",
-    user: "User04",
-    time: "01:00:30 PM",
-    date: "28/03/2025",
-  },
-  {
-    id: 9,
-    description: "Add Product #03 into table Accessories",
-    user: "User03",
-    time: "12:00:30 PM",
-    date: "28/03/2025",
-  },
-  {
-    id: 10,
-    description: "Add Product #04 into table Electronics",
-    user: "User04",
-    time: "01:00:30 PM",
-    date: "28/03/2025",
-  },
-  {
-    id: 11,
-    description: "Add Product #03 into table Accessories",
-    user: "User03",
-    time: "12:00:30 PM",
-    date: "28/03/2025",
-  },
-  {
-    id: 12,
-    description: "Add Product #04 into table Electronics",
-    user: "User04",
-    time: "01:00:30 PM",
-    date: "28/03/2025",
-  },
-];
-
-const itemsPerPage = 5; // Số lượng hoạt động trên mỗi trang
+const formatCurrency = (value) => {
+  if (typeof value !== 'number') {
+    value = Number(value);
+  }
+  return value.toLocaleString('vi-VN', {
+    style: 'currency',
+    currency: 'VND',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).replace('₫', 'đ');
+};
 
 const StatCard = ({ title, value, icon: Icon }) => (
   <Paper
@@ -156,43 +71,90 @@ const StatCard = ({ title, value, icon: Icon }) => (
   </Paper>
 );
 
+const dropdownItems = [
+  { key: 'daily', label: 'Daily' },
+  { key: 'monthly', label: 'Monthly' },
+];
+
+const dashboardDropdownStyle = {
+  padding: "8px 16px",
+  border: "1px solid #ddd",
+  borderRadius: "5px",
+  background: "#fff",
+  color: "#1a202c",
+  fontWeight: 500,
+  fontSize: 16,
+  cursor: "pointer",
+  transition: "border 0.2s, background 0.2s",
+  marginLeft: 8,
+  minWidth: 130, // Đặt minWidth và width cố định
+  width: 130,
+  boxSizing: "border-box",
+  display: "inline-block",
+};
+
+const dashboardDropdownHover = {
+  border: "1.5px solid #1a73e8",
+  background: "#f5f8fa",
+};
+
 const Dashboard = () => {
-  console.log("Rendering Dashboard");
+  const { setLoading } = useLoading();
+  const [type, setType] = useState('daily');
+  const [dropdownHover, setDropdownHover] = useState(false);
+  const [data, setData] = useState([]);
+  const [report, setReport] = useState(null);
 
-  const [userPopoverOpen, setUserPopoverOpen] = useState(false);
-  const [timePopoverOpen, setTimePopoverOpen] = useState(false);
-  const [anchorElUser, setAnchorElUser] = useState(null);
-  const [anchorElTime, setAnchorElTime] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(activities.length / itemsPerPage);
-
-  const handleUserPopoverOpen = (event) => {
-    setAnchorElUser(event.currentTarget);
-    setUserPopoverOpen(true);
+  const handleMenuClick = ({ key }) => {
+    setType(key);
   };
 
-  const handleUserPopoverClose = () => {
-    setUserPopoverOpen(false);
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const result = await getRevenueChart(type);
+      if (result) {
+        setData(result);
+      }
+    } catch (error) {
+      console.log("Lỗi lấy dữ liệu chart: ", error);
+    } finally {
+      setLoading(false)
+    }
   };
 
-  const handleTimePopoverOpen = (event) => {
-    setAnchorElTime(event.currentTarget);
-    setTimePopoverOpen(true);
-  };
+  const fetchStatsData = async () => {
+    try {
+      const res = await getReport();
+      setReport(res);
+      console.log(res);
+    } catch (error) {
+      console.log("Lỗi lấy dữ liệu chart: ", error);
+    }
+  }
+  useEffect(() => {
+    fetchData();
+  }, [type]);
 
-  const handleTimePopoverClose = () => {
-    setTimePopoverOpen(false);
-  };
+  useEffect(() => {
+    fetchStatsData();
+  }, []);
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-
-  const displayedActivities = activities.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  if (!report) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '70vh',
+          flexDirection: 'column',
+        }}
+      >
+        <Spin indicator={antIcon} />
+      </Box>
+    );
+  }
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -203,15 +165,51 @@ const Dashboard = () => {
             <Paper
               sx={{
                 p: 3,
+                pb: 5,
                 display: "flex",
                 flexDirection: "column",
                 borderRadius: 2,
                 boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                mb: 3,
               }}
             >
-              <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
-                Deals Analytics
-              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                <Typography
+                  variant="h5"
+                  gutterBottom
+                  sx={{ mr: 2, mt: "5px" }}
+                >
+                  Deals Analytics
+                </Typography>
+                <Dropdown
+                  menu={{
+                    items: dropdownItems,
+                    selectable: true,
+                    selectedKeys: [type],
+                    onSelect: handleMenuClick,
+                  }}
+                >
+                  <AntdTypography.Link
+                    style={{
+                      ...dashboardDropdownStyle,
+                      ...(dropdownHover ? dashboardDropdownHover : {}),
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 8,
+                      width: 130, // Đảm bảo luôn cố định
+                      minWidth: 130,
+                    }}
+                    onMouseEnter={() => setDropdownHover(true)}
+                    onMouseLeave={() => setDropdownHover(false)}
+                  >
+                    <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {type === 'daily' ? 'Daily' : 'Monthly'}
+                    </span>
+                    <DownOutlined style={{ marginLeft: 8, flexShrink: 0 }} />
+                  </AntdTypography.Link>
+                </Dropdown>
+              </Box>
               <Box sx={{ height: 360 }}>
                 <ResponsiveContainer>
                   <LineChart
@@ -226,7 +224,9 @@ const Dashboard = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip
+                      formatter={(value) => formatCurrency(value)}
+                    />
                     <Line
                       type="monotone"
                       dataKey="value"
@@ -240,150 +240,41 @@ const Dashboard = () => {
             </Paper>
           </Grid>
 
-          {/* Stats Cards */}
-          <Grid item xs={12} md={4}>
-            <StatCard title="Total revenue" value="30 000" icon={AttachMoney} />
+          {/* Stats Cards - Row 1 */}
+          <Grid item xs={12} md={4} sx={{ mt: 3 }}>
+            <StatCard title="Total revenue" value={formatCurrency(report.totalRevenue)} icon={AttachMoney} />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={4} sx={{ mt: 3 }}>
             <StatCard
-              title="Number of new orders"
-              value="30 000"
+              title="Total orders"
+              value={report.totalOrders}
               icon={ShoppingCart}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={4} sx={{ mt: 3 }}>
             <StatCard
-              title="Total number of users"
-              value="30 000"
+              title="Total users"
+              value={report.totalUsers}
               icon={Group}
             />
           </Grid>
 
-          {/* Recent Activities */}
-          <Grid item xs={12}>
-            <Paper
-              sx={{
-                p: 3,
-                borderRadius: 2,
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 3,
-                }}
-              >
-                <Typography variant="h6">Recent Activities</Typography>
-                <Box>
-                  <Button variant="outlined" onClick={handleUserPopoverOpen}>
-                    All Users
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={handleTimePopoverOpen}
-                    sx={{ ml: 2 }}
-                  >
-                    All Time
-                  </Button>
-                </Box>
-              </Box>
-
-              {/* User Popover */}
-              <Popover
-                open={userPopoverOpen}
-                anchorEl={anchorElUser}
-                onClose={handleUserPopoverClose}
-                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                transformOrigin={{ vertical: "top", horizontal: "left" }}
-              >
-                <Box sx={{ p: 2 }}>
-                  <Typography variant="h6">User List</Typography>
-                  <Typography variant="body2">User01</Typography>
-                  <Typography variant="body2">User02</Typography>
-                  <Typography variant="body2">User03</Typography>
-                </Box>
-              </Popover>
-
-              {/* Time Popover */}
-              <Popover
-                open={timePopoverOpen}
-                anchorEl={anchorElTime}
-                onClose={handleTimePopoverClose}
-                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-                transformOrigin={{ vertical: "top", horizontal: "left" }}
-              >
-                <Box sx={{ p: 2 }}>
-                  <Typography variant="h6">Select Date and Time</Typography>
-                  <DateTimePicker
-                    value={selectedDate}
-                    onChange={(newValue) => setSelectedDate(newValue)}
-                    renderInput={(params) => <TextField {...params} />}
-                  />
-                </Box>
-              </Popover>
-
-              {displayedActivities.map((activity) => (
-                <Box
-                  key={activity.id}
-                  sx={{
-                    py: 2,
-                    borderBottom: "1px solid #eee",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Box>
-                    <Typography variant="subtitle1">
-                      {activity.description}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {activity.user}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {activity.time}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {activity.date}
-                    </Typography>
-                  </Box>
-                </Box>
-              ))}
-
-              {/* Pagination */}
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                <Button
-                  onClick={() => handlePageChange(1)}
-                  disabled={currentPage === 1}
-                >
-                  First
-                </Button>
-                {Array.from({ length: totalPages }, (_, index) => (
-                  <Button
-                    key={index + 1}
-                    onClick={() => handlePageChange(index + 1)}
-                    variant={
-                      currentPage === index + 1 ? "contained" : "outlined"
-                    }
-                    sx={{ mx: 1 }}
-                  >
-                    {index + 1}
-                  </Button>
-                ))}
-                <Button
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={currentPage === totalPages}
-                >
-                  Last
-                </Button>
-              </Box>
-            </Paper>
+          {/* Stats Cards - Row 2 */}
+          <Grid item xs={12} md={4} sx={{ mt: 3 }}>
+            <StatCard
+              title="Total Refunds"
+              value={formatCurrency(report.totalRefunds)}
+              icon={Replay}
+            />
           </Grid>
+          <Grid item xs={12} md={4} sx={{ mt: 3 }}>
+            <StatCard
+              title="Canceled Orders"
+              value={report.canceledOrders}
+              icon={Cancel}
+            />
+          </Grid>
+          <Grid item xs={12} md={4} sx={{ mt: 3 }} />
         </Grid>
       </Box>
     </LocalizationProvider>

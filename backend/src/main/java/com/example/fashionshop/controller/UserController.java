@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -71,6 +72,14 @@ public class UserController {
         return new ResponseEntity<>(new ApiResponse("Cập nhật thành công", true, address), HttpStatus.OK);
     }
 
+    //Create User (ADMIN)
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/admin/users")
+    public ResponseEntity<ApiResponse> createUser(@RequestBody User newUser) throws Exception {
+        User createdUser = userService.createUser(newUser);
+        return new ResponseEntity<>(new ApiResponse("User created successfully", true, createdUser), HttpStatus.CREATED);
+    }
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/admin/users")
     public ResponseEntity<Page<User>> getAllUsers(
@@ -85,7 +94,7 @@ public class UserController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/admin/searchUser")
-    public ResponseEntity<Page<User>> searchUsers(
+    public ResponseEntity<?> searchUsers(
             @RequestParam(required = false) String firstName,
             @RequestParam(required = false) String email,
             @RequestParam(defaultValue = "0") int page,
@@ -94,7 +103,39 @@ public class UserController {
             @RequestParam(defaultValue = "asc") String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        return ResponseEntity.ok(userService.searchUser(firstName, email, pageable));
+        Page<User> userPage = userService.searchUser(firstName, email, pageable);
+
+        List<Map<String, Object>> userList = userPage.getContent().stream().map(user -> {
+            Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", user.getId());
+            map.put("firstName", user.getFirstName());
+            map.put("lastName", user.getLastName());
+            map.put("email", user.getEmail());
+            map.put("gender", user.getGender());
+            map.put("role", user.getRole());
+            map.put("createdAt", user.getCreatedAt());
+            // Lấy địa chỉ mặc định
+            Address defaultAddr = null;
+            if (user.getAddresses() != null) {
+                defaultAddr = user.getAddresses().stream().filter(Address::isDefault).findFirst().orElse(null);
+            }
+            if (defaultAddr != null) {
+                Map<String, Object> addressMap = new java.util.HashMap<>();
+                addressMap.put("fullAddress", defaultAddr.getFullAddress());
+                addressMap.put("phone", defaultAddr.getPhone());
+                map.put("address", addressMap);
+            } else {
+                map.put("address", null);
+            }
+            return map;
+        }).toList();
+
+        return ResponseEntity.ok(java.util.Map.of(
+                "content", userList,
+                "totalElements", userPage.getTotalElements(),
+                "number", userPage.getNumber(),
+                "size", userPage.getSize()
+        ));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -111,4 +152,18 @@ public class UserController {
         userService.changePassword(authentication, request.getCurrentPassword(), request.getNewPassword());
         return ResponseEntity.ok(new ApiResponse("Password changed successfully", true, null));
     }
+
+    @DeleteMapping("/user/delete/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+        try {
+            userService.deleteUser(id);
+            return ResponseEntity.ok("User with ID " + id + " deleted successfully.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Internal server error: " + e.getMessage());
+        }
+    }
+
+
 }

@@ -4,9 +4,12 @@ import org.springframework.stereotype.Service;
 
 import com.example.fashionshop.config.ColabConfig;
 import com.example.fashionshop.model.Product;
+import com.example.fashionshop.model.User;
 import com.example.fashionshop.model.Recommendation;
 import com.example.fashionshop.repository.RecommendationRepository;
 import com.example.fashionshop.repository.ProductRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,7 +45,8 @@ public class RecommendationService {
         }
     }
 
-    public List<Product> findRecommendationByUserId(int userId) {
+    public List<Product> findRecommendationByUserId(User user) {
+        Integer userId = user.getId().intValue();
         Optional<Recommendation> optionalRec = recommendationRepository.findByUserId(userId);
     
         if (optionalRec.isEmpty()) {
@@ -60,4 +64,14 @@ public class RecommendationService {
     
         return productRepository.findAllById(ids);
     }
+
+    public Page<Recommendation> searchRecommendation(Integer id, Integer userId, Pageable pageable) {
+        if (id != null) {
+            return recommendationRepository.findById(id, pageable);
+        }
+        if (userId != null) {
+            return recommendationRepository.findByUserId(userId, pageable);
+        }
+        return recommendationRepository.findAll(pageable);
+    }    
 }

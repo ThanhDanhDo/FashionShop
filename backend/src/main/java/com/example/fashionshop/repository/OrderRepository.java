@@ -1,6 +1,7 @@
 package com.example.fashionshop.repository;
 
 import com.example.fashionshop.enums.OrderStatus;
+import com.example.fashionshop.enums.PaymentStatus;
 import com.example.fashionshop.model.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,20 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT COUNT(o) FROM Order o WHERE o.orderStatus = 'CANCELLED'")
     int countCanceledOrders();
 
-    @Query("SELECT o FROM Order o WHERE o.orderStatus = 'CANCELED'")
+    @Query("SELECT o FROM Order o WHERE o.orderStatus = 'CANCELLED'")
     List<Order> findCanceledOrders();
+
+    @Query("SELECT COALESCE(SUM(o.totalOrderPrice), 0) FROM Order o WHERE o.paymentStatus = 'COMPLETED'")
+    double sumTotalRevenue();
+
+    @Query("SELECT COALESCE(SUM(o.totalOrderPrice), 0) FROM Order o WHERE o.orderStatus = 'CANCELLED'")
+    double sumTotalRefunds();
+
+    Optional<Order> findByPaymentString(String paymentString);
+    Page<Order> findById(Long id, Pageable pageable);
+    Page<Order> findByAddressId(Long addressId, Pageable pageable);
+    Page<Order> findByOrderItems_Product_Id(Long productId, Pageable pageable);
+    Page<Order> findByOrderDateBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<Order> findByPaymentStatus(PaymentStatus status, Pageable pageable);
+    Page<Order> findByOrderStatusAndPaymentStatus(OrderStatus status, PaymentStatus paymentStatus, Pageable pageable);
 }

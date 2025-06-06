@@ -7,7 +7,7 @@ export const register = async (formData) => {
     body: JSON.stringify(formData),
     credentials: 'include', // Gửi cookie
   });
-  if (!response.ok) throw new Error('Đăng ký thất bại!');
+  if (!response.ok) throw new Error('Registration failed!');
   return response.json();
 };
 
@@ -25,7 +25,7 @@ export const verifyOtp = async (otp, email) => {
   if (!response.ok) {
     const errorMessage = await response.text();
     console.error("Lỗi từ Backend:", errorMessage);
-    throw new Error(errorMessage || 'Xác thực OTP thất bại!');
+    throw new Error(errorMessage || 'OTP authentication failed!');
   }
 
   return response.json();
@@ -38,7 +38,7 @@ export const login = async (formData) => {
     body: JSON.stringify(formData),
     credentials: 'include', // Gửi cookie
   });
-  if (!response.ok) throw new Error('Đăng nhập thất bại!');
+  if (!response.ok) throw new Error('Login failed!');
   return response.json();
 };
 
@@ -49,7 +49,7 @@ export const logoutApi = async () => {
   });
 
   if (!response.ok) {
-    throw new Error('Đăng xuất thất bại!');
+    throw new Error('Logout failed!');
   }
 
   return response.json(); // hoặc return void nếu không cần dữ liệu

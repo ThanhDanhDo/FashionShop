@@ -46,4 +46,7 @@ public class User {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT true")
+    private Boolean isActive = true;
 }
