@@ -71,4 +71,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
         );
         List<Product> findByIdIn(List<Long> ids);
 
+        Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }

@@ -67,16 +67,16 @@ public class ProductController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // @GetMapping("/search")
-    // public ResponseEntity<List<Product>> getProductByName(@RequestParam String
-    // Name) {
-    // List<Product> product = productService.getProductByName(Name);
-
-    // if (product != null)
-    // return ResponseEntity.ok(product);
-    // else
-    // return ResponseEntity.notFound().build();
-    // }
+    @GetMapping("/search")
+    public ResponseEntity<Page<Product>> searchProductsByName(
+            @RequestParam("Name") String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> products = productService.searchProductsByName(name, pageable);
+        return ResponseEntity.ok(products);
+    }
 
     @GetMapping("/all")
     public ResponseEntity<Page<Product>> getAllProduct(

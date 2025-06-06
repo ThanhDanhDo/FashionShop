@@ -257,4 +257,8 @@ public class ProductService {
     public Page<Product> adminFilterProducts(String name, Long id, String gender, Long mainCategoryId, Long subCategoryId, Pageable pageable) {
         return productRepository.adminFilterProducts(name, id, gender, mainCategoryId, subCategoryId, pageable);
     }
+
+    public Page<Product> searchProductsByName(String name, Pageable pageable) {
+        return productRepository.findByNameContainingIgnoreCase(name, pageable);
+    }
 }

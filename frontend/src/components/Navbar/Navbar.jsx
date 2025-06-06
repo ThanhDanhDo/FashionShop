@@ -7,7 +7,9 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import SearchIcon from '@mui/icons-material/Search';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import CloseIcon from '@mui/icons-material/Close'; // Thêm import này
 import { AuthContext } from '../../context/AuthContext';
+import { searchProducts } from '../../services/productService'; // Thêm import này
 
 const Navbar = () => {
   const { isLoggedIn, userName, logout, cartId, cartItemCount, refreshCartItemCount, orderCount, wishlistCount, refreshOrderCount, refreshWishlistCount } = useContext(AuthContext);
@@ -17,6 +19,11 @@ const Navbar = () => {
   const [isWomenHovered, setIsWomenHovered] = useState(false);
   const [isMenHovered, setIsMenHovered] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchPage, setSearchPage] = useState(0);
+  const [searchTotalPages, setSearchTotalPages] = useState(0);
 
   const categoryMap = {
     Outerwear: 1,
@@ -73,6 +80,8 @@ const Navbar = () => {
 
   const closeSearchPopup = () => {
     setIsSearchActive(false);
+    setSearchValue('');
+    setSearchResults([]);
   };
 
   const handleFilterNavigation = (gender, mainCategory, subCategory) => {
@@ -98,6 +107,42 @@ const Navbar = () => {
   };
 
   const isPopoverOpen = Boolean(anchorEl);
+
+  const handleSearchInput = async (e, page = 0) => {
+    const value = e.target ? e.target.value : searchValue;
+    setSearchValue(value);
+
+    if (value.trim().length === 0) {
+      setSearchResults([]);
+      setSearchTotalPages(0);
+      setSearchPage(0);
+      return;
+    }
+
+    setSearchLoading(true);
+    try {
+      const res = await searchProducts(value, page, 5); // 5 sản phẩm mỗi trang
+      setSearchResults(res.content || []);
+      setSearchTotalPages(res.totalPages || 0);
+      setSearchPage(res.number || 0);
+    } catch {
+      setSearchResults([]);
+      setSearchTotalPages(0);
+      setSearchPage(0);
+    }
+    setSearchLoading(false);
+  };
+
+  const handleSearchPageChange = (newPage) => {
+    handleSearchInput({ target: { value: searchValue } }, newPage);
+  };
+
+  const handleSearchResultClick = (id) => {
+    setIsSearchActive(false);
+    setSearchValue('');
+    setSearchResults([]);
+    navigate(`/product/${id}`);
+  };
 
   return (
     <>
@@ -652,18 +697,146 @@ const Navbar = () => {
       ></div>
 
       <div className={`search-popup ${isSearchActive ? 'active' : ''}`}>
-        <div className="search-row">
-          <input type="text" placeholder="Search" />
-          <span className="cancel-text" onClick={closeSearchPopup}>Cancel</span>
+        <div className="search-row" style={{ width: '100%', maxWidth: 800, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <input
+              type="text"
+              placeholder="Search product name"
+              value={searchValue}
+              onChange={handleSearchInput}
+              autoFocus
+              style={{
+                width: '100%',
+                paddingRight: 36,
+                boxSizing: 'border-box',
+              }}
+            />
+            {searchValue && (
+              <span
+                onClick={() => {
+                  setSearchValue('');
+                  setSearchResults([]);
+                  setTimeout(() => {
+                    document.querySelector('.search-row input')?.focus();
+                  }, 0);
+                }}
+                style={{
+                  position: 'absolute',
+                  right: 16,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  zIndex: 2,
+                  cursor: 'pointer',
+                  color: '#888',
+                  fontSize: 20,
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  lineHeight: 1,
+                }}
+                aria-label="Clear"
+              >
+                <CloseIcon fontSize="small" />
+              </span>
+            )}
+          </div>
+          <span
+            className="cancel-text"
+            onClick={() => {
+              setSearchValue('');
+              setSearchResults([]);
+              closeSearchPopup();
+            }}
+            style={{ marginLeft: 16 }}
+          >
+            Cancel
+          </span>
         </div>
+        {/* Gợi ý phổ biến */}
         <div className="popular-terms">
-          <span>Knitted Short Jacket</span>
-          <span>Cropped Shirt</span>
-          <span>Work Jacket</span>
-          <span>Gift Bag</span>
-          <span>Pleated Skort</span>
-          <span>Miracle Air Double Jacket | Relaxed Fit</span>
+          <span onClick={() => setSearchValue('Knitted Short Jacket')}>Knitted Short Jacket</span>
+          <span onClick={() => setSearchValue('Cropped Shirt')}>Cropped Shirt</span>
+          <span onClick={() => setSearchValue('Work Jacket')}>Work Jacket</span>
+          <span onClick={() => setSearchValue('Gift Bag')}>Gift Bag</span>
+          <span onClick={() => setSearchValue('Pleated Skort')}>Pleated Skort</span>
+          <span onClick={() => setSearchValue('Miracle Air Double Jacket')}>Miracle Air Double Jacket</span>
         </div>
+        {/* Kết quả search */}
+        {searchLoading && <div style={{ marginTop: 20 }}>Loading...</div>}
+        {!searchLoading && searchValue && (
+          <div style={{ marginTop: 20, width: '100%' }}>
+            {searchResults.length === 0 ? (
+              <div style={{ color: '#888', fontStyle: 'italic', textAlign: "center" }}>No results found.</div>
+            ) : (
+              <>
+                <div className="search-results-grid">
+                  {searchResults.map(product => (
+                    <div
+                      key={product.id}
+                      style={{
+                        background: '#fff',
+                        borderRadius: 10,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+                        padding: 12,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        transition: 'box-shadow 0.2s',
+                      }}
+                      onClick={() => handleSearchResultClick(product.id)}
+                    >
+                      <img
+                        className="product-image"
+                        src={product.imgurls && product.imgurls.length > 0 ? product.imgurls[0] : '/images/no-image.png'}
+                        alt={product.name}
+                      />
+                      <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 4 }}>{product.name}</div>
+                      <div style={{ color: '#666', fontSize: 14, marginBottom: 2 }}>
+                        {product.mainCategory?.name || ''}
+                      </div>
+                      <div style={{ color: '#1976d2', fontWeight: 500, fontSize: 15 }}>
+                        {product.price?.toLocaleString('vi-VN')} VND
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Pagination controls */}
+                {searchTotalPages > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 16, gap: 16 }}>
+                    <button
+                      onClick={() => handleSearchPageChange(searchPage - 1)}
+                      disabled={searchPage === 0}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: 22,
+                        cursor: searchPage === 0 ? 'not-allowed' : 'pointer',
+                        color: searchPage === 0 ? '#ccc' : '#1976d2'
+                      }}
+                    >
+                      &#8592; {/* Left arrow */}
+                    </button>
+                    <span style={{ fontSize: 15 }}>
+                      Page {searchPage + 1} / {searchTotalPages}
+                    </span>
+                    <button
+                      onClick={() => handleSearchPageChange(searchPage + 1)}
+                      disabled={searchPage >= searchTotalPages - 1}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        fontSize: 22,
+                        cursor: searchPage >= searchTotalPages - 1 ? 'not-allowed' : 'pointer',
+                        color: searchPage >= searchTotalPages - 1 ? '#ccc' : '#1976d2'
+                      }}
+                    >
+                      &#8594; {/* Right arrow */}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

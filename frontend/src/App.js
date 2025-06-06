@@ -92,7 +92,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/Products-admin/add-product"
+                  path="/products-admin/add-product"
                   element={
                     <PrivateRoute requiredRole="ADMIN">
                       <AddProduct />
