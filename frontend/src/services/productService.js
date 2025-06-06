@@ -14,14 +14,13 @@ export const getAllProducts = async (page = 0, size = 100) => {
   return data;
 };
 
-export const searchProducts = async (name) => {
-  const response = await fetch(`${API_BASE_URL}/search?Name=${name}`, {
+export const searchProducts = async (name, page = 0, size = 5) => {
+  const response = await fetch(`${API_BASE_URL}/search?Name=${name}&page=${page}&size=${size}`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },
   });
-  if (!response.ok) throw new Error("Không thể tìm kiếm sản phẩm!");
+  if (!response.ok) throw new Error("Cannot find product!");
   const data = await response.json();
-  console.log("searchProducts response:", data);
   return data;
 };
 
@@ -72,7 +71,7 @@ export const getProductById = async (id) => {
       headers: { "Content-Type": "application/json" },
     });
     if (!response.ok) {
-      throw new Error(`Không thể lấy thông tin sản phẩm với ID ${id}!`);
+      throw new Error(`Unable to get product information with ID ${id}!`);
     }
     const data = await response.json();
     console.log("getProductById response:", data);
@@ -83,7 +82,7 @@ export const getProductById = async (id) => {
       color: Array.isArray(data.color) ? data.color : [],
     };
   } catch (error) {
-    console.error("Lỗi khi lấy thông tin sản phẩm:", error);
+    console.error("Error retrieving product information:", error);
     throw error;
   }
 };
