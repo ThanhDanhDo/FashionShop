@@ -130,6 +130,20 @@ export const createUserByAdmin = async (userData) => {
   return response.json();
 };
 
+export const createUserWithAddress = async (userAndAddressData) => {
+  const response = await fetch('/api/admin/users-with-address', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(userAndAddressData),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'Could not create user!');
+  }
+  return response.json();
+};
+
 export const deleteUser = async (id) => {
   try {
     const res = await fetch(`/api/user/delete/${id}`, {

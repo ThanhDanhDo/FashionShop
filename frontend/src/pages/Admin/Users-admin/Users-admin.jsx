@@ -86,31 +86,28 @@ const UsersAdmin = () => {
   };
   const handleDeleteSelected = () => { setAccountToDelete(null); setShowModal(true); };
   const handleConfirmDelete = async () => {
-    if (accountToDelete) {
-      setAccounts((prev) => prev.filter((account) => account.key !== accountToDelete));
-      setSelectedRowKeys((prev) => prev.filter((key) => key !== accountToDelete));
-    } else {
-      setAccounts((prev) => prev.filter((account) => !selectedRowKeys.includes(account.key)));
-      setSelectedRowKeys([]);
-    }
-
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await deleteUser(accountToDelete);
-      console.log(res);
+      if (accountToDelete) {
+        await deleteUser(accountToDelete);
+      } else {
+        // Xóa từng user đã chọn
+        await Promise.all(selectedRowKeys.map(id => deleteUser(id)));
+      }
       await fetchUsers();
+      message.success('Account(s) deleted successfully');
+      setSelectedRowKeys([]);
     } catch (error) {
-      console.log("Không thể xoá user: ", error)
+      message.error('Không thể xoá user!');
+      console.log(error);
     } finally {
-      setLoading(false)
+      setAccountToDelete(null);
+      setShowModal(false);
+      setLoading(false);
     }
-
-    message.success('Account(s) deleted successfully');
-    setAccountToDelete(null);
-    setShowModal(false);
   };
   const handleCancelDelete = () => setShowModal(false);
-  const handleAddAccount = () => navigate('/Users-admin/add-account', { state: { accounts } });
+  const handleAddAccount = () => navigate('/users-admin/add-account', { state: { accounts } });
   const handleChangeAccount = (id) => navigate(`/Users-admin/Change-account/${id}`, { state: { accounts } });
 
   const handleTableChange = (pagination, filters, sorter) => {

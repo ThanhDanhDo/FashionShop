@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Select, Button, message, Modal } from 'antd';
-import { createUserByAdmin } from '../../../services/userService';
-import { getUserAddresses, addUserAddress, deleteUserAddress, updateUserAddress } from '../../../services/userService';
+import { createUserWithAddress } from '../../../services/userService';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNotification } from '../../../components/NotificationProvider';
+import { deleteUserAddress, updateUserAddress } from '../../../services/userService';
 import './Add-account.css';
 
 const { Option } = Select;
@@ -39,33 +39,18 @@ const AddAccount = () => {
     province: "",
   });
 
-  useEffect(() => {
-    fetchAddresses();
-  }, []);
-
-  const fetchAddresses = async () => {
-    try {
-      const data = await getUserAddresses();
-      const normalized = (data || []).map(addr => ({
-        ...addr,
-        is_default: addr.isDefault ?? addr.is_default ?? addr.default
-      }));
-      const sortedAddresses = normalized.sort((a, b) => 
-        a.is_default === true ? -1 : b.is_default === true ? 1 : 0
-      );
-      setAddresses(sortedAddresses);
-      if (sortedAddresses.length > 0) {
-        setSelectedAddress(sortedAddresses[0].id);
-      }
-    } catch {
-      api.error({
-        message: 'Failed to load addresses',
-        description: 'Could not fetch your addresses. Please try again later.',
-      });
-    }
-  };
-
   const handleDeleteAddress = async (id) => {
+    // Nếu address chưa có trên backend (id là số tạm thời), chỉ xóa khỏi state
+    if (typeof id === 'number') {
+      setAddresses(addresses.filter(addr => addr.id !== id));
+      if (selectedAddress === id && addresses.length > 1) {
+        setSelectedAddress(addresses.find(addr => addr.id !== id).id);
+      } else if (addresses.length === 1) {
+        setSelectedAddress(null);
+      }
+      return;
+    }
+    // Nếu là address đã lưu trên backend, gọi API như cũ
     Modal.confirm({
       title: 'Remove Address',
       content: 'Are you sure you want to remove this address?',
@@ -79,7 +64,7 @@ const AddAccount = () => {
             message: 'Address removed',
             description: 'The address has been deleted successfully.',
           });
-          fetchAddresses();
+          // fetchAddresses(); // Không cần fetch lại vì đang tạo user mới
           if (selectedAddress === id && addresses.length > 1) {
             setSelectedAddress(addresses.find(addr => addr.id !== id).id);
           } else if (addresses.length === 1) {
@@ -101,6 +86,15 @@ const AddAccount = () => {
   };
 
   const handleSaveEdit = async () => {
+    if (typeof editingId === 'number') {
+      setAddresses(addresses.map(addr =>
+        addr.id === editingId ? { ...addr, ...tempAddress } : addr
+      ));
+      setEditingId(null);
+      setTempAddress({});
+      return;
+    }
+    // Nếu là address đã lưu trên backend, gọi API như cũ
     try {
       await updateUserAddress(editingId, tempAddress);
       api.success({
@@ -109,7 +103,7 @@ const AddAccount = () => {
       });
       setEditingId(null);
       setTempAddress({});
-      fetchAddresses();
+      // fetchAddresses(); // Không cần fetch lại vì đang tạo user mới
     } catch {
       api.error({
         message: 'Update failed',
@@ -119,27 +113,17 @@ const AddAccount = () => {
   };
 
   const handleAddAddress = async () => {
-    try {
-      await addUserAddress(newAddress);
-      api.success({
-        message: 'Address added successfully',
-        description: 'Your new address has been saved.',
-      });
-      setNewAddress({
-        phone: "",
-        fullAddress: "",
-        ward: "",
-        district: "",
-        province: "",
-      });
-      setShowForm(false);
-      fetchAddresses();
-    } catch {
-      api.error({
-        message: 'Add address failed',
-        description: 'Could not add address. Please try again.',
-      });
-    }
+    // Giả lập tạo address thành công (nếu chưa gọi API thật)
+    const newAddr = { ...newAddress, id: Date.now(), is_default: addresses.length === 0 };
+    setAddresses([...addresses, newAddr]);
+    setNewAddress({
+      phone: "",
+      fullAddress: "",
+      ward: "",
+      district: "",
+      province: "",
+    });
+    setShowForm(false);
   };
 
   const handleEditChange = (e) => {
@@ -153,19 +137,32 @@ const AddAccount = () => {
   const onFinish = async (values) => {
     if (loading) return;
     setLoading(true);
-    const newAccount = {
+
+    // Lấy dữ liệu user từ form
+    const userData = {
       lastName: values.lastName,
       firstName: values.firstName,
       email: values.email,
       password: values.password,
       gender: values.gender,
       role: values.role,
-      phone: values.phone,
     };
 
+    // Lấy dữ liệu address từ newAddress (bạn có thể lấy từ form nếu muốn)
+    const addressData = {
+      province: newAddress.province,
+      district: newAddress.district,
+      ward: newAddress.ward,
+      fullAddress: newAddress.fullAddress,
+      phone: newAddress.phone,
+    };
+
+    // Gộp lại
+    const userAndAddressData = { ...userData, ...addressData };
+
     try {
-      await createUserByAdmin(newAccount);
-      message.success('Account added successfully');
+      await createUserWithAddress(userAndAddressData);
+      message.success('Account and address added successfully');
       navigate('/Users-admin');
     } catch (e) {
       message.error(e.message || 'Failed to add account');
@@ -293,15 +290,18 @@ const AddAccount = () => {
 
         {/* Address Section */}
         <div className="address-section">
-          <h2 className="section-title">Select Delivery Address
-          {!showForm && (
-            <button className="toggle-form-btn" onClick={() => setShowForm(true)}>
-              Add New Address
-            </button>
-          )}
+          <h2 className="section-title">
+            Select Delivery Address
+            {!showForm && (
+              <button type="button" className="toggle-form-btn" onClick={() => setShowForm(true)}>
+                Add New Address
+              </button>
+            )}
           </h2>
+
+          {/* Chỉ hiển thị address box khi đã có address */}
           {addresses.length === 0 ? (
-            <p>No addresses found.</p>
+            <p></p>
           ) : (
             addresses.map((addr) => (
               <div
@@ -321,6 +321,7 @@ const AddAccount = () => {
                   </div>
                   <div className="address-actions">
                     <button
+                      type="button"
                       className="edit-btn"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -330,6 +331,7 @@ const AddAccount = () => {
                       <EditOutlined />
                     </button>
                     <button
+                      type="button"
                       className="delete-btn"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -359,29 +361,31 @@ const AddAccount = () => {
                         />
                       </div>
                     ))}
-                    <div class="action-bar">                   
-                    <button
-                      className="cancel-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingId(null);
-                        setTempAddress({});
-                      }}
-                      style={{ marginBottom: "10px", width:'auto'}}
-                    >
-                      Cancel Edit
-                    </button>
-                    <button
-                      className="add-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSaveEdit();
-                      }}
-                      style={{ marginLeft: "10px", width:'auto'}}
-                    >
-                      Save Edit
-                    </button>
-                    </div> 
+                    <div className="action-bar">
+                      <button
+                        type="button"
+                        className="cancel-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingId(null);
+                          setTempAddress({});
+                        }}
+                        style={{ marginBottom: "10px", width: 'auto' }}
+                      >
+                        Cancel Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="add-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSaveEdit();
+                        }}
+                        style={{ marginLeft: "10px", width: 'auto' }}
+                      >
+                        Save Edit
+                      </button>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -419,28 +423,32 @@ const AddAccount = () => {
                   />
                 </div>
               ))}
-              <div class="action-bar">
-              <button
-                className="cancel-btn"
-                onClick={() => {
-                  setShowForm(false);
-                  setNewAddress({
-                    phone: "",
-                    fullAddress: "",
-                    ward: "",
-                    district: "",
-                    province: "",
-                  });
-                }}
-                style={{ marginBottom: "10px", width:'auto'}}
-              >
-                Cancel Address
-              </button>
-              <button className="add-btn" 
-              onClick={handleAddAddress}
-              style={{ marginLeft: "10px", width:'auto'}}>
-                Save Address
-              </button>
+              <div className="action-bar">
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => {
+                    setShowForm(false);
+                    setNewAddress({
+                      phone: "",
+                      fullAddress: "",
+                      ward: "",
+                      district: "",
+                      province: "",
+                    });
+                  }}
+                  style={{ marginBottom: "10px", width: 'auto' }}
+                >
+                  Cancel Address
+                </button>
+                <button
+                  type="button"
+                  className="add-btn"
+                  onClick={handleAddAddress}
+                  style={{ marginLeft: "10px", width: 'auto' }}
+                >
+                  Save Address
+                </button>
               </div>
             </div>
           )}
