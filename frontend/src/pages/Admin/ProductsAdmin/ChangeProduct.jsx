@@ -163,7 +163,7 @@ const ChangeProduct = () => {
         setStock(fetchedProduct.stock);
         setImgUrls(fetchedProduct.imgurls || []);
       } catch (e) {
-        // Xử lý lỗi nếu cần
+        console.error('Error fetching product:', e);
       } finally {
         setLoading(false);
       }
@@ -182,7 +182,7 @@ const ChangeProduct = () => {
 
     const submitValues = {
       ...values,
-      imgurls: imgUrls, // <-- sửa lại dùng state imgUrls
+      imgurls: imgUrls,
       mainCategory: { id: values.mainCategory, name: mainCatObj?.name || '' },
       subCategory: { id: values.subCategory, name: subCatObj?.name || '' }
     };
@@ -210,7 +210,7 @@ const ChangeProduct = () => {
 
   // Xử lý upload ảnh
   const handleImageUpload = async ({ file }) => {
-    const url = await uploadProductImage(file); // url là string
+    const url = await uploadProductImage(file);
     const newUrls = [...imgUrls, url];
     setImgUrls(newUrls);
     form.setFieldsValue({ imgurls: newUrls });
@@ -218,7 +218,7 @@ const ChangeProduct = () => {
 
   // Xóa ảnh
   const handleRemoveImage = async (url) => {
-    await deleteProductImage(url); // truyền nguyên url, KHÔNG tách filename
+    await deleteProductImage(url);
     const newUrls = imgUrls.filter(u => u !== url);
     setImgUrls(newUrls);
     form.setFieldsValue({ imgurls: newUrls });
@@ -238,158 +238,160 @@ const ChangeProduct = () => {
           <Spin size="large" />
         </div>
       ) : (
-        <div className="form-container">
-          <div className="left-column">
-            <h3>Basic Information</h3>
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={onFinish}
-              style={{ width: '100%' }}
-            >
-              <Form.Item label="Product ID" name="id">
-                <Input disabled />
-              </Form.Item>
-              <Form.Item label="Product Name" name="name" rules={[{ required: true, message: 'Please enter product name' }]}>
-                <Input />
-              </Form.Item>
-              <Form.Item label="Descriptions" name="description" rules={[{ required: true, message: 'Please enter description' }]}>
-                <TextArea rows={4} />
-              </Form.Item>
-              <Form.Item
-                label="Main Category"
-                name="mainCategory"
-                rules={[{ required: true, message: 'Please select main category' }]}
-              >
-                <Select
-                  options={mainCategories.map(c => ({ value: c.id, label: c.name }))}
-                  onChange={value => {
-                    setMainCategory(value);
-                    form.setFieldsValue({ subCategory: undefined });
-                  }}
-                  placeholder="Select main category"
-                />
-              </Form.Item>
-              <Form.Item
-                label="Sub Category"
-                name="subCategory"
-                rules={[{ required: true, message: 'Please select sub category' }]}
-              >
-                <Select
-                  options={subCategories.map(c => ({
-                    value: c.id,
-                    label: c.name
-                  }))}
-                  placeholder="Select sub category"
-                  disabled={!mainCategory}
-                />
-              </Form.Item>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          style={{ width: '100%' }}
+        >
+          <div className="form-container">
+            <div className="form-column">
+              <h3>Basic Information</h3>
+              <div className="row">
+                <Form.Item label="Product ID" name="id">
+                  <Input disabled />
+                </Form.Item>
+                <Form.Item label="Color" name="color">
+                  <Select
+                    mode="multiple"
+                    tagRender={tagRenderColor}
+                    style={{ width: '100%' }}
+                    placeholder="Select color"
+                    options={colorOptions}
+                    showSearch
+                    optionFilterProp="label"
+                  />
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item label="Product Name" name="name" rules={[{ required: true, message: 'Please enter product name' }]}>
+                  <Input />
+                </Form.Item>
+                <Form.Item label="Stock" name="stock" rules={[{ required: true, message: 'Please enter stock' }]}>
+                  <InputNumber min={0} style={{ width: '100%' }} onChange={value => setStock(value)} />
+                </Form.Item>
+              </div>
+              <div className="row">
               <Form.Item label="Gender" name="gender" rules={[{ required: true, message: 'Please select gender' }]}>
-                <Select options={genderOptions} />
-              </Form.Item>
-            </Form>
-          </div>
-          <div className="right-column">
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={onFinish}
-              style={{ width: '100%' }}
-            >
-              <Form.Item label="Product Images" name="imgurls" className="product-images-label">
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-                  {imgUrls.map(url => (
-                    <div key={url} style={{ position: 'relative', display: 'inline-block' }}>
-                      <img
-                        src={url}
-                        alt="product"
-                        style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4, border: '1px solid #eee', cursor: 'pointer' }}
-                        onClick={() => handlePreviewImage(url)}
-                      />
-                      <Button
-                        size="small"
-                        style={{ position: 'absolute', top: 2, right: 2, zIndex: 2 }}
-                        danger
-                        onClick={() => handleRemoveImage(url)}
-                      >x</Button>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ margin: '8px 0' }}>
-                  <Upload
-                    showUploadList={false}
-                    customRequest={handleImageUpload}
-                    accept="image/*"
-                    multiple={false}
+                  <Select options={genderOptions} />
+                </Form.Item>
+                <Form.Item label="Status">
+                  <span
+                    style={{
+                      color: stock > 0 ? '#52c41a' : '#f5222d',
+                      fontWeight: 600,
+                      padding: '4px 12px',
+                      borderRadius: 4,
+                      background: stock > 0 ? '#f6ffed' : '#fff1f0',
+                      border: `1px solid ${stock > 0 ? '#b7eb8f' : '#ffa39e'}`,
+                      display: 'inline-block',
+                      minWidth: 90,
+                      textAlign: 'center'
+                    }}
                   >
-                    <Button icon={<UploadOutlined />}>Upload</Button>
-                  </Upload>
-                </div>
-                <div style={{ color: '#888', fontSize: 14, marginTop: 4 }}>
-                  Recommended size: 500x500 px
-                </div>
-                {/* Preview modal */}
-                <Image
-                  style={{ display: 'none' }}
-                  preview={{
-                    visible: previewOpen,
-                    src: previewImage,
-                    onVisibleChange: (visible) => setPreviewOpen(visible),
-                  }}
-                />
-              </Form.Item>
-              <Form.Item label="Stock" name="stock" rules={[{ required: true, message: 'Please enter stock' }]}>
-                <InputNumber min={0} style={{ width: '100%' }} onChange={value => setStock(value)} />
-              </Form.Item>
-              <Form.Item label="Status">
-                <span
-                  style={{
-                    color: stock > 0 ? '#52c41a' : '#f5222d',
-                    fontWeight: 600,
-                    padding: '4px 12px',
-                    borderRadius: 4,
-                    background: stock > 0 ? '#f6ffed' : '#fff1f0',
-                    border: `1px solid ${stock > 0 ? '#b7eb8f' : '#ffa39e'}`,
-                    display: 'inline-block',
-                    minWidth: 90,
-                    textAlign: 'center'
-                  }}
+                    {stock > 0 ? 'In stock' : 'Out of stock'}
+                  </span>
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item
+                  label="Main Category"
+                  name="mainCategory"
+                  rules={[{ required: true, message: 'Please select main category' }]}
                 >
-                  {stock > 0 ? 'In stock' : 'Out of stock'}
-                </span>
-              </Form.Item>
-              <Form.Item label="Price" name="price" rules={[{ required: true, message: 'Please enter price' }]}>
-                <Input />
-              </Form.Item>
-              <Form.Item
-                label="Size"
-                name="size"
-                rules={[{ required: true, message: 'Please select size' }]}
-              >
-                <Select
-                  mode="multiple"
-                  allowClear
-                  style={{ width: '100%' }}
-                  placeholder="Select size"
-                  options={sizeOptions}
-                  value={form.getFieldValue('size')?.slice().sort(sortSize)}
-                  onChange={handleSizeChange}
-                />
-              </Form.Item>
-              <Form.Item label="Color" name="color">
-                <Select
-                  mode="multiple"
-                  tagRender={tagRenderColor}
-                  style={{ width: '100%' }}
-                  placeholder="Select color"
-                  options={colorOptions}
-                  showSearch
-                  optionFilterProp="label"
-                />
-              </Form.Item>
-            </Form>
+                  <Select
+                    options={mainCategories.map(c => ({ value: c.id, label: c.name }))}
+                    onChange={value => {
+                      setMainCategory(value);
+                      form.setFieldsValue({ subCategory: undefined });
+                    }}
+                    placeholder="Select main category"
+                  />
+                </Form.Item>
+                <Form.Item label="Price" name="price" rules={[{ required: true, message: 'Please enter price' }]}>
+                  <Input />
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item
+                  label="Sub Category"
+                  name="subCategory"
+                  rules={[{ required: true, message: 'Please select sub category' }]}
+                >
+                  <Select
+                    options={subCategories.map(c => ({
+                      value: c.id,
+                      label: c.name
+                    }))}
+                    placeholder="Select sub category"
+                    disabled={!mainCategory}
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Size"
+                  name="size"
+                  rules={[{ required: true, message: 'Please select size' }]}
+                >
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ width: '100%' }}
+                    placeholder="Select size"
+                    options={sizeOptions}
+                    value={form.getFieldValue('size')?.slice().sort(sortSize)}
+                    onChange={handleSizeChange}
+                  />
+                </Form.Item>
+              </div>
+              <div className="row">
+              <Form.Item label="Descriptions" name="description" rules={[{ required: true, message: 'Please enter description' }]}>
+                  <TextArea rows={4} />
+                </Form.Item>
+                <Form.Item label="Product Images" name="imgurls" className="product-images-label">
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                    {imgUrls.map(url => (
+                      <div key={url} style={{ position: 'relative', display: 'inline-block' }}>
+                        <img
+                          src={url}
+                          alt="product"
+                          style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4, border: '1px solid #eee', cursor: 'pointer' }}
+                          onClick={() => handlePreviewImage(url)}
+                        />
+                        <Button
+                          size="small"
+                          style={{ position: 'absolute', top: 2, right: 2, zIndex: 2 }}
+                          danger
+                          onClick={() => handleRemoveImage(url)}
+                        >x</Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ margin: '8px 0' }}>
+                    <Upload
+                      showUploadList={false}
+                      customRequest={handleImageUpload}
+                      accept="image/*"
+                      multiple={false}
+                    >
+                      <Button icon={<UploadOutlined />}>Upload</Button>
+                    </Upload>
+                  </div>
+                  <div style={{ color: '#888', fontSize: 14, marginTop: 4 }}>
+                    Recommended size: 500x500 px
+                  </div>
+                  <Image
+                    style={{ display: 'none' }}
+                    preview={{
+                      visible: previewOpen,
+                      src: previewImage,
+                      onVisibleChange: (visible) => setPreviewOpen(visible),
+                    }}
+                  />
+                </Form.Item>
+              </div>
+            </div>
           </div>
-        </div>
+        </Form>
       )}
       <div className="action-bar">
         <Button className="cancel-button" onClick={handleCancel} style={{ marginRight: 10 }}>

@@ -114,7 +114,7 @@ const ProductDetailAdmin = () => {
         setStock(fetchedProduct.stock);
         setImgUrls(fetchedProduct.imgurls || []);
       } catch (e) {
-        // Xử lý lỗi nếu cần
+        console.error('Error fetching product:', e);
       } finally {
         setLoading(false);
       }
@@ -157,136 +157,130 @@ const ProductDetailAdmin = () => {
           <Spin size="large" />
         </div>
       ) : (
-        <div className="form-container">
-          <div className="left-column">
-            <h3>Basic Information</h3>
-            <Form
-              form={form}
-              layout="vertical"
-              style={{ width: '100%' }}
-            >
-              <Form.Item label="Product ID" name="id">
-                <Input readOnly />
-              </Form.Item>
-              <Form.Item label="Product Name" name="name">
-                <Input readOnly />
-              </Form.Item>
-              <Form.Item label="Descriptions" name="description">
-                <TextArea rows={4} readOnly />
-              </Form.Item>
-              <Form.Item
-                label="Main Category"
-                name="mainCategory"
-              >
-                <Select
-                  options={mainCategories.map(c => ({ value: c.id, label: c.name }))}
-                  open={false}
-                />
-              </Form.Item>
-              <Form.Item
-                label="Sub Category"
-                name="subCategory"
-              >
-                <Select
-                  options={subCategories.map(c => ({
-                    value: c.id,
-                    label: c.name
-                  }))}
-                  open={false}
-                />
-              </Form.Item>
+        <Form
+          form={form}
+          layout="vertical"
+          style={{ width: '100%' }}
+        >
+          <div className="form-container">
+            <div className="form-column">
+              <h3>Basic Information</h3>
+              <div className="row">
+                <Form.Item label="Product ID" name="id">
+                  <Input readOnly />
+                </Form.Item>
+                <Form.Item label="Color" name="color">
+                  <Select
+                    mode="multiple"
+                    tagRender={tagRenderColor}
+                    style={{ width: '100%' }}
+                    placeholder="Select color"
+                    options={colorOptions}
+                    showSearch
+                    optionFilterProp="label"
+                    open={false}
+                  />
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item label="Product Name" name="name">
+                  <Input readOnly />
+                </Form.Item>
+                <Form.Item label="Stock" name="stock">
+                  <InputNumber min={0} style={{ width: '100%' }} readOnly />
+                </Form.Item>
+              </div>
+              <div className="row">
               <Form.Item label="Gender" name="gender">
-                <Select options={genderOptions} open={false} />
-              </Form.Item>
-            </Form>
+                  <Select options={genderOptions} open={false} />
+                </Form.Item>
+                <Form.Item label="Status">
+                  <span
+                    style={{
+                      color: stock > 0 ? '#52c41a' : '#f5222d',
+                      fontWeight: 600,
+                      padding: '4px 12px',
+                      borderRadius: 4,
+                      background: stock > 0 ? '#f6ffed' : '#fff1f0',
+                      border: `1px solid ${stock > 0 ? '#b7eb8f' : '#ffa39e'}`,
+                      display: 'inline-block',
+                      minWidth: 90,
+                      textAlign: 'center'
+                    }}
+                  >
+                    {stock > 0 ? 'In stock' : 'Out of stock'}
+                  </span>
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item label="Main Category" name="mainCategory">
+                  <Select
+                    options={mainCategories.map(c => ({ value: c.id, label: c.name }))}
+                    open={false}
+                  />
+                </Form.Item>
+                <Form.Item label="Price" name="price">
+                  <Input readOnly />
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item label="Sub Category" name="subCategory">
+                  <Select
+                    options={subCategories.map(c => ({
+                      value: c.id,
+                      label: c.name
+                    }))}
+                    open={false}
+                  />
+                </Form.Item>
+                <Form.Item label="Size" name="size">
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ width: '100%' }}
+                    placeholder="Select size"
+                    options={sizeOptions}
+                    value={form.getFieldValue('size')?.slice().sort(sortSize)}
+                    tagRender={props => (
+                      <Tag style={{ marginInlineEnd: 4 }}>{props.label}</Tag>
+                    )}
+                    open={false}
+                  />
+                </Form.Item>
+              </div>
+              <div className="row">
+              <Form.Item label="Descriptions" name="description">
+                  <TextArea rows={4} readOnly />
+                </Form.Item>
+                <Form.Item label="Product Images" name="imgurls" className="product-images-label">
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                    {imgUrls.map(url => (
+                      <div key={url} style={{ position: 'relative', display: 'inline-block' }}>
+                        <img
+                          src={url}
+                          alt="product"
+                          style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4, border: '1px solid #eee', cursor: 'pointer' }}
+                          onClick={() => handlePreviewImage(url)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ color: '#888', fontSize: 14, marginTop: 4 }}>
+                    Recommended size: 500x500 px
+                  </div>
+                  <Image
+                    style={{ display: 'none' }}
+                    preview={{
+                      visible: previewOpen,
+                      src: previewImage,
+                      onVisibleChange: (visible) => setPreviewOpen(visible),
+                    }}
+                  />
+                </Form.Item>
+              </div>
+            </div>
           </div>
-          <div className="right-column">
-            <Form
-              form={form}
-              layout="vertical"
-              style={{ width: '100%' }}
-            >
-              <Form.Item label="Product Images" name="imgurls" className="product-images-label">
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-                  {imgUrls.map(url => (
-                    <div key={url} style={{ position: 'relative', display: 'inline-block' }}>
-                      <img
-                        src={url}
-                        alt="product"
-                        style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4, border: '1px solid #eee', cursor: 'pointer' }}
-                        onClick={() => handlePreviewImage(url)}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div style={{ color: '#888', fontSize: 14, marginTop: 4 }}>
-                  Recommended size: 500x500 px
-                </div>
-                {/* Preview modal */}
-                <Image
-                  style={{ display: 'none' }}
-                  preview={{
-                    visible: previewOpen,
-                    src: previewImage,
-                    onVisibleChange: (visible) => setPreviewOpen(visible),
-                  }}
-                />
-              </Form.Item>
-              <Form.Item label="Stock" name="stock">
-                <InputNumber min={0} style={{ width: '100%' }} readOnly />
-              </Form.Item>
-              <Form.Item label="Status">
-                <span
-                  style={{
-                    color: stock > 0 ? '#52c41a' : '#f5222d',
-                    fontWeight: 600,
-                    padding: '4px 12px',
-                    borderRadius: 4,
-                    background: stock > 0 ? '#f6ffed' : '#fff1f0',
-                    border: `1px solid ${stock > 0 ? '#b7eb8f' : '#ffa39e'}`,
-                    display: 'inline-block',
-                    minWidth: 90,
-                    textAlign: 'center'
-                  }}
-                >
-                  {stock > 0 ? 'In stock' : 'Out of stock'}
-                </span>
-              </Form.Item>
-              <Form.Item label="Price" name="price">
-                <Input readOnly />
-              </Form.Item>
-              <Form.Item
-                label="Size"
-                name="size"
-              >
-                <Select
-                  mode="multiple"
-                  allowClear
-                  style={{ width: '100%' }}
-                  placeholder="Select size"
-                  options={sizeOptions}
-                  value={form.getFieldValue('size')?.slice().sort(sortSize)}
-                  tagRender={props => (
-                    <Tag style={{ marginInlineEnd: 4 }}>{props.label}</Tag>
-                  )}
-                  open={false}
-                />
-              </Form.Item>
-              <Form.Item label="Color" name="color">
-                <Select
-                  mode="multiple"
-                  tagRender={tagRenderColor}
-                  style={{ width: '100%' }}
-                  placeholder="Select color"
-                  options={colorOptions}
-                  showSearch
-                  optionFilterProp="label"
-                  open={false}
-                />
-              </Form.Item>
-            </Form>
-          </div>
-        </div>
+        </Form>
       )}
     </div>
   );
