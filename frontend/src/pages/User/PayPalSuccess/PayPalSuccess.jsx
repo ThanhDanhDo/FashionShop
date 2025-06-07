@@ -23,12 +23,27 @@ const PayPalSuccess = () => {
     useEffect(() => {
         if (hasRun.current) return;
         hasRun.current = true;
-        
         const processPayment = async () => {
+            const buyNowData = JSON.parse(localStorage.getItem("buyNowData"));
             try {
-                const res = await handleSuccessPayment(paymentId, payerId, addressId, totalPrice);
-                console.log(res);
+                let res;
+                if (buyNowData) {
+                    res = await handleSuccessPayment(
+                        paymentId,
+                        payerId,
+                        addressId,
+                        totalPrice,
+                        buyNowData.product,
+                        buyNowData.quantity,
+                        buyNowData.color,
+                        buyNowData.size
+                    );
+                } else {
+                    res = await handleSuccessPayment(paymentId, payerId, addressId, totalPrice);
+                }
+                console.log("Kết quả thanh toán:", res);
                 setSuccess(true);
+                localStorage.removeItem("buyNowData");
             } catch (err) {
                 console.error("Lỗi tạo đơn:", err);
                 setError("Đã xảy ra lỗi khi xử lý thanh toán.");

@@ -3,10 +3,7 @@ package com.example.fashionshop.controller;
 import com.example.fashionshop.enums.PaymentOrderStatus;
 import com.example.fashionshop.enums.PaymentStatus;
 import com.example.fashionshop.model.*;
-import com.example.fashionshop.repository.CartRepository;
-import com.example.fashionshop.repository.OrderRepository;
-import com.example.fashionshop.repository.PaymentOrderRepository;
-import com.example.fashionshop.repository.UserRepository;
+import com.example.fashionshop.repository.*;
 import com.example.fashionshop.request.PaymentPaypalRequest;
 import com.example.fashionshop.response.ApiResponse;
 import com.example.fashionshop.response.PaymentLinkResponse;
@@ -31,9 +28,7 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final PaypalService paypalService;
     private final OrderRepository orderRepository;
-    private final PaymentOrderRepository paymentOrderRepository;
-    private final RevenueService revenueService;
-    private final CartRepository cartRepository;
+    private final ProductRepository productRepository;
     private final CartService cartService;
     private final OrderService orderService;
 
@@ -80,11 +75,34 @@ public class PaymentController {
 
         String email = authentication.getName();
         User user = userRepository.findByEmail(email);
+
+        if (request.getProduct() != null) {
+            Payment payment = paypalService.excutePayment(request.getPaymentId(), request.getPayerId());
+            if (payment.getState().equals("approved")){
+                Product product = productRepository.findById(request.getProduct())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product not found"));
+
+                Order newOrder = orderService.addNewOrderWithSingleProduct(
+                        user, product, request.getQuantity(),
+                        request.getSize(), request.getColor(), request.getAddressId(),
+                        request.getTotalPrice()
+                );
+                newOrder.setPaymentString(request.getPaymentId());
+                orderRepository.save(newOrder);
+            }
+
+            ApiResponse apiResponse = new ApiResponse();
+            apiResponse.setMessage("Payment one product success");
+            apiResponse.setSuccess(true);
+
+            return new ResponseEntity<>(apiResponse, HttpStatus.OK);
+        }
+
+
         Cart cart = cartService.getCartByUserId(user.getId());
         if (cart == null || cart.getTotalItems() == 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, user.getId() + " Cart is empty");
         }
-
         Order newOrder = new Order();
         Payment payment = paypalService.excutePayment(request.getPaymentId(), request.getPayerId());
         if (payment.getState().equals("approved")){
@@ -93,11 +111,6 @@ public class PaymentController {
         }
 
         if (newOrder.getPaymentStatus().equals(PaymentStatus.COMPLETED)){
-//            Report report = revenueService.getReport();
-//            report.setTotalOrders(report.getTotalOrders() + 1);
-//            report.setTotalRevenue(report.getTotalRevenue() + newOrder.getTotalOrderPrice());
-//            revenueService.updateReport(report);
-
             cartService.clearCart(cart.getId());
         }
 

@@ -31,6 +31,35 @@ public class OrderService {
     private final CartService cartService;
     private final ProductRepository productRepository;
 
+    public Order addNewOrderWithSingleProduct(User user, Product product, int quantity, String size, String color, Long addressId, double totalPrice) {
+        if (user == null || product == null || quantity <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user, product, or quantity.");
+        }
+
+        if (quantity > product.getStock()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product " + product.getName() + " is out of stock.");
+        }
+
+        Address shippingAddress = addressRepository.findById(addressId)
+                .filter(address -> user.getAddresses().contains(address))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid shipping address."));
+
+        Order newOrder = new Order();
+        newOrder.setUser(user);
+        newOrder.setAddress(shippingAddress);
+        newOrder.setTotalOrderPrice(totalPrice);
+        newOrder.setTotalItems(quantity);
+        newOrder.setOrderStatus(OrderStatus.PENDING);
+        newOrder.setPaymentStatus(PaymentStatus.COMPLETED);
+
+        Order savedOrder = orderRepository.save(newOrder);
+
+        OrderItem orderItem = new OrderItem(savedOrder, product, quantity, size, color);
+        OrderItem savedOrderItem = orderItemRepository.save(orderItem);
+
+        return savedOrder;
+    }
+
     @Transactional //tạo đơn hàng từ các sản phẩm trong giỏ hàng
     public Order addNewOrder(User user, Cart cart, Long addressId, Double totalPrice) {
         if (user == null || cart == null || cart.getCartItems().isEmpty()) {

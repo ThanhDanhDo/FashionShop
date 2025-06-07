@@ -49,3 +49,17 @@ export const searchInteract = async ({
   return response.json();
 };
 
+export const getContentBaseRec = async (productId) => {
+  try {
+    const res = await fetch(`/api/rec/${productId}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Không thể lấy ContentBase recommendation");
+    return res.json();
+  } catch (error) {
+    console.log("Không thể lấy ContentBase recommendation: ", error)
+  }
+}
+
