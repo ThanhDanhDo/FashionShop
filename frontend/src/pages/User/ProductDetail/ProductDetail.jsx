@@ -184,6 +184,11 @@ const ProductDetail = () => {
   };
 
   const handleBuyNow = () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    
     localStorage.setItem("totalPriceToPay", (product.price * 1.1));
     const buyNowData = {
       product: product.id,
@@ -488,7 +493,7 @@ const ProductDetail = () => {
                 disabled={isAddingToCart}
                 className={`btn btn-cart ${isAddingToCart ? "disabled" : ""}`}
               >
-                {isAddingToCart ? "Đang thêm..." : "ADD TO CART"}
+                {isAddingToCart ? "Adding..." : "ADD TO CART"}
               </button>
               <button
                 onClick={handleBuyNow}

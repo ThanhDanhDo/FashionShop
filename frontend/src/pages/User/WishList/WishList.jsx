@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Navbar from '../../../components/Navbar/Navbar';
 import "./WishList.css";
 import { useNavigate } from "react-router-dom";
@@ -7,12 +7,14 @@ import { getWishlist, toggleWishlistItem } from '../../../services/wishlistServi
 import { useLoading } from '../../../context/LoadingContext';
 import "../Products/Products.css";
 import { Grid, IconButton } from "@mui/material";
+import { AuthContext } from '../../../context/AuthContext';
 
 
 const WishList = () => {
   const navigate = useNavigate();
   const { setLoading } = useLoading();
   const [wishListItems, setWishListItems] = useState([]);
+  const { isLoggedIn } = useContext(AuthContext);
 
   const fetchWishlist = async () => {
     setLoading(true);
@@ -32,6 +34,7 @@ const WishList = () => {
   }, [])
 
   const toggleFavorite = async (productId) => {
+    if (!isLoggedIn) return;
     setLoading(true);
     try {
       const res = await toggleWishlistItem(productId);

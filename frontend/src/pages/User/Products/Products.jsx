@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Container, Grid, IconButton, Collapse } from "@mui/material";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -14,6 +14,7 @@ import CustomBreadcrumb from '../../../components/Breadcrumb';
 import FooterComponent from '../../../components/Footer/Footer';
 import FullPageSpin from '../../../components/ListSpin';
 import { getWishlist, toggleWishlistItem } from '../../../services/wishlistService'
+import { AuthContext } from '../../../context/AuthContext';
 
 const Products = () => {
   const navigate = useNavigate();
@@ -35,6 +36,7 @@ const Products = () => {
     material: true,
     color: true,
   });
+  const { isLoggedIn } = useContext(AuthContext);
 
   const [favorites, setFavorites] = useState({});
   const fetchWishlist = async () => {
@@ -61,6 +63,7 @@ const Products = () => {
   }, []);
 
   const toggleFavorite = async (productId) => {
+    if (!isLoggedIn) return;
     setLoading(true);
     try {
       await toggleWishlistItem(productId);
@@ -345,7 +348,7 @@ const Products = () => {
   //     [productId]: !prev[productId],
   //   }));
   // };
-  
+
 
   const handleSectionExpand = (sectionId) => {
     setExpandedSections((prev) => ({
