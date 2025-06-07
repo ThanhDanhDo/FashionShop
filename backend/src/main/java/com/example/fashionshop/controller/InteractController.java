@@ -59,7 +59,6 @@ public class InteractController {
     public ResponseEntity<List<Product>> getInteractToRecommendation(Authentication authentication) throws Exception {
         String email = authentication.getName();
         User user = userRepository.findByEmail(email);
-
         List<Product> recommend = interactService.getInteractToRecommendation(user);
 
         return ResponseEntity.ok(recommend);
