@@ -106,10 +106,10 @@ const PayPalSuccess = () => {
                             color: "#2ecc71",
                         }}
                     >
-                        Thanh toán thành công!
+                        Payment successful!
                     </h2>
                     <p style={{ fontSize: "16px", color: "#555" }}>
-                        Cảm ơn bạn đã mua hàng với chúng tôi.
+                        Thank you for shopping with us.
                     </p>
 
                     <Link
@@ -128,7 +128,7 @@ const PayPalSuccess = () => {
                         onMouseOver={(e) => (e.target.style.backgroundColor = "#27ae60")}
                         onMouseOut={(e) => (e.target.style.backgroundColor = "#2ecc71")}
                     >
-                        Quay về trang chủ
+                        Return to home page
                     </Link>
                 </div>
             </div>

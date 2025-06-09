@@ -220,7 +220,7 @@ const Products = () => {
       }
       const productLineSection = {
         id: "productLine",
-        title: "DÒNG SẢN PHẨM",
+        title: "PRODUCT LINE",
         items: productLineItems[selectedCategory] || [],
       };
       return [productLineSection, ...baseSections];

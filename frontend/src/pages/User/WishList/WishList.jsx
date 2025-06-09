@@ -54,7 +54,8 @@ const WishList = () => {
       <div className="wishlist-container">
         <h1 className="wishlist-title">WISHLIST</h1>
         {wishListItems.length === 0 ? (
-          <p className="wishlist-empty">Bạn chưa thêm sản phẩm nào vào danh sách yêu thích.</p>
+          <p className="wishlist-empty">
+          You have not added any products to your wishlist.</p>
         ) : (
           <Grid item xs={12} md={9}>
             <div className="product-grid">
