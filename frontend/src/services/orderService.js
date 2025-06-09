@@ -58,37 +58,37 @@ export const searchOrder = async ({
     size = 10,
     sortBy = 'id',
     sortDir = 'asc',
-  }) => {
+}) => {
     const params = new URLSearchParams({ page, size, sortBy, sortDir });
-  
-    if (id !== undefined && id !== null) params.append('id', id);
-    if (userId !== undefined && userId !== null) params.append('userId', userId);
+
+    if (id !== undefined && id !== null && id !== '') params.append('id', id);
+    if (userId !== undefined && userId !== null && userId !== '') params.append('userId', userId);
     if (addressId !== undefined && addressId !== null) params.append('addressId', addressId);
     if (itemId !== undefined && itemId !== null) params.append('itemId', itemId);
     if (fromDateStr !== undefined && fromDateStr !== null) params.append('fromDate', fromDateStr);
     if (toDateStr !== undefined && toDateStr !== null) params.append('toDate', toDateStr);
-    if (orderStatus !== undefined && orderStatus !== null) params.append('orderStatus', orderStatus);
+    if (orderStatus !== undefined && orderStatus !== null && orderStatus !== 'ALL') params.append('orderStatus', orderStatus);
     if (paymentStatus !== undefined && paymentStatus !== null) params.append('paymentStatus', paymentStatus);
-  
+
     const url = `/api/orders/searchOrder?${params.toString()}`;
-  
+
     try {
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-      });
-  
-      if (!response.ok) {
-        throw new Error('Không thể tìm kiếm đơn hàng!');
-      }
-  
-      return response.json();
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            throw new Error('Không thể tìm kiếm đơn hàng!');
+        }
+
+        return response.json();
     } catch (error) {
-      console.error(error);
-      throw new Error('Có lỗi xảy ra trong khi tìm kiếm đơn hàng!');
+        console.error('Có lỗi xảy ra trong khi tìm kiếm đơn hàng:', error);
+        throw new Error('Có lỗi xảy ra trong khi tìm kiếm đơn hàng!');
     }
-  };
+};
 
 
   
