@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './Orders-admin.css';
-import { Select, DatePicker, Space } from 'antd';
+import { Select, DatePicker, Space, Dropdown, Typography } from 'antd';
 import 'antd/dist/reset.css';
-import { searchOrder, updateOrderStatus } from '../../../services/orderService'; // Đảm bảo rằng bạn import đúng hàm searchOrder từ API
+import { DownOutlined } from '@ant-design/icons';
+import { searchOrder, updateOrderStatus } from '../../../services/orderService';
 
 const { RangePicker } = DatePicker;
 
@@ -19,24 +20,30 @@ const getNextValidStatuses = (currentStatus) => {
   }
 };
 
-
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [filteredStatus, setFilteredStatus] = useState("ALL");
   const [expandedOrders, setExpandedOrders] = useState({});
   const [searchOrderId, setSearchOrderId] = useState('');
   const [dateRange, setDateRange] = useState([]);
+  const [searchType, setSearchType] = useState('Order ID');
+
+  const searchTypeItems = [
+    { key: 'Order ID', label: 'Order ID' },
+    { key: 'User ID', label: 'User ID' },
+  ];
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const data = await searchOrder({
-          id: searchOrderId || undefined,
+          id: searchType === 'Order ID' ? searchOrderId || undefined : undefined,
+          userId: searchType === 'User ID' ? searchOrderId || undefined : undefined,
           orderStatus: filteredStatus !== 'ALL' ? filteredStatus : undefined,
           fromDateStr: dateRange[0] ? dateRange[0].format('YYYY-MM-DD') : undefined,
           toDateStr: dateRange[1] ? dateRange[1].format('YYYY-MM-DD') : undefined,
         });
-        console.log(data.content)
+        console.log('API Response:', data.content); // Log to inspect userId field
         setOrders(data.content || []);
       } catch (error) {
         console.error('Lỗi khi tìm kiếm đơn hàng:', error);
@@ -44,7 +51,7 @@ const Orders = () => {
     };
 
     fetchOrders();
-  }, [searchOrderId, filteredStatus, dateRange]);
+  }, [searchOrderId, filteredStatus, dateRange, searchType]);
 
   const handleStatusFilter = (status) => {
     setFilteredStatus(status);
@@ -70,9 +77,14 @@ const Orders = () => {
     }));
   };
 
+  const handleSearchTypeSelect = ({ key }) => {
+    setSearchType(key);
+  };
+
   const filteredOrders = orders.filter(order => {
     if (filteredStatus !== "ALL" && order.status !== filteredStatus) return false;
-    if (searchOrderId && !String(order.orderId).toLowerCase().includes(searchOrderId.toLowerCase())) return false;
+    if (searchOrderId && searchType === 'Order ID' && !String(order.orderId).toLowerCase().includes(searchOrderId.toLowerCase())) return false;
+    if (searchOrderId && searchType === 'User ID' && !String(order.userId).toLowerCase().includes(searchOrderId.toLowerCase())) return false;
     if (dateRange && dateRange.length === 2) {
       const orderDate = new Date(order.date);
       const start = dateRange[0]?.startOf?.('day') ? dateRange[0].startOf('day').toDate() : dateRange[0]?.toDate?.();
@@ -102,12 +114,26 @@ const Orders = () => {
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
           <input
             type="text"
-            placeholder="Search Order ID"
+            placeholder={`Search ${searchType}`}
             className="search-input"
-            style={{ width: 200 }}
             value={searchOrderId}
             onChange={e => setSearchOrderId(e.target.value)}
           />
+          <Dropdown
+            menu={{
+              items: searchTypeItems,
+              selectable: true,
+              selectedKeys: [searchType],
+              onSelect: handleSearchTypeSelect,
+            }}
+          >
+            <Typography.Link className="filter-select">
+              <Space>
+                {searchType}
+                <DownOutlined />
+              </Space>
+            </Typography.Link>
+          </Dropdown>
           <RangePicker
             style={{ height: 38, borderRadius: 5 }}
             value={dateRange}
@@ -131,33 +157,33 @@ const Orders = () => {
       <div className="orders-list">
         {filteredOrders.length === 0 ? (
           <p>There are no orders with this status.</p>
-        ) :
-          (
-            filteredOrders.map((order) => (
-              <div key={order.orderId} className="order-card">
-                <div className="order-header">
-                  <div>
-                    <p>
-                      <strong>OrderID:</strong> {order.orderId} &nbsp;&nbsp;
-                      <strong>Payment ID:</strong> {order.paymentId} &nbsp;&nbsp;
-                      <strong>Order Date:</strong> {order.date}
-                    </p>
-                    <p>
-                      <strong>Address:</strong> {order.address} &nbsp;&nbsp;
-                      <strong>Phone:</strong> {order.phone}
-                    </p>
-                    <p>
-                      <strong>Total price:</strong> {order.total.toLocaleString()} VND &nbsp;&nbsp;
-                      <strong>Total items:</strong> {order.products.reduce((sum, p) => sum + p.quantity, 0)} &nbsp;&nbsp;
-                    </p>
-                    <div className="order-footer">
-                      <button className="toggle-button" onClick={() => toggleExpand(order.orderId)}>
-                        {expandedOrders[order.orderId] ? 'Less ▲' : 'More ▼'}
-                      </button>
-                    </div>
+        ) : (
+          filteredOrders.map((order) => (
+            <div key={order.orderId} className="order-card">
+              <div className="order-header">
+                <div>
+                  <p>
+                    <strong>OrderID:</strong> {order.orderId} &nbsp;&nbsp;
+                    <strong>Payment ID:</strong> {order.paymentId} &nbsp;&nbsp;
+                    <strong>Order Date:</strong> {order.date}
+                  </p>
+                  <p>
+                    <strong>UserID:</strong> {order.userId || 'N/A'} &nbsp;&nbsp;
+                    <strong>Address:</strong> {order.address} &nbsp;&nbsp;
+                    <strong>Phone:</strong> {order.phone}
+                  </p>
+                  <p>
+                    <strong>Total price:</strong> {order.total.toLocaleString()} VND &nbsp;&nbsp;
+                    <strong>Total items:</strong> {order.products.reduce((sum, p) => sum + p.quantity, 0)} &nbsp;&nbsp;
+                  </p>
+                  <div className="order-footer">
+                    <button className="toggle-button" onClick={() => toggleExpand(order.orderId)}>
+                      {expandedOrders[order.orderId] ? 'Less ▲' : 'More ▼'}
+                    </button>
                   </div>
+                </div>
+                <div>
                   <div>
-                    <div>
                     <Select
                       value={order.status}
                       style={{ width: 150 }}
@@ -169,41 +195,38 @@ const Orders = () => {
                         value: status
                       }))}
                     />
-                    </div>
                   </div>
                 </div>
+              </div>
 
-                {expandedOrders[order.orderId] && (
-                  <div className="order-products">
-                    {order.products.map((product) => (
-                      <div key={product.id} className="order-item">
-                        <img src={product.image} alt={product.name} className="order-image" />
-                        <div className="order-details order-details-grid-fix">
-                          {/* Row 1 */}
-                          <div className="order-details-row">
-                            <span><strong>Product Name:</strong> {product.name}</span>
-                            <span><strong>Gender:</strong> {product.gender}</span>
-                            <span><strong>Main Category:</strong> {product.mainCategory.name}</span>
-                          </div>
-                          {/* Row 2 */}
-                          <div className="order-details-row">
-                            <span><strong>Product ID:</strong> {product.id}</span>
-                            <span><strong>Size:</strong> {product.size}</span>
-                            <span><strong>Sub Category:</strong> {product.subCategory.name}</span>
-                          </div>
-                          {/* Row 3 */}
-                          <div className="order-details-row">
-                            <span><strong>Quantity:</strong> {product.quantity}</span>
-                            <span><strong>Color:</strong> {product.color}</span>
-                            <span><strong>Price:</strong> {product.price.toLocaleString()} VND</span>
-                          </div>
+              {expandedOrders[order.orderId] && (
+                <div className="order-products">
+                  {order.products.map((product) => (
+                    <div key={product.id} className="order-item">
+                      <img src={product.image} alt={product.name} className="order-image" />
+                      <div className="order-details order-details-grid-fix">
+                        <div className="order-details-row">
+                          <span><strong>Product Name:</strong> {product.name}</span>
+                          <span><strong>Gender:</strong> {product.gender}</span>
+                          <span><strong>Main Category:</strong> {product.mainCategory.name}</span>
+                        </div>
+                        <div className="order-details-row">
+                          <span><strong>Product ID:</strong> {product.id}</span>
+                          <span><strong>Size:</strong> {product.size}</span>
+                          <span><strong>Sub Category:</strong> {product.subCategory.name}</span>
+                        </div>
+                        <div className="order-details-row">
+                          <span><strong>Quantity:</strong> {product.quantity}</span>
+                          <span><strong>Color:</strong> {product.color}</span>
+                          <span><strong>Price:</strong> {product.price.toLocaleString()} VND</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
     </div>
