@@ -1,7 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Form, Input, Select, Button, Modal, message, Spin } from 'antd';
-import { getUserAddresses, addUserAddress, deleteUserAddress, updateUserAddress } from '../../../services/userService';
+import {
+  getUserById, // Thêm import này từ userService.js
+  getUserAddressesByAdmin,
+  addUserAddressByAdmin,
+  deleteUserAddressByAdmin,
+  updateUserAddressByAdmin,
+} from '../../../services/userService';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNotification } from '../../../components/NotificationProvider';
 import './Change-account.css';
@@ -27,6 +33,7 @@ const ChangeAccount = () => {
   const [newRole, setNewRole] = useState('');
   const [loading, setLoading] = useState(true);
   const api = useNotification();
+  const [account, setAccount] = useState(null); // Thêm state để lưu account
 
   const [addresses, setAddresses] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -42,41 +49,48 @@ const ChangeAccount = () => {
   });
 
   useEffect(() => {
-    const fetchAccount = () => {
+    const fetchAccount = async () => {
       setLoading(true);
       try {
-        const accounts = window.history.state?.usr?.accounts || [];
-        const account = accounts.find((acc) => acc.id === parseInt(accountId));
-        if (!account) {
-          message.error('Account not found');
-          navigate('/Users-admin');
-          return;
+        // Ưu tiên lấy account từ API
+        const accountData = await getUserById(accountId);
+        if (!accountData) {
+          api.error({
+            message: 'Account not found',
+            description: 'Could not find the specified account.',
+          });
+          setAccount(null);
+        } else {
+          setAccount(accountData);
+          form.setFieldsValue({
+            id: accountData.id,
+            created_at: accountData.created_at || '2025-05-18 20:53:54.655363',
+            firstName: accountData.firstName,
+            lastName: accountData.lastName,
+            email: accountData.email,
+            gender: accountData.gender,
+            role: accountData.role,
+            phone: accountData.phone || '',
+          });
+          setNewRole(accountData.role);
         }
-        form.setFieldsValue({
-          id: account.id,
-          created_at: account.created_at || '2025-05-18 20:53:54.655363',
-          firstName: account.firstName,
-          lastName: account.lastName,
-          email: account.email,
-          gender: account.gender,
-          role: account.role,
-          phone: account.phone || '',
-        });
-        setNewRole(account.role);
       } catch (e) {
-        message.error('Error loading account data');
-        navigate('/Users-admin');
+        api.error({
+          message: 'Error loading account data',
+          description: 'Could not load account data. Please try again.',
+        });
+        setAccount(null);
       } finally {
         setLoading(false);
       }
     };
     fetchAccount();
     fetchAddresses();
-  }, [accountId, form, navigate]);
+  }, [accountId, form]);
 
   const fetchAddresses = async () => {
     try {
-      const data = await getUserAddresses();
+      const data = await getUserAddressesByAdmin(accountId);
       const normalized = (data || []).map(addr => ({
         ...addr,
         is_default: addr.isDefault ?? addr.is_default ?? addr.default
@@ -91,7 +105,7 @@ const ChangeAccount = () => {
     } catch {
       api.error({
         message: 'Failed to load addresses',
-        description: 'Could not fetch your addresses. Please try again later.',
+        description: 'Could not fetch user addresses. Please try again later.',
       });
     }
   };
@@ -105,7 +119,7 @@ const ChangeAccount = () => {
       cancelText: 'Cancel',
       onOk: async () => {
         try {
-          await deleteUserAddress(id);
+          await deleteUserAddressByAdmin(accountId, id);
           api.success({
             message: 'Address removed',
             description: 'The address has been deleted successfully.',
@@ -122,6 +136,7 @@ const ChangeAccount = () => {
             description: 'Could not remove address. Please try again.',
           });
         }
+        // KHÔNG điều hướng, giữ người dùng ở trang này
       },
     });
   };
@@ -133,7 +148,7 @@ const ChangeAccount = () => {
 
   const handleSaveEdit = async () => {
     try {
-      await updateUserAddress(editingId, tempAddress);
+      await updateUserAddressByAdmin(accountId, editingId, tempAddress);
       api.success({
         message: 'Address updated',
         description: 'The address has been updated successfully.',
@@ -147,11 +162,12 @@ const ChangeAccount = () => {
         description: 'Could not update address. Please try again.',
       });
     }
+    // KHÔNG điều hướng, giữ người dùng ở trang này
   };
 
   const handleAddAddress = async () => {
     try {
-      await addUserAddress(newAddress);
+      await addUserAddressByAdmin(accountId, newAddress);
       api.success({
         message: 'Address added successfully',
         description: 'Your new address has been saved.',
@@ -171,6 +187,7 @@ const ChangeAccount = () => {
         description: 'Could not add address. Please try again.',
       });
     }
+    // KHÔNG điều hướng, giữ người dùng ở trang này
   };
 
   const handleEditChange = (e) => {
@@ -185,7 +202,7 @@ const ChangeAccount = () => {
     setShowModal(true);
   };
 
-  const handleConfirmChange = () => {
+  const handleConfirmChange = async () => {
     const values = form.getFieldsValue();
     const updatedAccount = {
       key: accountId.toString(),
@@ -200,14 +217,22 @@ const ChangeAccount = () => {
     };
 
     try {
-      const accounts = window.history.state?.usr?.accounts || [];
-      const updatedAccounts = accounts.map((acc) =>
-        acc.id === parseInt(accountId) ? updatedAccount : acc
-      );
+      // Gọi API để cập nhật tài khoản (giả sử có hàm updateUserByAdmin trong userService.js)
+      // await updateUserByAdmin(accountId, updatedAccount);
+      api.success({
+        message: 'Account updated',
+        description: 'Account changes have been saved successfully.',
+      });
       setShowModal(false);
-      navigate('/Users-admin', { state: { updatedAccounts } });
+      // Chỉ điều hướng khi người dùng xác nhận hoàn tất chỉnh sửa
+      setTimeout(() => {
+        navigate('/Users-admin');
+      }, 1000); // Chờ 1 giây để người dùng thấy thông báo
     } catch (e) {
-      message.error('Failed to update account');
+      api.error({
+        message: 'Failed to update account',
+        description: 'Could not save account changes. Please try again.',
+      });
       setShowModal(false);
     }
   };
@@ -217,7 +242,7 @@ const ChangeAccount = () => {
   };
 
   const handleCancel = () => {
-    navigate('/Users-admin');
+    navigate('/Users-admin'); // Điều hướng chủ động khi người dùng nhấn Cancel
   };
 
   const handleRoleChangeClick = () => {
@@ -235,6 +260,25 @@ const ChangeAccount = () => {
     setNewRole(form.getFieldValue('role'));
   };
 
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: 40 }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!account) {
+    return (
+      <div style={{ textAlign: 'center', padding: 40 }}>
+        <p>Account not found. Please try again or return to the user list.</p>
+        <Button type="primary" onClick={() => navigate('/Users-admin')}>
+          Back to Users
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div
       className="change-account"
@@ -248,164 +292,159 @@ const ChangeAccount = () => {
       }}
     >
       <h1 style={{ textAlign: 'center', marginBottom: 24 }}>Change Account</h1>
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: 40 }}>
-          <Spin size="large" />
-        </div>
-      ) : (
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={onFinish}
-          style={{ width: '100%' }}
-        >
-          <div className="form-container">
-            <div className="form-column">
-              <div className="row">
-                <Form.Item label="Account ID" name="id">
-                  <Input disabled />
-                </Form.Item>
-                <Form.Item label="Created At" name="created_at">
-                  <Input disabled />
-                </Form.Item>
-              </div>
-              <div className="row">
-                <Form.Item
-                  label="First Name"
-                  name="firstName"
-                  rules={[{ required: true, message: 'Please enter first name' }]}
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        style={{ width: '100%' }}
+      >
+        <div className="form-container">
+          <div className="form-column">
+            <div className="row">
+              <Form.Item label="Account ID" name="id">
+                <Input disabled />
+              </Form.Item>
+              <Form.Item label="Created At" name="created_at">
+                <Input disabled />
+              </Form.Item>
+            </div>
+            <div className="row">
+              <Form.Item
+                label="First Name"
+                name="firstName"
+                rules={[{ required: true, message: 'Please enter first name' }]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                label="Last Name"
+                name="lastName"
+                rules={[{ required: true, message: 'Please enter last name' }]}
+              >
+                <Input />
+              </Form.Item>
+            </div>
+            <div className="row">
+              <Form.Item
+                label="Email"
+                name="email"
+                rules={[
+                  { required: true, message: 'Please enter email' },
+                  { type: 'email', message: 'Please enter a valid email' },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                label="Gender"
+                name="gender"
+                rules={[{ required: true, message: 'Please select gender' }]}
+              >
+                <Select options={genderOptions} placeholder="Select gender" />
+              </Form.Item>
+            </div>
+            <div className="row">
+              <Form.Item
+                label="Phone Number"
+                name="phone"
+                rules={[
+                  { required: true, message: 'Please enter phone number' },
+                  {
+                    pattern: /^[0-9]{10,15}$/,
+                    message: 'Please enter a valid phone number (10-15 digits)',
+                  },
+                ]}
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                label="Role"
+                name="role"
+                rules={[{ required: true, message: 'Please select role' }]}
+              >
+                <Input disabled value={form.getFieldValue('role')} />
+                <Button
+                  style={{ marginTop: 10 }}
+                  className="change-role-btn"
+                  onClick={handleRoleChangeClick}
+                  aria-label="Change user role"
                 >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  label="Last Name"
-                  name="lastName"
-                  rules={[{ required: true, message: 'Please enter last name' }]}
-                >
-                  <Input />
-                </Form.Item>
-              </div>
-              <div className="row">
-                <Form.Item
-                  label="Email"
-                  name="email"
-                  rules={[
-                    { required: true, message: 'Please enter email' },
-                    { type: 'email', message: 'Please enter a valid email' },
-                  ]}
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  label="Gender"
-                  name="gender"
-                  rules={[{ required: true, message: 'Please select gender' }]}
-                >
-                  <Select options={genderOptions} placeholder="Select gender" />
-                </Form.Item>
-              </div>
-              <div className="row">
-                <Form.Item
-                  label="Phone Number"
-                  name="phone"
-                  rules={[
-                    { required: true, message: 'Please enter phone number' },
-                    {
-                      pattern: /^[0-9]{10,15}$/,
-                      message: 'Please enter a valid phone number (10-15 digits)',
-                    },
-                  ]}
-                >
-                  <Input />
-                </Form.Item>
-                <Form.Item
-                  label="Role"
-                  name="role"
-                  rules={[{ required: true, message: 'Please select role' }]}
-                >
-                  <Input disabled value={form.getFieldValue('role')} />
-                  <Button
-                    style={{ marginTop: 10 }}
-                    className="change-role-btn"
-                    onClick={handleRoleChangeClick}
-                    aria-label="Change user role"
-                  >
-                    Change Role
-                  </Button>
-                </Form.Item>
-              </div>
+                  Change Role
+                </Button>
+              </Form.Item>
             </div>
           </div>
+        </div>
 
-          {/* Address Section */}
-          <div className="address-section">
-            <h2 className="section-title">Select Delivery Address
+        {/* Address Section */}
+        <div className="address-section">
+          <h2 className="section-title">Select Delivery Address
             {!showForm && (
               <button className="toggle-form-btn" onClick={() => setShowForm(true)}>
                 Add New Address
               </button>
             )}
-            </h2>
-            {addresses.length === 0 ? (
-              <p>No addresses found.</p>
-            ) : (
-              addresses.map((addr) => (
-                <div
-                  key={addr.id}
-                  className={`address-box ${selectedAddress === addr.id ? "selected" : ""}`}
-                  onClick={() => setSelectedAddress(addr.id)}
-                >
-                  <div className="address-header">
-                    <div className="radio-group">
-                      <input
-                        type="radio"
-                        name="address"
-                        checked={selectedAddress === addr.id}
-                        onChange={() => setSelectedAddress(addr.id)}
-                      />
-                      {addr.is_default && <span className="default-label">Default</span>}
-                    </div>
-                    <div className="address-actions">
-                      <button
-                        className="edit-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditAddress(addr);
-                        }}
-                      >
-                        <EditOutlined />
-                      </button>
-                      <button
-                        className="delete-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteAddress(addr.id);
-                        }}
-                      >
-                        <DeleteOutlined />
-                      </button>
-                    </div>
+          </h2>
+          {addresses.length === 0 ? (
+            <p>No addresses found.</p>
+          ) : (
+            addresses.map((addr) => (
+              <div
+                key={addr.id}
+                className={`address-box ${selectedAddress === addr.id ? "selected" : ""}`}
+                onClick={() => setSelectedAddress(addr.id)}
+              >
+                <div className="address-header">
+                  <div className="radio-group">
+                    <input
+                      type="radio"
+                      name="address"
+                      checked={selectedAddress === addr.id}
+                      onChange={() => setSelectedAddress(addr.id)}
+                    />
+                    {addr.is_default && <span className="default-label">Default</span>}
                   </div>
+                  <div className="address-actions">
+                    <button
+                      className="edit-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditAddress(addr);
+                      }}
+                    >
+                      <EditOutlined />
+                    </button>
+                    <button
+                      className="delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteAddress(addr.id);
+                      }}
+                    >
+                      <DeleteOutlined />
+                    </button>
+                  </div>
+                </div>
 
-                  {editingId === addr.id ? (
-                    <>
-                      {["province", "district", "ward", "fullAddress", "phone"].map((field) => (
-                        <div className="form-group" key={field}>
-                          <label>
-                            {field === "fullAddress"
-                              ? "Full Address"
-                              : field.charAt(0).toUpperCase() + field.slice(1)}
-                          </label>
-                          <input
-                            type="text"
-                            name={field}
-                            value={tempAddress[field] || ""}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={handleEditChange}
-                          />
-                        </div>
-                      ))}
-                      <div className= "action-bar">
+                {editingId === addr.id ? (
+                  <>
+                    {["province", "district", "ward", "fullAddress", "phone"].map((field) => (
+                      <div className="form-group" key={field}>
+                        <label>
+                          {field === "fullAddress"
+                            ? "Full Address"
+                            : field.charAt(0).toUpperCase() + field.slice(1)}
+                        </label>
+                        <input
+                          type="text"
+                          name={field}
+                          value={tempAddress[field] || ""}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={handleEditChange}
+                        />
+                      </div>
+                    ))}
+                    <div className="action-bar">
                       <button
                         className="cancel-btn"
                         onClick={(e) => {
@@ -413,7 +452,7 @@ const ChangeAccount = () => {
                           setEditingId(null);
                           setTempAddress({});
                         }}
-                        style={{ marginBottom: "10px", width:'auto'}}
+                        style={{ marginBottom: "10px", width: 'auto' }}
                       >
                         Cancel Edit
                       </button>
@@ -423,49 +462,49 @@ const ChangeAccount = () => {
                           e.stopPropagation();
                           handleSaveEdit();
                         }}
-                        style={{ marginLeft: "10px", width:'auto'}}
+                        style={{ marginLeft: "10px", width: 'auto' }}
                       >
                         Save Edit
                       </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p><strong>Province:</strong> {addr.province}</p>
-                      <p><strong>District:</strong> {addr.district}</p>
-                      <p><strong>Ward:</strong> {addr.ward}</p>
-                      <p><strong>Full Address:</strong> {addr.fullAddress}</p>
-                      <p><strong>Phone:</strong> {addr.phone}</p>
-                    </>
-                  )}
-                </div>
-              ))
-            )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p><strong>Province:</strong> {addr.province}</p>
+                    <p><strong>District:</strong> {addr.district}</p>
+                    <p><strong>Ward:</strong> {addr.ward}</p>
+                    <p><strong>Full Address:</strong> {addr.fullAddress}</p>
+                    <p><strong>Phone:</strong> {addr.phone}</p>
+                  </>
+                )}
+              </div>
+            ))
+          )}
 
-            {showForm && (
-              <div className="new-address-card">
-                <h4 className="card-title">Add New Address</h4>
-                {["province", "district", "ward", "fullAddress", "phone"].map((field) => (
-                  <div className="form-group" key={field}>
-                    <label>
-                      {field === "fullAddress"
-                        ? "Full Address"
-                        : field.charAt(0).toUpperCase() + field.slice(1)}
-                    </label>
-                    <input
-                      type="text"
-                      name={field}
-                      value={newAddress[field]}
-                      onChange={(e) =>
-                        setNewAddress({
-                          ...newAddress,
-                          [field]: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                ))}
-                <div class = "action-bar">
+          {showForm && (
+            <div className="new-address-card">
+              <h4 className="card-title">Add New Address</h4>
+              {["province", "district", "ward", "fullAddress", "phone"].map((field) => (
+                <div className="form-group" key={field}>
+                  <label>
+                    {field === "fullAddress"
+                      ? "Full Address"
+                      : field.charAt(0).toUpperCase() + field.slice(1)}
+                  </label>
+                  <input
+                    type="text"
+                    name={field}
+                    value={newAddress[field]}
+                    onChange={(e) =>
+                      setNewAddress({
+                        ...newAddress,
+                        [field]: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              ))}
+              <div className="action-bar">
                 <button
                   className="cancel-btn"
                   onClick={() => {
@@ -478,39 +517,40 @@ const ChangeAccount = () => {
                       province: "",
                     });
                   }}
-                  style={{ marginBottom: "10px", width:'auto'}}
+                  style={{ marginBottom: "10px", width: 'auto' }}
                 >
                   Cancel Address
-                </button>                
-                <button className="add-btn" 
-                onClick={handleAddAddress}
-                style={{ marginLeft: "10px", width:'auto'}}>
+                </button>
+                <button
+                  className="add-btn"
+                  onClick={handleAddAddress}
+                  style={{ marginLeft: "10px", width: 'auto' }}
+                >
                   Save Address
                 </button>
-                </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
-          <div className="action-bar">
-            <Button
-              className="cancel-button"
-              onClick={handleCancel}
-              style={{ marginRight: 10 }}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="save-button"
-              type="primary"
-              htmlType="submit"
-              onClick={() => form.submit()}
-            >
-              Save Changes
-            </Button>
-          </div>
-        </Form>
-      )}
+        <div className="action-bar">
+          <Button
+            className="cancel-button"
+            onClick={handleCancel}
+            style={{ marginRight: 10 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            className="save-button"
+            type="primary"
+            htmlType="submit"
+            onClick={() => form.submit()}
+          >
+            Save Changes
+          </Button>
+        </div>
+      </Form>
       <Modal
         open={showModal}
         onCancel={handleCancelChange}

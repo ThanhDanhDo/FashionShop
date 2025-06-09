@@ -208,4 +208,37 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/admin/users/{userId}/addresses")
+    public ResponseEntity<List<Address>> getAddressesByUserId(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Address> addresses = addressRepository.findByUser_Id(user.getId());
+        return ResponseEntity.ok(addresses);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/admin/users/{userId}/addresses/{addressId}")
+    public ResponseEntity<?> deleteAddressByAdmin(@PathVariable Long userId, @PathVariable Long addressId) {
+        addressService.deleteAddressByAdmin(userId, addressId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/admin/users/{userId}/addresses/{addressId}")
+    public ResponseEntity<Address> updateAddressByAdmin(
+            @PathVariable Long userId,
+            @PathVariable Long addressId,
+            @RequestBody Address updatedAddress) {
+        Address address = addressService.updateAddressByAdmin(userId, addressId, updatedAddress);
+        return ResponseEntity.ok(address);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/admin/users/{userId}/addresses")
+    public ResponseEntity<Address> addAddressByAdmin(@PathVariable Long userId, @RequestBody Address newAddress) {
+        Address address = addressService.addAddressByAdmin(userId, newAddress);
+        return ResponseEntity.status(HttpStatus.CREATED).body(address);
+    }
 }
