@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import './Orders-admin.css';
-import { Select, DatePicker, Space, Dropdown, Typography } from 'antd';
+import { Select, DatePicker, Space, Dropdown, Typography, Pagination } from 'antd';
 import 'antd/dist/reset.css';
 import { DownOutlined } from '@ant-design/icons';
 import { searchOrder, updateOrderStatus } from '../../../services/orderService';
+import FullPageSpin from '../../../components/ListSpin'; // Import FullPageSpin
 
 const { RangePicker } = DatePicker;
 
@@ -27,6 +28,10 @@ const Orders = () => {
   const [searchOrderId, setSearchOrderId] = useState('');
   const [dateRange, setDateRange] = useState([]);
   const [searchType, setSearchType] = useState('Order ID');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [loading, setLoading] = useState(false); // Thêm trạng thái loading
 
   const searchTypeItems = [
     { key: 'Order ID', label: 'Order ID' },
@@ -35,6 +40,7 @@ const Orders = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
+      setLoading(true); // Bắt đầu loading
       try {
         const data = await searchOrder({
           id: searchType === 'Order ID' ? searchOrderId || undefined : undefined,
@@ -42,19 +48,26 @@ const Orders = () => {
           orderStatus: filteredStatus !== 'ALL' ? filteredStatus : undefined,
           fromDateStr: dateRange[0] ? dateRange[0].format('YYYY-MM-DD') : undefined,
           toDateStr: dateRange[1] ? dateRange[1].format('YYYY-MM-DD') : undefined,
+          page: currentPage - 1,
+          size: pageSize,
         });
-        console.log('API Response:', data.content); // Log to inspect userId field
         setOrders(data.content || []);
+        setTotalOrders(data.totalElements || 0);
       } catch (error) {
         console.error('Lỗi khi tìm kiếm đơn hàng:', error);
+        setOrders([]);
+        setTotalOrders(0);
+      } finally {
+        setLoading(false); // Kết thúc loading
       }
     };
 
     fetchOrders();
-  }, [searchOrderId, filteredStatus, dateRange, searchType]);
+  }, [searchOrderId, filteredStatus, dateRange, searchType, currentPage, pageSize]);
 
   const handleStatusFilter = (status) => {
     setFilteredStatus(status);
+    setCurrentPage(1); // Reset về trang 1 khi thay đổi bộ lọc
   };
 
   const handleStatusChange = async (orderId, newStatus) => {
@@ -79,21 +92,14 @@ const Orders = () => {
 
   const handleSearchTypeSelect = ({ key }) => {
     setSearchType(key);
+    setCurrentPage(1); // Reset về trang 1 khi thay đổi loại tìm kiếm
   };
 
-  const filteredOrders = orders.filter(order => {
-    if (filteredStatus !== "ALL" && order.status !== filteredStatus) return false;
-    if (searchOrderId && searchType === 'Order ID' && !String(order.orderId).toLowerCase().includes(searchOrderId.toLowerCase())) return false;
-    if (searchOrderId && searchType === 'User ID' && !String(order.userId).toLowerCase().includes(searchOrderId.toLowerCase())) return false;
-    if (dateRange && dateRange.length === 2) {
-      const orderDate = new Date(order.date);
-      const start = dateRange[0]?.startOf?.('day') ? dateRange[0].startOf('day').toDate() : dateRange[0]?.toDate?.();
-      const end = dateRange[1]?.endOf?.('day') ? dateRange[1].endOf('day').toDate() : dateRange[1]?.toDate?.();
-      if (start && orderDate < start) return false;
-      if (end && orderDate > end) return false;
-    }
-    return true;
-  });
+  // Lọc và phân trang dữ liệu
+  const paginatedOrders = orders.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <div
@@ -117,7 +123,7 @@ const Orders = () => {
             placeholder={`Search ${searchType}`}
             className="search-input"
             value={searchOrderId}
-            onChange={e => setSearchOrderId(e.target.value)}
+            onChange={e => { setSearchOrderId(e.target.value); setCurrentPage(1); }}
           />
           <Dropdown
             menu={{
@@ -145,7 +151,7 @@ const Orders = () => {
           {["ALL", "CONFIRMED", "SHIPPED", "DELIVERED", "PENDING", "CANCELLED"].map((status) => (
             <button
               key={status}
-              onClick={() => setFilteredStatus(status)}
+              onClick={() => handleStatusFilter(status)}
               className={filteredStatus === status ? "filter-button active" : "filter-button"}
             >
               {status}
@@ -155,26 +161,28 @@ const Orders = () => {
       </div>
 
       <div className="orders-list">
-        {filteredOrders.length === 0 ? (
+        {loading ? (
+          <FullPageSpin /> // Hiển thị FullPageSpin khi loading
+        ) : paginatedOrders.length === 0 ? (
           <p>There are no orders with this status.</p>
         ) : (
-          filteredOrders.map((order) => (
+          paginatedOrders.map((order) => (
             <div key={order.orderId} className="order-card">
               <div className="order-header">
                 <div>
                   <p>
-                    <strong>OrderID:</strong> {order.orderId} &nbsp;&nbsp;
-                    <strong>Payment ID:</strong> {order.paymentId} &nbsp;&nbsp;
+                    <strong>OrderID:</strong> {order.orderId}   
+                    <strong>Payment ID:</strong> {order.paymentId}   
                     <strong>Order Date:</strong> {order.date}
                   </p>
                   <p>
-                    <strong>UserID:</strong> {order.userId || 'N/A'} &nbsp;&nbsp;
-                    <strong>Address:</strong> {order.address} &nbsp;&nbsp;
+                    <strong>UserID:</strong> {order.userId || 'N/A'}   
+                    <strong>Address:</strong> {order.address}   
                     <strong>Phone:</strong> {order.phone}
                   </p>
                   <p>
-                    <strong>Total price:</strong> {order.total.toLocaleString()} VND &nbsp;&nbsp;
-                    <strong>Total items:</strong> {order.products.reduce((sum, p) => sum + p.quantity, 0)} &nbsp;&nbsp;
+                    <strong>Total price:</strong> {order.total.toLocaleString()} VND   
+                    <strong>Total items:</strong> {order.products.reduce((sum, p) => sum + p.quantity, 0)}   
                   </p>
                   <div className="order-footer">
                     <button className="toggle-button" onClick={() => toggleExpand(order.orderId)}>
@@ -183,19 +191,16 @@ const Orders = () => {
                   </div>
                 </div>
                 <div>
-                  <div>
-                    <Select
-                      value={order.status}
-                      style={{ width: 150 }}
-                      onChange={(value) => handleStatusChange(order.orderId, value)}
-                      dropdownStyle={{ borderRadius: '8px' }}
-                      className={`status-select status-${order.status}`}
-                      options={getNextValidStatuses(order.status).map(status => ({
-                        label: status,
-                        value: status
-                      }))}
-                    />
-                  </div>
+                  <Select
+                    value={order.status}
+                    style={{ width: 150 }}
+                    onChange={(value) => handleStatusChange(order.orderId, value)}
+                    className={`status-select status-${order.status}`}
+                    options={getNextValidStatuses(order.status).map(status => ({
+                      label: status,
+                      value: status
+                    }))}
+                  />
                 </div>
               </div>
 
@@ -228,6 +233,21 @@ const Orders = () => {
             </div>
           ))
         )}
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}>
+        <Pagination
+          current={currentPage}
+          pageSize={pageSize}
+          total={totalOrders}
+          showQuickJumper
+          showSizeChanger
+          pageSizeOptions={['5', '10', '20', '50']}
+          onChange={(page, size) => {
+            setCurrentPage(page);
+            setPageSize(size);
+          }}
+        />
       </div>
     </div>
   );
