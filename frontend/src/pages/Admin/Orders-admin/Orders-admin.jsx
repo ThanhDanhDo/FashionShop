@@ -72,7 +72,7 @@ const Orders = () => {
 
   const filteredOrders = orders.filter(order => {
     if (filteredStatus !== "ALL" && order.status !== filteredStatus) return false;
-    if (searchOrderId && !order.orderId.toLowerCase().includes(searchOrderId.toLowerCase())) return false;
+    if (searchOrderId && !String(order.orderId).toLowerCase().includes(searchOrderId.toLowerCase())) return false;
     if (dateRange && dateRange.length === 2) {
       const orderDate = new Date(order.date);
       const start = dateRange[0]?.startOf?.('day') ? dateRange[0].startOf('day').toDate() : dateRange[0]?.toDate?.();
