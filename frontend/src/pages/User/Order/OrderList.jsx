@@ -100,7 +100,7 @@ const OrderList = () => {
                     className="cancel-order-btn"
                     onClick={() => handleCancelOrder(order.id)}
                   >
-                    Huỷ đơn
+                    Cancel Order
                   </button>
                 )}
                 <button

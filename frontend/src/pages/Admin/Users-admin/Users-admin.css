@@ -133,11 +133,15 @@
   border: none;
   cursor: pointer;
   font-family: "Public Sans Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  background: #ff4d4f !important;
+  color: #fff !important;
+  border: none !important;
+  transition: background 0.2s;
 }
 
-.delete-selected-btn:hover {
-  background-color: #d9363e;
-  color: white;
+.delete-selected-btn:hover, .delete-selected-btn:focus {
+  background: #d9363e !important;
+  color: #fff !important;
 }
 
 /* Table */

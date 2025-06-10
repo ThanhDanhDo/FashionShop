@@ -106,6 +106,52 @@ public class AddressService {
         addressRepository.delete(addressToDelete);
     }
 
+    public void deleteAddressByAdmin(Long userId, Long addressId) {
+        Address address = addressRepository.findById(addressId)
+            .orElseThrow(() -> new IllegalArgumentException("Address not found."));
+        if (!address.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Address does not belong to the specified user.");
+        }
+        addressRepository.delete(address);
+    }
+
+    public Address updateAddressByAdmin(Long userId, Long addressId, Address updatedAddress) {
+        Address existingAddress = addressRepository.findById(addressId)
+            .orElseThrow(() -> new IllegalArgumentException("Address not found."));
+        if (!existingAddress.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Address does not belong to the specified user.");
+        }
+        if (updatedAddress.isDefault()) {
+            List<Address> userAddresses = addressRepository.findByUser_Id(userId);
+            for (Address addr : userAddresses) {
+                addr.setDefault(false);
+                addressRepository.save(addr);
+            }
+            existingAddress.setDefault(true);
+        }
+        if (updatedAddress.getProvince() != null) existingAddress.setProvince(updatedAddress.getProvince());
+        if (updatedAddress.getDistrict() != null) existingAddress.setDistrict(updatedAddress.getDistrict());
+        if (updatedAddress.getWard() != null) existingAddress.setWard(updatedAddress.getWard());
+        if (updatedAddress.getFullAddress() != null) existingAddress.setFullAddress(updatedAddress.getFullAddress());
+        if (updatedAddress.getPhone() != null) existingAddress.setPhone(updatedAddress.getPhone());
+        return addressRepository.save(existingAddress);
+    }
+
+    public Address addAddressByAdmin(Long userId, Address newAddress) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        newAddress.setUser(user);
+        // Nếu là default thì bỏ default các address khác
+        if (newAddress.isDefault()) {
+            List<Address> userAddresses = addressRepository.findByUser_Id(userId);
+            for (Address addr : userAddresses) {
+                addr.setDefault(false);
+                addressRepository.save(addr);
+            }
+        }
+        return addressRepository.save(newAddress);
+    }
+
 
 
 

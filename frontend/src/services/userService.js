@@ -1,12 +1,13 @@
 const API_BASE_URL = '/api/user';
 
+// Existing functions (unchanged)
 export const getUserProfile = async () => {
   const response = await fetch(`${API_BASE_URL}/profile`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
-    credentials: 'include', // Gửi cookie (bao gồm token HttpOnly)
+    credentials: 'include',
   });
   if (!response.ok) throw new Error('Không thể lấy thông tin người dùng!');
   return response.json();
@@ -18,7 +19,7 @@ export const updateUserProfile = async (updatedData) => {
     headers: {
       'Content-Type': 'application/json',
     },
-    credentials: 'include', // Gửi cookie
+    credentials: 'include',
     body: JSON.stringify(updatedData),
   });
   if (!response.ok) throw new Error('Cập nhật thông tin thất bại!');
@@ -31,7 +32,7 @@ export const getUserAddresses = async () => {
     headers: {
       'Content-Type': 'application/json',
     },
-    credentials: 'include', // Gửi cookie
+    credentials: 'include',
   });
   if (!response.ok) throw new Error('Không thể lấy danh sách địa chỉ!');
   return response.json();
@@ -130,6 +131,20 @@ export const createUserByAdmin = async (userData) => {
   return response.json();
 };
 
+export const createUserWithAddress = async (userAndAddressData) => {
+  const response = await fetch('/api/admin/users-with-address', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(userAndAddressData),
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'Could not create user!');
+  }
+  return response.json();
+};
+
 export const deleteUser = async (id) => {
   try {
     const res = await fetch(`/api/user/delete/${id}`, {
@@ -141,4 +156,60 @@ export const deleteUser = async (id) => {
   } catch (error) {
     console.log("Không thể xoá user: ", error)
   }
-}
+};
+
+export const getUserAddressesByAdmin = async (userId) => {
+  const response = await fetch(`/api/admin/users/${userId}/addresses`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error('Không thể lấy danh sách địa chỉ!');
+  return response.json();
+};
+
+export const deleteUserAddressByAdmin = async (userId, addressId) => {
+  const response = await fetch(`/api/admin/users/${userId}/addresses/${addressId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error('Could not delete address!');
+};
+
+export const updateUserAddressByAdmin = async (userId, addressId, addressData) => {
+  const response = await fetch(`/api/admin/users/${userId}/addresses/${addressId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(addressData),
+  });
+  if (!response.ok) throw new Error('Could not update address!');
+  return response.json();
+};
+
+export const addUserAddressByAdmin = async (userId, addressData) => {
+  const response = await fetch(`/api/admin/users/${userId}/addresses`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(addressData),
+  });
+  if (!response.ok) throw new Error('Could not add address!');
+  return response.json();
+};
+
+// New function to fetch user by ID
+export const getUserById = async (userId) => {
+  const response = await fetch(`/api/admin/users/${userId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'Không thể lấy thông tin người dùng!');
+  }
+  return response.json();
+};

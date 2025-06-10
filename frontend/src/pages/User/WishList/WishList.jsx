@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Navbar from '../../../components/Navbar/Navbar';
 import "./WishList.css";
 import { useNavigate } from "react-router-dom";
@@ -7,12 +7,14 @@ import { getWishlist, toggleWishlistItem } from '../../../services/wishlistServi
 import { useLoading } from '../../../context/LoadingContext';
 import "../Products/Products.css";
 import { Grid, IconButton } from "@mui/material";
+import { AuthContext } from '../../../context/AuthContext';
 
 
 const WishList = () => {
   const navigate = useNavigate();
   const { setLoading } = useLoading();
   const [wishListItems, setWishListItems] = useState([]);
+  const { isLoggedIn } = useContext(AuthContext);
 
   const fetchWishlist = async () => {
     setLoading(true);
@@ -32,6 +34,7 @@ const WishList = () => {
   }, [])
 
   const toggleFavorite = async (productId) => {
+    if (!isLoggedIn) return;
     setLoading(true);
     try {
       const res = await toggleWishlistItem(productId);
@@ -51,7 +54,8 @@ const WishList = () => {
       <div className="wishlist-container">
         <h1 className="wishlist-title">WISHLIST</h1>
         {wishListItems.length === 0 ? (
-          <p className="wishlist-empty">Bạn chưa thêm sản phẩm nào vào danh sách yêu thích.</p>
+          <p className="wishlist-empty">
+          You have not added any products to your wishlist.</p>
         ) : (
           <Grid item xs={12} md={9}>
             <div className="product-grid">

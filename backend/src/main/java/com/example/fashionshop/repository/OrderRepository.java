@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +15,6 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     Optional<Order> findById(Long orderId);
     List<Order> findByUserId(Long userId);
-//    Optional<Order> findByOrderId(Long orderId);
 
     Page<Order> findAll(Pageable pageable);
     Page<Order> findByUserId(Long userId, Pageable pageable);
@@ -45,4 +43,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findByOrderDateBetween(LocalDateTime from, LocalDateTime to, Pageable pageable);
     Page<Order> findByPaymentStatus(PaymentStatus status, Pageable pageable);
     Page<Order> findByOrderStatusAndPaymentStatus(OrderStatus status, PaymentStatus paymentStatus, Pageable pageable);
+
+    // Thêm các phương thức mới để hỗ trợ tìm kiếm kết hợp
+    Page<Order> findByOrderStatusAndOrderDateBetween(OrderStatus orderStatus, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<Order> findByPaymentStatusAndOrderDateBetween(PaymentStatus paymentStatus, LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<Order> findByOrderStatusAndPaymentStatusAndOrderDateBetween(OrderStatus orderStatus, PaymentStatus paymentStatus, LocalDateTime from, LocalDateTime to, Pageable pageable);
 }

@@ -23,12 +23,27 @@ const PayPalSuccess = () => {
     useEffect(() => {
         if (hasRun.current) return;
         hasRun.current = true;
-        
         const processPayment = async () => {
+            const buyNowData = JSON.parse(localStorage.getItem("buyNowData"));
             try {
-                const res = await handleSuccessPayment(paymentId, payerId, addressId, totalPrice);
-                console.log(res);
+                let res;
+                if (buyNowData) {
+                    res = await handleSuccessPayment(
+                        paymentId,
+                        payerId,
+                        addressId,
+                        totalPrice,
+                        buyNowData.product,
+                        buyNowData.quantity,
+                        buyNowData.color,
+                        buyNowData.size
+                    );
+                } else {
+                    res = await handleSuccessPayment(paymentId, payerId, addressId, totalPrice);
+                }
+                console.log("Kết quả thanh toán:", res);
                 setSuccess(true);
+                localStorage.removeItem("buyNowData");
             } catch (err) {
                 console.error("Lỗi tạo đơn:", err);
                 setError("Đã xảy ra lỗi khi xử lý thanh toán.");
@@ -91,10 +106,10 @@ const PayPalSuccess = () => {
                             color: "#2ecc71",
                         }}
                     >
-                        Thanh toán thành công!
+                        Payment successful!
                     </h2>
                     <p style={{ fontSize: "16px", color: "#555" }}>
-                        Cảm ơn bạn đã mua hàng với chúng tôi.
+                        Thank you for shopping with us.
                     </p>
 
                     <Link
@@ -113,7 +128,7 @@ const PayPalSuccess = () => {
                         onMouseOver={(e) => (e.target.style.backgroundColor = "#27ae60")}
                         onMouseOut={(e) => (e.target.style.backgroundColor = "#2ecc71")}
                     >
-                        Quay về trang chủ
+                        Return to home page
                     </Link>
                 </div>
             </div>

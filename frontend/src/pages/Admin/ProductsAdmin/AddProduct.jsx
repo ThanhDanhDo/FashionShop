@@ -13,7 +13,6 @@ import {
   Image
 } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
-// Sử dụng chung CSS với change-product
 import './FormProduct.css';
 import { getAllProducts, uploadProductImage, deleteProductImage, addProduct } from '../../../services/productService';
 
@@ -155,6 +154,7 @@ const AddProduct = () => {
         setAutoId(nextId);
         form.setFieldsValue({ id: nextId });
       } catch (e) {
+        console.error('Error fetching products:', e);
         setAutoId(1);
         form.setFieldsValue({ id: 1 });
       }
@@ -173,6 +173,7 @@ const AddProduct = () => {
 
     const submitValues = {
       ...values,
+      imgurls: imgUrls, // Đồng bộ với state imgUrls
       mainCategory: { id: values.mainCategory, name: mainCatObj?.name || '' },
       subCategory: { id: values.subCategory, name: subCatObj?.name || '' }
     };
@@ -195,11 +196,6 @@ const AddProduct = () => {
     navigate('/Products-admin');
   };
 
-  const normFile = (e) => {
-    if (Array.isArray(e)) return e;
-    return e && e.fileList;
-  };
-
   const handleSizeChange = (vals) => {
     const sorted = vals.slice().sort(sortSize);
     form.setFieldsValue({ size: sorted });
@@ -209,19 +205,24 @@ const AddProduct = () => {
   const handleImageUpload = async ({ file }) => {
     try {
       const url = await uploadProductImage(file);
-      setImgUrls(prev => [...prev, url]);
-      form.setFieldsValue({ imgurls: [...imgUrls, url] });
+      const newUrls = [...imgUrls, url];
+      setImgUrls(newUrls);
+      form.setFieldsValue({ imgurls: newUrls });
     } catch (e) {
-      // Xử lý lỗi
+      console.error('Error uploading image:', e);
     }
   };
 
   // Xóa ảnh
   const handleRemoveImage = async (url) => {
-    await deleteProductImage(url); // gọi API xóa file vật lý
-    const newUrls = imgUrls.filter(u => u !== url);
-    setImgUrls(newUrls);
-    form.setFieldsValue({ imgurls: newUrls });
+    try {
+      await deleteProductImage(url);
+      const newUrls = imgUrls.filter(u => u !== url);
+      setImgUrls(newUrls);
+      form.setFieldsValue({ imgurls: newUrls });
+    } catch (e) {
+      console.error('Error deleting image:', e);
+    }
   };
 
   // Hàm mở preview
@@ -238,158 +239,160 @@ const AddProduct = () => {
           <Spin size="large" />
         </div>
       ) : (
-        <div className="form-container">
-          <div className="left-column">
-            <h3>Basic Information</h3>
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={onFinish}
-              style={{ width: '100%' }}
-            >
-              <Form.Item label="Product ID" name="id">
-                <Input value={autoId} disabled placeholder="Will be auto-generated" />
-              </Form.Item>
-              <Form.Item label="Product Name" name="name" rules={[{ required: true, message: 'Please enter product name' }]}>
-                <Input />
-              </Form.Item>
-              <Form.Item label="Descriptions" name="description" rules={[{ required: true, message: 'Please enter description' }]}>
-                <TextArea rows={4} />
-              </Form.Item>
-              <Form.Item
-                label="Main Category"
-                name="mainCategory"
-                rules={[{ required: true, message: 'Please select main category' }]}
-              >
-                <Select
-                  options={mainCategories.map(c => ({ value: c.id, label: c.name }))}
-                  onChange={value => {
-                    setMainCategory(value);
-                    form.setFieldsValue({ subCategory: undefined });
-                  }}
-                  placeholder="Select main category"
-                />
-              </Form.Item>
-              <Form.Item
-                label="Sub Category"
-                name="subCategory"
-                rules={[{ required: true, message: 'Please select sub category' }]}
-              >
-                <Select
-                  options={subCategories.map(c => ({
-                    value: c.id,
-                    label: c.name
-                  }))}
-                  placeholder="Select sub category"
-                  disabled={!mainCategory}
-                />
-              </Form.Item>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          style={{ width: '100%' }}
+        >
+          <div className="form-container">
+            <div className="form-column">
+              <div className="row">
+                <Form.Item label="Product ID" name="id">
+                  <Input value={autoId} disabled placeholder="Will be auto-generated" />
+                </Form.Item>
+                <Form.Item label="Color" name="color">
+                  <Select
+                    mode="multiple"
+                    tagRender={tagRenderColor}
+                    style={{ width: '100%' }}
+                    placeholder="Select color"
+                    options={colorOptions}
+                    showSearch
+                    optionFilterProp="label"
+                  />
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item label="Product Name" name="name" rules={[{ required: true, message: 'Please enter product name' }]}>
+                  <Input />
+                </Form.Item>
+                <Form.Item label="Stock" name="stock" rules={[{ required: true, message: 'Please enter stock' }]}>
+                  <InputNumber min={0} style={{ width: '100%' }} onChange={value => setStock(value)} />
+                </Form.Item>
+              </div>
+              <div className="row">
               <Form.Item label="Gender" name="gender" rules={[{ required: true, message: 'Please select gender' }]}>
-                <Select options={genderOptions} />
-              </Form.Item>
-            </Form>
-          </div>
-          <div className="right-column">
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={onFinish}
-              style={{ width: '100%' }}
-            >
-              <Form.Item label="Product Images" name="imgurls" className="product-images-label">
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
-                  {imgUrls.map(url => (
-                    <div key={url} style={{ position: 'relative', display: 'inline-block' }}>
-                      <img
-                        src={url}
-                        alt="product"
-                        style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4, border: '1px solid #eee', cursor: 'pointer' }}
-                        onClick={() => handlePreviewImage(url)}
-                      />
-                      <Button
-                        size="small"
-                        style={{ position: 'absolute', top: 2, right: 2, zIndex: 2 }}
-                        danger
-                        onClick={() => handleRemoveImage(url)}
-                      >x</Button>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ margin: '8px 0' }}>
-                  <Upload
-                    showUploadList={false}
-                    customRequest={handleImageUpload}
-                    accept="image/*"
-                    multiple={false}
+                  <Select options={genderOptions} />
+                </Form.Item>
+
+                <Form.Item label="Status">
+                  <span
+                    style={{
+                      color: stock > 0 ? '#52c41a' : '#f5222d',
+                      fontWeight: 600,
+                      padding: '4px 12px',
+                      borderRadius: 4,
+                      background: stock > 0 ? '#f6ffed' : '#fff1f0',
+                      border: `1px solid ${stock > 0 ? '#b7eb8f' : '#ffa39e'}`,
+                      display: 'inline-block',
+                      minWidth: 90,
+                      textAlign: 'center'
+                    }}
                   >
-                    <Button icon={<UploadOutlined />}>Upload</Button>
-                  </Upload>
-                </div>
-                <div style={{ color: '#888', fontSize: 14, marginTop: 4 }}>
-                  Recommended size: 500x500 px
-                </div>
-                {/* Preview modal */}
-                <Image
-                  style={{ display: 'none' }}
-                  preview={{
-                    visible: previewOpen,
-                    src: previewImage,
-                    onVisibleChange: (visible) => setPreviewOpen(visible),
-                  }}
-                />
-              </Form.Item>
-              <Form.Item label="Stock" name="stock" rules={[{ required: true, message: 'Please enter stock' }]}>
-                <InputNumber min={0} style={{ width: '100%' }} onChange={value => setStock(value)} />
-              </Form.Item>
-              <Form.Item label="Status">
-                <span
-                  style={{
-                    color: stock > 0 ? '#52c41a' : '#f5222d',
-                    fontWeight: 600,
-                    padding: '4px 12px',
-                    borderRadius: 4,
-                    background: stock > 0 ? '#f6ffed' : '#fff1f0',
-                    border: `1px solid ${stock > 0 ? '#b7eb8f' : '#ffa39e'}`,
-                    display: 'inline-block',
-                    minWidth: 90,
-                    textAlign: 'center'
-                  }}
+                    {stock > 0 ? 'In stock' : 'Out of stock'}
+                  </span>
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item
+                  label="Main Category"
+                  name="mainCategory"
+                  rules={[{ required: true, message: 'Please select main category' }]}
                 >
-                  {stock > 0 ? 'In stock' : 'Out of stock'}
-                </span>
-              </Form.Item>
-              <Form.Item label="Price" name="price" rules={[{ required: true, message: 'Please enter price' }]}>
-                <Input />
-              </Form.Item>
-              <Form.Item
-                label="Size"
-                name="size"
-                rules={[{ required: true, message: 'Please select size' }]}
-              >
-                <Select
-                  mode="multiple"
-                  allowClear
-                  style={{ width: '100%' }}
-                  placeholder="Select size"
-                  options={sizeOptions}
-                  value={form.getFieldValue('size')?.slice().sort(sortSize)}
-                  onChange={handleSizeChange}
-                />
-              </Form.Item>
-              <Form.Item label="Color" name="color">
-                <Select
-                  mode="multiple"
-                  tagRender={tagRenderColor}
-                  style={{ width: '100%' }}
-                  placeholder="Select color"
-                  options={colorOptions}
-                  showSearch
-                  optionFilterProp="label"
-                />
-              </Form.Item>
-            </Form>
+                  <Select
+                    options={mainCategories.map(c => ({ value: c.id, label: c.name }))}
+                    onChange={value => {
+                      setMainCategory(value);
+                      form.setFieldsValue({ subCategory: undefined });
+                    }}
+                    placeholder="Select main category"
+                  />
+                </Form.Item>
+                <Form.Item label="Price" name="price" rules={[{ required: true, message: 'Please enter price' }]}>
+                  <Input />
+                </Form.Item>
+              </div>
+              <div className="row">
+                <Form.Item
+                  label="Sub Category"
+                  name="subCategory"
+                  rules={[{ required: true, message: 'Please select sub category' }]}
+                >
+                  <Select
+                    options={subCategories.map(c => ({
+                      value: c.id,
+                      label: c.name
+                    }))}
+                    placeholder="Select sub category"
+                    disabled={!mainCategory}
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Size"
+                  name="size"
+                  rules={[{ required: true, message: 'Please select size' }]}
+                >
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ width: '100%' }}
+                    placeholder="Select size"
+                    options={sizeOptions}
+                    value={form.getFieldValue('size')?.slice().sort(sortSize)}
+                    onChange={handleSizeChange}
+                  />
+                </Form.Item>
+              </div>
+              <div className="row">
+              <Form.Item label="Descriptions" name="description" rules={[{ required: true, message: 'Please enter description' }]}>
+                  <TextArea rows={4} />
+                </Form.Item>
+                <Form.Item label="Product Images" name="imgurls" className="product-images-label">
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                    {imgUrls.map(url => (
+                      <div key={url} style={{ position: 'relative', display: 'inline-block' }}>
+                        <img
+                          src={url}
+                          alt="product"
+                          style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 4, border: '1px solid #eee', cursor: 'pointer' }}
+                          onClick={() => handlePreviewImage(url)}
+                        />
+                        <Button
+                          size="small"
+                          style={{ position: 'absolute', top: 2, right: 2, zIndex: 2 }}
+                          danger
+                          onClick={() => handleRemoveImage(url)}
+                        >x</Button>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ margin: '8px 0' }}>
+                    <Upload
+                      showUploadList={false}
+                      customRequest={handleImageUpload}
+                      accept="image/*"
+                      multiple={false}
+                    >
+                      <Button icon={<UploadOutlined />}>Upload</Button>
+                    </Upload>
+                  </div>
+                  <div style={{ color: '#888', fontSize: 14, marginTop: 4 }}>
+                    Recommended size: 500x500 px
+                  </div>
+                  <Image
+                    style={{ display: 'none' }}
+                    preview={{
+                      visible: previewOpen,
+                      src: previewImage,
+                      onVisibleChange: (visible) => setPreviewOpen(visible),
+                    }}
+                  />
+                </Form.Item>
+              </div>
+            </div>
           </div>
-        </div>
+        </Form>
       )}
       <div className="action-bar">
         <Button className="cancel-button" onClick={handleCancel} style={{ marginRight: 10 }}>

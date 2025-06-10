@@ -141,16 +141,14 @@ const Layout = () => {
 
   // Update selected key logic to support new menu
   const getSelectedKey = () => {
-    const path = window.location.pathname.split('/').pop() || 'dashboard';
-    const pathToKeyMap = {
-      'dashboard': 'dashboard',
-      'products-admin': 'products',
-      'orders-admin': 'orders',
-      'users-admin': 'users',
-      'recommend-products': 'recommend-products',
-      'user-interactions': 'user-interactions',
-    };
-    return pathToKeyMap[path] || 'dashboard';
+    const path = window.location.pathname;
+    if (path.startsWith('/dashboard')) return 'dashboard';
+    if (path.startsWith('/products-admin')) return 'products';
+    if (path.startsWith('/orders-admin')) return 'orders';
+    if (path.startsWith('/users-admin')) return 'users';
+    if (path.startsWith('/recommend-products')) return 'recommend-products';
+    if (path.startsWith('/user-interactions')) return 'user-interactions';
+    return 'dashboard';
   };
 
   return (

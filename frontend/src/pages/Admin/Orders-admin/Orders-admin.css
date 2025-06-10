@@ -47,7 +47,6 @@
   box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
 }
 
-
 .order-card {
   background: #fff;
   border-radius: 10px;
@@ -68,7 +67,6 @@
   font-weight: bold;
   border: none;
   color: black;
-
   appearance: none;
   background-color: white;
   transition: all 0.3s ease;
@@ -173,25 +171,30 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 12px 24px;
 }
+
 .order-details.order-details-grid > div > p {
   margin: 0 0 4px 0;
 }
+
 .order-details.order-details-grid-fix {
   display: flex;
   flex-direction: column;
   gap: 4px;
   width: 100%;
 }
+
 .order-details-row {
   display: flex;
   gap: 24px;
   margin-bottom: 2px;
 }
+
 .order-details-row span {
   flex: 1;
   min-width: 0;
   font-size: 15px;
 }
+
 @media (max-width: 900px) {
   .order-details.order-details-grid {
     grid-template-columns: 1fr;
@@ -200,4 +203,24 @@
     flex-direction: column;
     gap: 2px;
   }
+}
+
+.search-input {
+  height: 38px; 
+  padding: 8px 12px; 
+  border: 1px solid #d9d9d9; 
+  border-radius: 5px; 
+  font-size: 14px; 
+  box-sizing: border-box; 
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #1890ff; 
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2); 
+}
+
+.search-input::placeholder {
+  color: #bfbfbf; 
 }

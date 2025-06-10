@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dropdown, Space, Typography, Table, Button, Flex, Modal } from 'antd';
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined, MoreOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
 import './ProductAdmin.css';
 import { adminFilterProducts} from '../../../services/productService';
 import FullPageSpin from '../../../components/ListSpin';
@@ -119,6 +119,15 @@ const Products = () => {
   // Ant Design Table columns
   const columns = [
     {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      sorter: (a, b) => a.id - b.id,
+      sortOrder: sortedInfo.columnKey === 'id' ? sortedInfo.order : null,
+      width: 60, // Giảm xuống nhỏ hơn
+      align: 'center',
+    },
+    {
       title: 'Product',
       dataIndex: 'imgurls',
       key: 'imgurls',
@@ -141,28 +150,20 @@ const Products = () => {
       ellipsis: true,
     },
     {
-      title: 'ID',
-      dataIndex: 'id',
-      key: 'id',
-      sorter: (a, b) => a.id - b.id,
-      sortOrder: sortedInfo.columnKey === 'id' ? sortedInfo.order : null,
-      width: 80,
-      align: 'center',
-    },
-    {
-      title: 'Main Category',
-      dataIndex: ['mainCategory', 'mainCategoryId'],
-      key: 'mainCategory',
-      render: (_, record) =>
-        mainCategories.find(c => c.id === (record.mainCategory?.id || record.mainCategoryId))?.name || '',
-      ellipsis: true,
-    },
-    {
-      title: 'Sub Category',
-      dataIndex: ['subCategory', 'subCategoryId'],
-      key: 'subCategory',
-      render: (_, record) =>
-        subCategories.find(s => s.id === (record.subCategory?.id || record.subCategoryId))?.name || '',
+      title: 'Category',
+      key: 'category',
+      render: (_, record) => {
+        const mainCat = mainCategories.find(c => c.id === (record.mainCategory?.id || record.mainCategoryId))?.name || '';
+        const subCat = subCategories.find(s => s.id === (record.subCategory?.id || record.subCategoryId))?.name || '';
+        return (
+          <div>
+            <div>{mainCat}</div>
+            <div style={{ fontSize: '14px', color: '#888', marginTop: 2 }}>
+              {subCat}
+            </div>
+          </div>
+        );
+      },
       ellipsis: true,
     },
     {
@@ -194,7 +195,7 @@ const Products = () => {
       sorter: (a, b) => (a.stock || 0) - (b.stock || 0),
       sortOrder: sortedInfo.columnKey === 'stock' ? sortedInfo.order : null,
       align: 'center',
-      width: 80,
+      width: 60, // Giảm xuống nhỏ hơn
     },
     {
       title: 'Status',
@@ -211,26 +212,32 @@ const Products = () => {
     {
       title: 'Action',
       key: 'action',
-      render: (_, record) => (
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-          <Button
-            type="link"
-            onClick={() => navigate(`/Products-admin/Product-detail/${record.id}`)}
-            style={{ padding: 0 }}
-          >
-            View Detail
-          </Button>
-          <Button
-            type="link"
-            onClick={() => navigate(`/Products-admin/Change-product/${record.id}`)}
-            style={{ padding: 0, color: '#52c41a', fontWeight: 600 }}
-          >
-            Change
-          </Button>
-        </div>
-      ),
       align: 'center',
-      width: 180,
+      width: 60, // Giảm xuống nhỏ hơn
+      render: (_, record) => (
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: 'view',
+                icon: <EyeOutlined style={{ color: '#1890ff' }} />,
+                label: 'View Detail',
+                onClick: () => navigate(`/Products-admin/Product-detail/${record.id}`),
+              },
+              {
+                key: 'edit',
+                icon: <EditOutlined style={{ color: '#52c41a' }} />,
+                label: 'Change',
+                onClick: () => navigate(`/Products-admin/Change-product/${record.id}`),
+              },
+            ],
+          }}
+          trigger={['click']}
+          placement="bottomRight"
+        >
+          <MoreOutlined style={{ fontSize: '20px', cursor: 'pointer' }} />
+        </Dropdown>
+      ),
     },
   ];
 
@@ -331,7 +338,7 @@ const Products = () => {
           </Dropdown>
           <button
             className="add-product-btn"
-            onClick={() => navigate('/Products-admin/add-product')}
+            onClick={() => navigate('/products-admin/add-product')}
             style={{ marginRight: 8 }}
           >
             Add product

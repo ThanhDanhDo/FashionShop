@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,35 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartService cartService;
     private final ProductRepository productRepository;
+
+    public Order addNewOrderWithSingleProduct(User user, Product product, int quantity, String size, String color, Long addressId, double totalPrice) {
+        if (user == null || product == null || quantity <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user, product, or quantity.");
+        }
+
+        if (quantity > product.getStock()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Product " + product.getName() + " is out of stock.");
+        }
+
+        Address shippingAddress = addressRepository.findById(addressId)
+                .filter(address -> user.getAddresses().contains(address))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid shipping address."));
+
+        Order newOrder = new Order();
+        newOrder.setUser(user);
+        newOrder.setAddress(shippingAddress);
+        newOrder.setTotalOrderPrice(totalPrice);
+        newOrder.setTotalItems(quantity);
+        newOrder.setOrderStatus(OrderStatus.PENDING);
+        newOrder.setPaymentStatus(PaymentStatus.COMPLETED);
+
+        Order savedOrder = orderRepository.save(newOrder);
+
+        OrderItem orderItem = new OrderItem(savedOrder, product, quantity, size, color);
+        OrderItem savedOrderItem = orderItemRepository.save(orderItem);
+
+        return savedOrder;
+    }
 
     @Transactional //tạo đơn hàng từ các sản phẩm trong giỏ hàng
     public Order addNewOrder(User user, Cart cart, Long addressId, Double totalPrice) {
@@ -180,46 +210,62 @@ public class OrderService {
     }
 
     public Page<Order> searchOrder(Long id, Long userId, Long addressId, Long itemId, String fromDateStr, String toDateStr, OrderStatus orderStatus, PaymentStatus paymentStatus, Pageable pageable) {
-        if (id != null || userId != null || addressId != null || itemId != null) {
-            if (id != null) {
-                return orderRepository.findById(id, pageable);
-            }
-            if (userId != null) {
-                return orderRepository.findByUserId(userId, pageable);
-            }
-            if (addressId != null) {
-                return orderRepository.findByAddressId(addressId, pageable);
-            }
-            if (itemId != null) {
-                return orderRepository.findByOrderItems_Product_Id(itemId, pageable);
-            }
+        // Khởi tạo các điều kiện tìm kiếm
+        boolean hasId = id != null;
+        boolean hasUserId = userId != null;
+        boolean hasAddressId = addressId != null;
+        boolean hasItemId = itemId != null;
+        boolean hasDateRange = fromDateStr != null && toDateStr != null;
+        boolean hasOrderStatus = orderStatus != null;
+        boolean hasPaymentStatus = paymentStatus != null;
+
+        // Xử lý ngày tháng
+        LocalDateTime fromDate = hasDateRange ? LocalDateTime.parse(fromDateStr + "T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null;
+        LocalDateTime toDate = hasDateRange ? LocalDateTime.parse(toDateStr + "T23:59:59", DateTimeFormatter.ISO_LOCAL_DATE_TIME) : null;
+
+        // Trường hợp 1: Tìm kiếm theo ID, userId, addressId, hoặc itemId
+        if (hasId) {
+            return orderRepository.findById(id, pageable);
+        }
+        if (hasUserId) {
+            return orderRepository.findByUserId(userId, pageable);
+        }
+        if (hasAddressId) {
+            return orderRepository.findByAddressId(addressId, pageable);
+        }
+        if (hasItemId) {
+            return orderRepository.findByOrderItems_Product_Id(itemId, pageable);
         }
 
-        // Nếu có điều kiện vùng 2: ngày
-        if (fromDateStr != null || toDateStr != null) {
-            LocalDateTime fromDate = fromDateStr != null
-                    ? LocalDateTime.parse(fromDateStr)
-                    : LocalDateTime.MIN;
-
-            LocalDateTime toDate = toDateStr != null
-                    ? LocalDateTime.parse(toDateStr)
-                    : LocalDateTime.now();
-
+        // Trường hợp 2: Tìm kiếm theo ngày và trạng thái (kết hợp)
+        if (hasDateRange && hasOrderStatus && hasPaymentStatus) {
+            return orderRepository.findByOrderStatusAndPaymentStatusAndOrderDateBetween(
+                    orderStatus, paymentStatus, fromDate, toDate, pageable);
+        }
+        if (hasDateRange && hasOrderStatus) {
+            return orderRepository.findByOrderStatusAndOrderDateBetween(
+                    orderStatus, fromDate, toDate, pageable);
+        }
+        if (hasDateRange && hasPaymentStatus) {
+            return orderRepository.findByPaymentStatusAndOrderDateBetween(
+                    paymentStatus, fromDate, toDate, pageable);
+        }
+        if (hasDateRange) {
             return orderRepository.findByOrderDateBetween(fromDate, toDate, pageable);
         }
 
-        // Nếu có điều kiện vùng 3: status
-        if (orderStatus != null || paymentStatus != null) {
-            if (orderStatus != null && paymentStatus != null) {
-                return orderRepository.findByOrderStatusAndPaymentStatus(orderStatus, paymentStatus, pageable);
-            } else if (orderStatus != null) {
-                return orderRepository.findByOrderStatus(orderStatus, pageable);
-            } else {
-                return orderRepository.findByPaymentStatus(paymentStatus, pageable);
-            }
+        // Trường hợp 3: Tìm kiếm theo trạng thái
+        if (hasOrderStatus && hasPaymentStatus) {
+            return orderRepository.findByOrderStatusAndPaymentStatus(orderStatus, paymentStatus, pageable);
+        }
+        if (hasOrderStatus) {
+            return orderRepository.findByOrderStatus(orderStatus, pageable);
+        }
+        if (hasPaymentStatus) {
+            return orderRepository.findByPaymentStatus(paymentStatus, pageable);
         }
 
-        // Nếu không có điều kiện nào
+        // Trường hợp 4: Không có điều kiện cụ thể, trả về tất cả
         return orderRepository.findAll(pageable);
     }
 

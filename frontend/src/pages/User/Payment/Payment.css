@@ -216,7 +216,7 @@
   font-weight: bold;
   font-size: 15px;
   cursor: pointer;
-  width: 100%;
+  width: 100% !important;
   transition: background-color 0.2s;
 }
 
@@ -233,7 +233,7 @@
   font-weight: bold;
   font-size: 15px;
   cursor: pointer;
-  width: 100%;
+  width: 100% !important;
   transition: background-color 0.2s;
   margin-bottom: 10px;
 }

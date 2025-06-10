@@ -102,6 +102,7 @@ if __name__ == "__main__":
     user_id = int(sys.argv[1])
     new_item_id = int(sys.argv[2])
     sequence = list(map(int, sys.argv[3].split(",")))
+    sequence = list(filter(lambda x: x in all_product_ids, sequence))
     user_sequences = {user_id: sequence}
 
     model_path = "../train_dir/SASRec.epoch=75.learning_rate=0.001.layer=2.head=1.embedding_dims=64.sequence_size=25.pth"

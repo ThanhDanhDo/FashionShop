@@ -11,11 +11,12 @@ import ProductCard from '../../../components/ProductCard';
 import { Image } from 'antd';
 import { useLoading } from '../../../context/LoadingContext';
 import SpinPage from '../../../components/SpinPage';
-import { getInteractRecommendations, addInteract } from '../../../services/interactService';
+import { getInteractRecommendations, addInteract, getContentBaseRec } from '../../../services/interactService';
 import IconButton from "@mui/material/IconButton";
 import NavigateBeforeIcon from "@mui/icons-material/NavigateBefore";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import FullPageSpin from '../../../components/ListSpin'; // Import ListSpin.jsx
+import FullPageSpin from '../../../components/ListSpin';
+import './ProductDetail.css'
 
 const ProductDetail = () => {
   const [product, setProduct] = useState(null);
@@ -33,6 +34,8 @@ const ProductDetail = () => {
 
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(true); // Thêm trạng thái loading
+  const [isContenBase, setContenBase] = useState(true);
+  const [sameProducts, setSameProducts] = useState([])
   const RECOMMEND_PAGE_SIZE = 4;
   const [recommendPage, setRecommendPage] = useState(0);
 
@@ -53,22 +56,39 @@ const ProductDetail = () => {
     fetchProduct();
   }, [id, setLoading]);
 
+  const fetchRecommendations = async () => {
+    try {
+      setIsLoadingRecommendations(true); // Bắt đầu loading
+      await addInteract(id); // Gửi tương tác
+      const data = await getInteractRecommendations();
+      setRelatedProducts(data);
+      setFavoriteStates(new Array(data.length).fill(false));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoadingRecommendations(false); // Kết thúc loading
+    }
+  };
   useEffect(() => {
-    const fetchRecommendations = async () => {
-      try {
-        setIsLoadingRecommendations(true); // Bắt đầu loading
-        await addInteract(id); // Gửi tương tác
-        const data = await getInteractRecommendations();
-        setRelatedProducts(data);
-        setFavoriteStates(new Array(data.length).fill(false));
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setIsLoadingRecommendations(false); // Kết thúc loading
-      }
-    };
-    fetchRecommendations();
+    if (isLoggedIn) {
+      fetchRecommendations();
+    }
   }, [id]);
+
+  const fetchContentBaseRec = async () => {
+    try {
+      setContenBase(true);
+      const data = await getContentBaseRec(id);
+      setSameProducts(data)
+    } catch (error) {
+      console.log("Không thể lấy ContentBase recommendation: ", error)
+    } finally {
+      setContenBase(false);
+    }
+  }
+  useEffect(() => {
+    fetchContentBaseRec();
+  }, [id])
 
   // cuộn lên đầu
   useEffect(() => {
@@ -103,12 +123,12 @@ const ProductDetail = () => {
       navigate('/login');
       return;
     }
-  
+
     if (!selectedSize || !selectedColor) {
       setCartMessage('Please select size and color');
       return;
     }
-  
+
     if (!product.price || product.price <= 0) {
       setCartMessage('This product is currently not for sale');
       return;
@@ -118,12 +138,12 @@ const ProductDetail = () => {
       setCartMessage('This product is currently out of stock');
       return;
     }
-  
+
     setIsAddingToCart(true);
     setLoading(true);
     try {
       let currentCartId = cartId;
-  
+
       if (!currentCartId) {
         try {
           const activeCart = await getActiveCart();
@@ -138,7 +158,7 @@ const ProductDetail = () => {
           updateCartId(currentCartId);
         }
       }
-  
+
       const cartItem = {
         cart: { id: currentCartId },
         product: { id: product.id },
@@ -146,7 +166,7 @@ const ProductDetail = () => {
         size: selectedSize,
         color: selectedColor,
       };
-  
+
       await addToCart(cartItem);
       setCartMessage('Added to cart successfully!');
       await refreshCartItemCount();
@@ -162,6 +182,24 @@ const ProductDetail = () => {
       setLoading(false);
     }
   };
+
+  const handleBuyNow = () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    
+    localStorage.setItem("totalPriceToPay", (product.price * 1.1));
+    const buyNowData = {
+      product: product.id,
+      quantity,
+      size: selectedSize,
+      color: selectedColor,
+    };
+    localStorage.setItem("buyNowData", JSON.stringify(buyNowData));
+    console.log(JSON.parse(localStorage.getItem("buyNowData")))
+    navigate('/Payment ');
+  }
 
   if (error) return <div>Error: {error}</div>;
   if (!product) return <div></div>;
@@ -449,117 +487,161 @@ const ProductDetail = () => {
               </button>
             </div>
             {/* Add to Cart */}
-            <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <div className="button-group">
               <button
                 onClick={handleAddToCart}
                 disabled={isAddingToCart}
-                style={{
-                  padding: "12px 48px",
-                  background: isAddingToCart ? "#ccc" : "black",
-                  color: "white",
-                  borderRadius: "999px",
-                  marginTop: "20px",
-                  fontWeight: "bold",
-                  cursor: isAddingToCart ? "not-allowed" : "pointer",
-                  fontSize: "18px",
-                  width: "300px",
-                }}
+                className={`btn btn-cart ${isAddingToCart ? "disabled" : ""}`}
               >
-                {isAddingToCart ? "Đang thêm..." : "ADD TO CART"}
+                {isAddingToCart ? "Adding..." : "ADD TO CART"}
+              </button>
+              <button
+                onClick={handleBuyNow}
+                // disabled={isAddingToCart}
+                className={`btn btn-buy ${isAddingToCart ? "disabled" : ""}`}
+              >
+                BUY NOW
               </button>
             </div>
             {cartMessage && <p style={{ color: 'red', marginTop: '10px' }}>{cartMessage}</p>}
           </div>
         </div>
         {/* Recommend Products (Interact) */}
+        {isLoggedIn && (
+          <div style={{ marginTop: "60px", textAlign: "center", padding: "0 40px" }}>
+            <h2 style={{ marginBottom: "30px", fontWeight: "bold" }}>Recommended products</h2>
+            <div style={{ position: "relative", width: "100%", margin: "0 auto" }}>
+              {isLoadingRecommendations ? (
+                <FullPageSpin />
+              ) : (
+                <>
+                  <Grid container spacing={2} justifyContent="center">
+                    {relatedProducts
+                      .slice(recommendPage * RECOMMEND_PAGE_SIZE, recommendPage * RECOMMEND_PAGE_SIZE + RECOMMEND_PAGE_SIZE)
+                      .map((item, index) => (
+                        <Grid item key={index} xs={12} sm={6} md={3}>
+                          <div
+                            style={{ height: "100%" }}
+                            onClick={() => navigate(`/product/${item.id}`)}
+                          >
+                            <ProductCard
+                              product={{
+                                ...item,
+                                image: item.imgurls && item.imgurls.length > 0
+                                  ? item.imgurls[0]
+                                  : "/images/default-product.jpg",
+                                sizes: item.size,
+                                colors: item.color,
+                                rating: item.rating || 4.8,
+                                reviewCount: item.reviewCount || 15,
+                              }}
+                              isFavorite={favoriteStates[recommendPage * RECOMMEND_PAGE_SIZE + index] || false}
+                              onToggleFavorite={handleToggleFavorite}
+                              index={recommendPage * RECOMMEND_PAGE_SIZE + index}
+                            />
+                          </div>
+                        </Grid>
+                      ))}
+                  </Grid>
+                  {totalRecommendPages > 1 && (
+                    <>
+                      <IconButton
+                        onClick={handleRecommendPrev}
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          left: 0,
+                          transform: "translateY(-50%)",
+                          background: "#fff",
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                        }}
+                      >
+                        <NavigateBeforeIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={handleRecommendNext}
+                        style={{
+                          position: "absolute",
+                          top: "50%",
+                          right: 0,
+                          transform: "translateY(-50%)",
+                          background: "#fff",
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                        }}
+                      >
+                        <NavigateNextIcon />
+                      </IconButton>
+                      <div style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        marginTop: 16,
+                        gap: 8,
+                      }}>
+                        {Array.from({ length: totalRecommendPages }).map((_, idx) => (
+                          <span
+                            key={idx}
+                            onClick={() => handleRecommendDot(idx)}
+                            style={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: "50%",
+                              background: recommendPage === idx ? "#001F3F" : "#ccc",
+                              display: "inline-block",
+                              cursor: "pointer",
+                              transition: "background 0.3s",
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
         <div style={{ marginTop: "60px", textAlign: "center", padding: "0 40px" }}>
-          <h2 style={{ marginBottom: "30px", fontWeight: "bold" }}>Recommended products</h2>
+          <h2 style={{ marginBottom: "30px", fontWeight: "bold" }}>Similar products</h2>
           <div style={{ position: "relative", width: "100%", margin: "0 auto" }}>
-            {isLoadingRecommendations ? (
+            {isContenBase ? (
               <FullPageSpin />
             ) : (
-              <>
-                <Grid container spacing={2} justifyContent="center">
-                  {relatedProducts
-                    .slice(recommendPage * RECOMMEND_PAGE_SIZE, recommendPage * RECOMMEND_PAGE_SIZE + RECOMMEND_PAGE_SIZE)
-                    .map((item, index) => (
-                      <Grid item key={index} xs={12} sm={6} md={3}>
-                        <div
-                          style={{ height: "100%" }}
-                          onClick={() => navigate(`/product/${item.id}`)}
-                        >
-                          <ProductCard
-                            product={{
-                              ...item,
-                              image: item.imgurls && item.imgurls.length > 0
+              <Grid container spacing={2} justifyContent="center" alignItems="stretch">
+                {sameProducts.map((item, index) => (
+                  <Grid item key={index} xs={12} sm={6} md={3} style={{ display: 'flex' }}>
+                    <div
+                      style={{
+                        flex: 1,
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => navigate(`/product/${item.id}`)}
+                    >
+                      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <ProductCard
+                          product={{
+                            ...item,
+                            image:
+                              item.imgurls && item.imgurls.length > 0
                                 ? item.imgurls[0]
                                 : "/images/default-product.jpg",
-                              sizes: item.size,
-                              colors: item.color,
-                              rating: item.rating || 4.8,
-                              reviewCount: item.reviewCount || 15,
-                            }}
-                            isFavorite={favoriteStates[recommendPage * RECOMMEND_PAGE_SIZE + index] || false}
-                            onToggleFavorite={handleToggleFavorite}
-                            index={recommendPage * RECOMMEND_PAGE_SIZE + index}
-                          />
-                        </div>
-                      </Grid>
-                    ))}
-                </Grid>
-                {totalRecommendPages > 1 && (
-                  <>
-                    <IconButton
-                      onClick={handleRecommendPrev}
-                      style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: 0,
-                        transform: "translateY(-50%)",
-                        background: "#fff",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                      }}
-                    >
-                      <NavigateBeforeIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={handleRecommendNext}
-                      style={{
-                        position: "absolute",
-                        top: "50%",
-                        right: 0,
-                        transform: "translateY(-50%)",
-                        background: "#fff",
-                        boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                      }}
-                    >
-                      <NavigateNextIcon />
-                    </IconButton>
-                    <div style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      marginTop: 16,
-                      gap: 8,
-                    }}>
-                      {Array.from({ length: totalRecommendPages }).map((_, idx) => (
-                        <span
-                          key={idx}
-                          onClick={() => handleRecommendDot(idx)}
-                          style={{
-                            width: 10,
-                            height: 10,
-                            borderRadius: "50%",
-                            background: recommendPage === idx ? "#001F3F" : "#ccc",
-                            display: "inline-block",
-                            cursor: "pointer",
-                            transition: "background 0.3s",
+                            sizes: item.size,
+                            colors: item.color,
+                            rating: item.rating || 4.8,
+                            reviewCount: item.reviewCount || 15,
                           }}
+                          isFavorite={false}
+                          onToggleFavorite={handleToggleFavorite}
+                          index={index}
                         />
-                      ))}
+                      </div>
                     </div>
-                  </>
-                )}
-              </>
+                  </Grid>
+                ))}
+              </Grid>
             )}
           </div>
         </div>

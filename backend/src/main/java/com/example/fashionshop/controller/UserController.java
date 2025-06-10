@@ -1,13 +1,18 @@
 package com.example.fashionshop.controller;
 
+import com.example.fashionshop.request.CreateUserWithAddressRequest;
+import com.example.fashionshop.enums.Gender;
+import com.example.fashionshop.enums.Role;
 import com.example.fashionshop.model.Address;
 import com.example.fashionshop.model.User;
 import com.example.fashionshop.repository.AddressRepository;
+import com.example.fashionshop.repository.UserRepository;
 import com.example.fashionshop.request.ChangePasswordRequest;
 import com.example.fashionshop.response.ApiResponse;
 import com.example.fashionshop.service.AddressService;
 import com.example.fashionshop.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -165,5 +170,75 @@ public class UserController {
         }
     }
 
+    @Autowired
+    private UserRepository userRepository;
 
+    @Autowired
+    private AddressRepository addressRepository;
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/admin/users-with-address")
+    public ResponseEntity<?> createUserWithAddress(@RequestBody CreateUserWithAddressRequest req) {
+        // 1. Kiểm tra email đã tồn tại chưa
+        if (userRepository.findByEmail(req.getEmail()) != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", "Email already exists"));
+        }
+
+        // 2. Tạo user
+        User user = new User();
+        user.setFirstName(req.getFirstName());
+        user.setLastName(req.getLastName());
+        user.setEmail(req.getEmail());
+        user.setPassword(req.getPassword());
+        user.setGender(Gender.valueOf(req.getGender()));
+        user.setRole(Role.valueOf(req.getRole()));
+        User savedUser = userRepository.save(user);
+
+        // 3. Tạo address mặc định
+        Address address = new Address();
+        address.setProvince(req.getProvince());
+        address.setDistrict(req.getDistrict());
+        address.setWard(req.getWard());
+        address.setFullAddress(req.getFullAddress());
+        address.setPhone(req.getPhone());
+        address.setDefault(true);
+        address.setUser(savedUser);
+        addressRepository.save(address);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/admin/users/{userId}/addresses")
+    public ResponseEntity<List<Address>> getAddressesByUserId(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+        List<Address> addresses = addressRepository.findByUser_Id(user.getId());
+        return ResponseEntity.ok(addresses);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/admin/users/{userId}/addresses/{addressId}")
+    public ResponseEntity<?> deleteAddressByAdmin(@PathVariable Long userId, @PathVariable Long addressId) {
+        addressService.deleteAddressByAdmin(userId, addressId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PutMapping("/admin/users/{userId}/addresses/{addressId}")
+    public ResponseEntity<Address> updateAddressByAdmin(
+            @PathVariable Long userId,
+            @PathVariable Long addressId,
+            @RequestBody Address updatedAddress) {
+        Address address = addressService.updateAddressByAdmin(userId, addressId, updatedAddress);
+        return ResponseEntity.ok(address);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @PostMapping("/admin/users/{userId}/addresses")
+    public ResponseEntity<Address> addAddressByAdmin(@PathVariable Long userId, @RequestBody Address newAddress) {
+        Address address = addressService.addAddressByAdmin(userId, newAddress);
+        return ResponseEntity.status(HttpStatus.CREATED).body(address);
+    }
 }

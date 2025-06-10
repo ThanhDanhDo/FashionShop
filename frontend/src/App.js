@@ -92,7 +92,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/Products-admin/add-product"
+                  path="/products-admin/add-product"
                   element={
                     <PrivateRoute requiredRole="ADMIN">
                       <AddProduct />
@@ -100,7 +100,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/Products-admin/Change-product/:id"
+                  path="/products-admin/change-product/:id"
                   element={
                     <PrivateRoute requiredRole="ADMIN">
                       <ChangeProduct />
@@ -125,7 +125,7 @@ function App() {
                 />
 
                 <Route
-                  path="/users-admin/Change-account/:accountId"
+                  path="/users-admin/change-account/:accountId"
                   element={
                     <PrivateRoute requiredRole="ADMIN">
                       <ChangeAccount />
@@ -133,7 +133,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/users-admin/Add-account"
+                  path="/users-admin/add-account"
                   element={
                     <PrivateRoute requiredRole="ADMIN">
                       <AddAccount />
@@ -141,7 +141,7 @@ function App() {
                   }
                 />
                 <Route
-                  path="/Products-admin/Product-detail/:id"
+                  path="/products-admin/product-detail/:id"
                   element={
                     <PrivateRoute requiredRole="ADMIN">
                       <ProductDetailAdmin />

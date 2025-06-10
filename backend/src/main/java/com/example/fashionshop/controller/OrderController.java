@@ -143,8 +143,8 @@ public class OrderController {
 
         List<Map<String, Object>> recList = recPage.getContent().stream().map(order -> {
             Map<String, Object> map = new HashMap<>();
-
             map.put("orderId", order.getId());
+            map.put("userId", order.getUser().getId()); // Thêm trường userId
             map.put("date", order.getOrderDate().toLocalDate().toString());
             map.put("status", order.getOrderStatus().name());
             map.put("address", order.getAddress().getFullAddress());
@@ -169,10 +169,8 @@ public class OrderController {
             }).toList();
 
             map.put("products", products);
-
             return map;
         }).toList();
-
 
         return ResponseEntity.ok(java.util.Map.of(
                 "content", recList,
