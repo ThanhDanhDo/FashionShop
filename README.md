@@ -85,6 +85,7 @@ FashionShop/
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/com/example/fashionshop/   # Code Java backend
+│   │   │   │   ├── recommendation/             # Liên quan đến Recommendation System (Contentbase, ...)
 │   │   │   │   ├── controller/                 # Xử lý API request
 │   │   │   │   ├── enums/                      # Kiểu enum dùng cho kiểu dữ liệu trong model
 │   │   │   │   ├── exception/                  # Chứa các file xử lý exception
@@ -102,6 +103,7 @@ FashionShop/
 │   ├── src/
 │   │   ├── components/                         # Các component UI
 │   │   ├── pages/                              # Các trang (Home, Product, Cart,...)
+│   │   ├── context/                            # Quản lý Context API
 │   │   ├── services/                           # Giao tiếp với API backend
 │   │   ├── App.js                              # File component chính
 │   │   ├── index.js                            # File khởi tạo ứng dụng (entry point)
