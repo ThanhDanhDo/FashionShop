@@ -222,13 +222,13 @@ const Products = () => {
                 key: 'view',
                 icon: <EyeOutlined style={{ color: '#1890ff' }} />,
                 label: 'View Detail',
-                onClick: () => navigate(`/Products-admin/Product-detail/${record.id}`),
+                onClick: () => navigate(`/products-admin/product-detail/${record.id}`),
               },
               {
                 key: 'edit',
                 icon: <EditOutlined style={{ color: '#52c41a' }} />,
                 label: 'Change',
-                onClick: () => navigate(`/Products-admin/Change-product/${record.id}`),
+                onClick: () => navigate(`/products-admin/change-product/${record.id}`),
               },
             ],
           }}

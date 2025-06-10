@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Form, Input, Select, Button, Modal, message, Spin } from 'antd';
 import {
-  getUserById, // Thêm import này từ userService.js
+  getUserById,
   getUserAddressesByAdmin,
   addUserAddressByAdmin,
   deleteUserAddressByAdmin,
@@ -33,8 +33,7 @@ const ChangeAccount = () => {
   const [newRole, setNewRole] = useState('');
   const [loading, setLoading] = useState(true);
   const api = useNotification();
-  const [account, setAccount] = useState(null); // Thêm state để lưu account
-
+  const [account, setAccount] = useState(null);
   const [addresses, setAddresses] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [tempAddress, setTempAddress] = useState({});
@@ -52,7 +51,6 @@ const ChangeAccount = () => {
     const fetchAccount = async () => {
       setLoading(true);
       try {
-        // Ưu tiên lấy account từ API
         const accountData = await getUserById(accountId);
         if (!accountData) {
           api.error({
@@ -70,7 +68,6 @@ const ChangeAccount = () => {
             email: accountData.email,
             gender: accountData.gender,
             role: accountData.role,
-            phone: accountData.phone || '',
           });
           setNewRole(accountData.role);
         }
@@ -110,7 +107,8 @@ const ChangeAccount = () => {
     }
   };
 
-  const handleDeleteAddress = async (id) => {
+  const handleDeleteAddress = async (id, e) => {
+    e?.stopPropagation();
     Modal.confirm({
       title: 'Remove Address',
       content: 'Are you sure you want to remove this address?',
@@ -136,17 +134,18 @@ const ChangeAccount = () => {
             description: 'Could not remove address. Please try again.',
           });
         }
-        // KHÔNG điều hướng, giữ người dùng ở trang này
       },
     });
   };
 
-  const handleEditAddress = (address) => {
+  const handleEditAddress = (address, e) => {
+    e?.stopPropagation();
     setTempAddress({ ...address });
     setEditingId(address.id);
   };
 
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = async (e) => {
+    e?.stopPropagation();
     try {
       await updateUserAddressByAdmin(accountId, editingId, tempAddress);
       api.success({
@@ -162,10 +161,10 @@ const ChangeAccount = () => {
         description: 'Could not update address. Please try again.',
       });
     }
-    // KHÔNG điều hướng, giữ người dùng ở trang này
   };
 
-  const handleAddAddress = async () => {
+  const handleAddAddress = async (e) => {
+    e?.stopPropagation();
     try {
       await addUserAddressByAdmin(accountId, newAddress);
       api.success({
@@ -187,7 +186,6 @@ const ChangeAccount = () => {
         description: 'Could not add address. Please try again.',
       });
     }
-    // KHÔNG điều hướng, giữ người dùng ở trang này
   };
 
   const handleEditChange = (e) => {
@@ -213,21 +211,16 @@ const ChangeAccount = () => {
       email: values.email,
       gender: values.gender,
       role: values.role,
-      phone: values.phone,
     };
 
     try {
-      // Gọi API để cập nhật tài khoản (giả sử có hàm updateUserByAdmin trong userService.js)
       // await updateUserByAdmin(accountId, updatedAccount);
       api.success({
         message: 'Account updated',
         description: 'Account changes have been saved successfully.',
       });
       setShowModal(false);
-      // Chỉ điều hướng khi người dùng xác nhận hoàn tất chỉnh sửa
-      setTimeout(() => {
-        navigate('/Users-admin');
-      }, 1000); // Chờ 1 giây để người dùng thấy thông báo
+      navigate('/users-admin');
     } catch (e) {
       api.error({
         message: 'Failed to update account',
@@ -242,7 +235,7 @@ const ChangeAccount = () => {
   };
 
   const handleCancel = () => {
-    navigate('/Users-admin'); // Điều hướng chủ động khi người dùng nhấn Cancel
+    navigate('/users-admin');
   };
 
   const handleRoleChangeClick = () => {
@@ -272,7 +265,7 @@ const ChangeAccount = () => {
     return (
       <div style={{ textAlign: 'center', padding: 40 }}>
         <p>Account not found. Please try again or return to the user list.</p>
-        <Button type="primary" onClick={() => navigate('/Users-admin')}>
+        <Button type="primary" onClick={() => navigate('/users-admin')}>
           Back to Users
         </Button>
       </div>
@@ -345,25 +338,13 @@ const ChangeAccount = () => {
             </div>
             <div className="row">
               <Form.Item
-                label="Phone Number"
-                name="phone"
-                rules={[
-                  { required: true, message: 'Please enter phone number' },
-                  {
-                    pattern: /^[0-9]{10,15}$/,
-                    message: 'Please enter a valid phone number (10-15 digits)',
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-              <Form.Item
                 label="Role"
                 name="role"
                 rules={[{ required: true, message: 'Please select role' }]}
               >
                 <Input disabled value={form.getFieldValue('role')} />
                 <Button
+                  type="button"
                   style={{ marginTop: 10 }}
                   className="change-role-btn"
                   onClick={handleRoleChangeClick}
@@ -378,9 +359,17 @@ const ChangeAccount = () => {
 
         {/* Address Section */}
         <div className="address-section">
-          <h2 className="section-title">Select Delivery Address
+          <h2 className="section-title">
+            Select Delivery Address
             {!showForm && (
-              <button className="toggle-form-btn" onClick={() => setShowForm(true)}>
+              <button
+                type="button"
+                className="toggle-form-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowForm(true);
+                }}
+              >
                 Add New Address
               </button>
             )}
@@ -406,20 +395,16 @@ const ChangeAccount = () => {
                   </div>
                   <div className="address-actions">
                     <button
+                      type="button"
                       className="edit-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditAddress(addr);
-                      }}
+                      onClick={(e) => handleEditAddress(addr, e)}
                     >
                       <EditOutlined />
                     </button>
                     <button
+                      type="button"
                       className="delete-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteAddress(addr.id);
-                      }}
+                      onClick={(e) => handleDeleteAddress(addr.id, e)}
                     >
                       <DeleteOutlined />
                     </button>
@@ -446,6 +431,7 @@ const ChangeAccount = () => {
                     ))}
                     <div className="action-bar">
                       <button
+                        type="button"
                         className="cancel-btn"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -457,11 +443,9 @@ const ChangeAccount = () => {
                         Cancel Edit
                       </button>
                       <button
+                        type="button"
                         className="add-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSaveEdit();
-                        }}
+                        onClick={handleSaveEdit}
                         style={{ marginLeft: "10px", width: 'auto' }}
                       >
                         Save Edit
@@ -493,7 +477,7 @@ const ChangeAccount = () => {
                   </label>
                   <input
                     type="text"
-                    name={field}
+                    name={field} // Sửa lỗi: name="field" thành name={field}
                     value={newAddress[field]}
                     onChange={(e) =>
                       setNewAddress({
@@ -506,8 +490,10 @@ const ChangeAccount = () => {
               ))}
               <div className="action-bar">
                 <button
+                  type="button"
                   className="cancel-btn"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setShowForm(false);
                     setNewAddress({
                       phone: "",
@@ -522,6 +508,7 @@ const ChangeAccount = () => {
                   Cancel Address
                 </button>
                 <button
+                  type="button"
                   className="add-btn"
                   onClick={handleAddAddress}
                   style={{ marginLeft: "10px", width: 'auto' }}
@@ -545,7 +532,6 @@ const ChangeAccount = () => {
             className="save-button"
             type="primary"
             htmlType="submit"
-            onClick={() => form.submit()}
           >
             Save Changes
           </Button>
@@ -556,30 +542,32 @@ const ChangeAccount = () => {
         onCancel={handleCancelChange}
         onOk={handleConfirmChange}
         okText="Change"
-        cancelText="No"
+        cancelText="Cancel"
         title="Are you sure you want to save these changes?"
       />
       <Modal
         open={roleChangeModalVisible}
+        onCancel={handleRoleChangeCancel} // Sửa lỗi: handleRoleChangeModal thành handleRoleChangeCancel
         onOk={handleRoleChangeConfirm}
-        onCancel={handleRoleChangeCancel}
         okText="Confirm"
         cancelText="Cancel"
         title="Change User Role"
       >
-        <p>Are you sure you want to change the role of this user?</p>
-        <Select
-          style={{ width: '100%', border: '1px solid #ddd' }}
-          value={newRole}
-          onChange={setNewRole}
-          placeholder="Select new role"
-        >
-          {roleOptions.map((option) => (
-            <Option key={option.value} value={option.value}>
-              {option.label}
-            </Option>
-          ))}
-        </Select>
+        <div>
+          <p>Are you sure you want to change the role of this user?</p>
+          <Select
+            style={{ width: '100%', border: '1px solid #ddd' }}
+            value={newRole}
+            onChange={(e) => setNewRole(e)}
+            placeholder="Select new role"
+          >
+            {roleOptions.map((option) => (
+              <Option key={option.value} value={option.value}>
+                {option.label}
+              </Option>
+            ))}
+          </Select>
+        </div>
       </Modal>
     </div>
   );
