@@ -29,12 +29,14 @@ Các thành viên trong nhóm bao gồm:
  - Backend: Java, SpringBoot
  - Database: Neon tech (PostgreSQL)
  - Công cụ khác: Postman, Neon tech (website), ...
+ - Recommendation System: Python
 
 ## Cài Đặt
 
 ### Yêu Cầu Hệ Thống
 
 -   Cài đặt JDK phiên bản 21
+-   Python 
 
 ### Hướng Dẫn Cài Đặt
 
@@ -55,17 +57,22 @@ cd backend
 mvn install
 ```
 
-**Bước 4:** Di chuyển vào thư mục frontend dự án.
+**Bước 4:** Cài đặt các thư viện, dependencies python
+```bash
+pip install --no-cache-dir pandas scikit-learn torchvision pillow requests numpy tqdm
+```
+
+**Bước 5:** Di chuyển vào thư mục frontend dự án.
 
 ```bash
 cd frontend
 ```
-**Bước 5:** Cài đặt các dependencies.
+**Bước 6:** Cài đặt các dependencies.
 
 ```bash
 npm install
 ```
-**Bước 6:** Khởi chạy server (cả bên backend và frontend)
+**Bước 7:** Khởi chạy server (cả bên backend và frontend)
 - Bên backend:
 ```bash
 cd backend
