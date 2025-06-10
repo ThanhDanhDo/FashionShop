@@ -182,7 +182,7 @@ const AddProduct = () => {
       const { id, ...rest } = submitValues;
       await addProduct(rest);
       setShowModal(false);
-      navigate('/Products-admin');
+      navigate('/products-admin');
     } catch (e) {
       alert('Add failed product!');
     }
@@ -193,7 +193,7 @@ const AddProduct = () => {
   };
 
   const handleCancel = () => {
-    navigate('/Products-admin');
+    navigate('/products-admin');
   };
 
   const handleSizeChange = (vals) => {

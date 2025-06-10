@@ -108,7 +108,7 @@ const UsersAdmin = () => {
   };
   const handleCancelDelete = () => setShowModal(false);
   const handleAddAccount = () => navigate('/users-admin/add-account', { state: { accounts } });
-  const handleChangeAccount = (id) => navigate(`/Users-admin/Change-account/${id}`, { state: { accounts } });
+  const handleChangeAccount = (id) => navigate(`/users-admin/change-account/${id}`, { state: { accounts } });
 
   const handleTableChange = (pagination, filters, sorter) => {
     setPage(pagination.current - 1);

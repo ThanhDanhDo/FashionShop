@@ -189,7 +189,7 @@ const ChangeProduct = () => {
     try {
       await updateProduct(submitValues);
       setShowModal(false);
-      navigate('/Products-admin');
+      navigate('/products-admin');
     } catch (e) {
       alert('Update failed!');
     }
@@ -200,7 +200,7 @@ const ChangeProduct = () => {
   };
 
   const handleCancel = () => {
-    navigate('/Products-admin');
+    navigate('/products-admin');
   };
 
   const handleSizeChange = (vals) => {
