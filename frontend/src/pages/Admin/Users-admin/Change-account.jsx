@@ -11,6 +11,7 @@ import {
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNotification } from '../../../components/NotificationProvider';
 import './Change-account.css';
+import { updateUserByAdmin } from '../../../services/userService'
 
 const { Option } = Select;
 
@@ -201,11 +202,21 @@ const ChangeAccount = () => {
   };
 
   const handleConfirmChange = async () => {
+    if (showForm) {
+    const isEmpty = Object.values(newAddress).some((value) => !value?.trim());
+    if (isEmpty) {
+      message.error("Please complete all fields in the new address form.");
+      return;
+    }
+    message.error("Please save the new address before submitting.");
+    return;
+  }
+
     const values = form.getFieldsValue();
     const updatedAccount = {
-      key: accountId.toString(),
-      id: parseInt(accountId),
-      created_at: values.created_at,
+      // key: accountId.toString(),
+      // id: parseInt(accountId),
+      // created_at: values.created_at,
       firstName: values.firstName,
       lastName: values.lastName,
       email: values.email,
@@ -214,7 +225,7 @@ const ChangeAccount = () => {
     };
 
     try {
-      // await updateUserByAdmin(accountId, updatedAccount);
+      await updateUserByAdmin(accountId, updatedAccount);
       api.success({
         message: 'Account updated',
         description: 'Account changes have been saved successfully.',

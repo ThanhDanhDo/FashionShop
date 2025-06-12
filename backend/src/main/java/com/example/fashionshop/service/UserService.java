@@ -181,4 +181,23 @@ public class UserService {
         // 5. Cuối cùng xoá User
         userRepository.delete(user);
     }
+
+    public User updateUser(Long userId, User updatedUser) throws Exception {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new Exception("User not found with id: " + userId));
+
+        // Cập nhật các trường cơ bản
+        existingUser.setFirstName(updatedUser.getFirstName());
+        existingUser.setLastName(updatedUser.getLastName());
+        existingUser.setEmail(updatedUser.getEmail());
+        existingUser.setGender(updatedUser.getGender());
+        existingUser.setRole(updatedUser.getRole());
+
+        // Cập nhật mật khẩu nếu có (và không rỗng)
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        }
+
+        return userRepository.save(existingUser);
+    }
 }
