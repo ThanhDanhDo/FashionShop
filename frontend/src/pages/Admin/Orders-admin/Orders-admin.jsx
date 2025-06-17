@@ -95,12 +95,6 @@ const Orders = () => {
     setCurrentPage(1); // Reset về trang 1 khi thay đổi loại tìm kiếm
   };
 
-  // Lọc và phân trang dữ liệu
-  const paginatedOrders = orders.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
-
   return (
     <div
       className="orders-container"
@@ -163,10 +157,10 @@ const Orders = () => {
       <div className="orders-list">
         {loading ? (
           <FullPageSpin /> // Hiển thị FullPageSpin khi loading
-        ) : paginatedOrders.length === 0 ? (
+        ) : orders.length === 0 ? (
           <p>There are no orders with this status.</p>
         ) : (
-          paginatedOrders.map((order) => (
+          orders.map((order) => (
             <div key={order.orderId} className="order-card">
               <div className="order-header">
                 <div>
