@@ -31,6 +31,32 @@ Các thành viên trong nhóm bao gồm:
  - Công cụ khác: Postman, Neon tech (website), ...
  - Recommendation System: Python
 
+## Chức năng chính
+
+### User:
+- Xem danh sách sản phẩm, tìm và xem chi tiết sản phẩm
+- Xem sản phẩm tương tự
+- Thêm sản phẩm vào giỏ
+- Đặt hàng
+- Sản phẩm yêu thích
+- Quản lý địa chỉ (khi đặt hàng)
+- Xem và huỷ đơn hàng
+- Thanh toán với paypal
+- Lấy sản phẩm gợi ý từ batch layer
+- Lấy sản phẩm gợi ý từ stream layer
+
+### Admin:
+- Xem thống kê báo cáo (Dashboard)
+- Quản lý user
+- Quản lý sản phẩm
+- Quản lý đơn hàng
+- Kích hoạt huấn luyện batch layer
+
+## Demo
+
+## Document
+[Nhom6_IE303.pdf](https://github.com/ThanhDanhDo/FashionShop/blob/main/docs/Nhom6_IE303.pdf)
+
 ## Cài Đặt
 
 ### Yêu Cầu Hệ Thống
@@ -123,3 +149,60 @@ FashionShop/
 │── README.md                     
 │── .gitignore                     
 ```
+
+## Screenshot
+### Home
+<img src="https://github.com/user-attachments/assets/250d8430-e0b7-41cd-bccc-381142470d9a" width="300">
+
+### Recommended Prodcut:
+Gợi ý sản phẩm dựa vào (Collaborative Filtering):
+- Lượt tương tác (click vào sản phẩm), giới tính của người dùng
+- Sản phẩm cùng thể loại tương tự
+<img src="https://github.com/user-attachments/assets/6fb6ccdb-97ef-4f99-9736-23a7cca6f4c5" width="300">
+<img src="https://github.com/user-attachments/assets/5fb597fe-8f52-4021-82a0-46056e76f2b9" width="300">
+
+### Xem danh sách sản phẩm, tìm và xem chi tiết sản phẩm
+- Lọc sản phẩm theo Main Category và Sub Category
+<img src="https://github.com/user-attachments/assets/028e3fe5-c032-46c2-9e1e-0fecc3cd46fc" width="300">
+<img src="https://github.com/user-attachments/assets/6a10972e-3b2c-4652-9fe4-39bdbff7791a" width="300">
+
+### Giỏ hàng
+- Thêm/ Xóa/ Sửa sản phẩm trong giỏ hàng
+<img src="https://github.com/user-attachments/assets/3c236620-82fc-4186-8b82-817fa11704e8" width="300">
+
+### Thanh toán bằng Paypal
+<img src="https://github.com/user-attachments/assets/1456c130-642f-414c-935c-6a862b65029a8" width="300">
+<img src="https://github.com/user-attachments/assets/7dc6270a-4767-4aab-b70b-50e3474178f4" width="300">
+
+### Đơn hàng
+- Xem/ Hủy/ Thay đổi trạng thái đơn hàng
+<img src="https://github.com/user-attachments/assets/d2b5977c-ec78-4597-afe9-5ee91a974c65" width="300">
+
+### Yêu thích
+<img src="https://github.com/user-attachments/assets/4b1ef824-e303-4c05-845a-81c7084d31c3" width="300">
+
+### Dashboard
+- Xem được doanh thu hằng ngày/ tháng.
+- Tổng số lượng người dùng, sản phẩm, đơn hàng, ...
+<img src="https://github.com/user-attachments/assets/5ed58e19-06d3-47c3-b83e-23ff0dcea11b3" width="300">
+<img src="https://github.com/user-attachments/assets/8a5a8680-00f4-486b-8afe-4e2c22cb84dc" width="300">
+
+### Quản lý Sản Phẩm
+- Thêm và sửa sản phẩm
+- Tìm kiếm
+<img src="https://github.com/user-attachments/assets/e6b5ff20-24af-4bf5-93b7-fdf2be74fc2d" width="300">
+
+### Quản lý Đơn hàng
+- Xem và thay đổi trạng thái đơn hàng
+- Tìm kiếm
+<img src="https://github.com/user-attachments/assets/8cfd0c1a-94e7-482d-a3b4-4fcfc408fd6a" width="300">
+
+### Quản lý tài khoản người dùng
+- Xem, sửa thông tin tài khoản người dùng
+- Tìm kiếm
+<img src="https://github.com/user-attachments/assets/b653f7f8-e892-4141-a5d1-2b161b764b3d" width="300">
+
+### Quản lý hệ thống khuyến nghị
+- Kích hoạt huấn luyện batch layer
+<img src="https://github.com/user-attachments/assets/87593d05-5954-4e04-bb73-9f5776d9ecec" width="300">
+<img src="https://github.com/user-attachments/assets/9d40e31a-7e68-4b59-a253-c9f7b0821880" width="300">
