@@ -28,7 +28,7 @@ public class RecommendationService {
     private final ColabConfig colabConfig;
 
     public void triggerTraining() {
-        String endpoint = colabConfig.getNgrok_link() + "/update_recommendation";
+        String endpoint = colabConfig.getNgrok_link() + "update_recommendation";
 
         Map<String, Object> requestBody = new HashMap<>();
 
@@ -38,7 +38,7 @@ public class RecommendationService {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
         try {
-            ResponseEntity<String> response = restTemplate.exchange(endpoint, HttpMethod.POST, request, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(endpoint, HttpMethod.GET, request, String.class);
             System.out.println("Response from Colab: " + response.getBody());
         } catch (Exception e) {
             e.printStackTrace();

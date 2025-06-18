@@ -213,3 +213,21 @@ export const getUserById = async (userId) => {
   }
   return response.json();
 };
+
+export const updateUserByAdmin = async (userId, updatedUser) => {
+  const response = await fetch(`/api/admin/users/${userId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include', // nếu cần gửi cookie (JWT, session v.v.)
+    body: JSON.stringify(updatedUser),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'Không thể cập nhật người dùng!');
+  }
+
+  return response.json(); // trả về kết quả từ API (ApiResponse)
+};

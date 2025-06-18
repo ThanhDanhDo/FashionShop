@@ -196,17 +196,28 @@ public class UserController {
         User savedUser = userRepository.save(user);
 
         // 3. Tạo address mặc định
-        Address address = new Address();
-        address.setProvince(req.getProvince());
-        address.setDistrict(req.getDistrict());
-        address.setWard(req.getWard());
-        address.setFullAddress(req.getFullAddress());
-        address.setPhone(req.getPhone());
-        address.setDefault(true);
-        address.setUser(savedUser);
-        addressRepository.save(address);
+        if (req.getDistrict() != null && !req.getDistrict().isEmpty()) {
+            Address address = new Address();
+            address.setProvince(req.getProvince());
+            address.setDistrict(req.getDistrict());
+            address.setWard(req.getWard());
+            address.setFullAddress(req.getFullAddress());
+            address.setPhone(req.getPhone());
+            address.setDefault(true);
+            address.setUser(savedUser);
+            addressRepository.save(address);
+//            System.out.println("omg");
+        }
+//        System.out.println("Received req: "+req);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
+    }
+
+    @PutMapping("/admin/users/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<ApiResponse> updateUser(@PathVariable Long id, @RequestBody User updatedUser) throws Exception {
+        User user = userService.updateUser(id, updatedUser);
+        return ResponseEntity.ok(new ApiResponse("User updated successfully", true, user));
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")

@@ -115,6 +115,7 @@ public class InteractService {
         installPb.directory(new File("recommendation/Content_Base"));
         installPb.redirectErrorStream(true);
         Process installProcess = installPb.start();
+
         int installExit = installProcess.waitFor();
         if (installExit != 0) {
             throw new RuntimeException("Cài đặt requirements thất bại với mã: " + installExit);
@@ -143,6 +144,7 @@ public class InteractService {
         StringBuilder output = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
+            System.out.println("[PYTHON OUTPUT] " + line);
             output.append(line);
         }
         int exitCode = process.waitFor();
