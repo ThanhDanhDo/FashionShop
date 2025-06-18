@@ -103,11 +103,11 @@ function Cart() {
         availableColors: editItem.availableColors
       });
       await fetchCartItems();
-      setSuccessMessage('Cập nhật sản phẩm thành công!');
+      setSuccessMessage('Product update successful!');
       setTimeout(() => setSuccessMessage(null), 3000);
       setEditItem(null);
     } catch (error) {
-      setError('Không thể cập nhật sản phẩm: ' + error.message);
+      setError('Unable to update product: ' + error.message);
     } finally {
       setUpdating(false);
     }

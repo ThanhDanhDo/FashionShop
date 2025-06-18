@@ -59,7 +59,7 @@ const PayPalSuccess = () => {
         return (
             <div style={{ textAlign: "center", marginTop: "100px" }}>
                 <Spin size="large" />
-                <p>Đang xử lý thanh toán...</p>
+                <p>Processing payment...</p>
             </div>
         );
     }
