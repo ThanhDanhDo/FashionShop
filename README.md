@@ -54,6 +54,8 @@ Các thành viên trong nhóm bao gồm:
 
 ## Demo
 
+[Drive](https://drive.google.com/file/d/1lDztbANzlT_46334Q-veWbFpFbGjZrp5/view?usp=drive_link)
+
 ## Document
 [Nhom6_IE303.pdf](https://github.com/ThanhDanhDo/FashionShop/blob/main/docs/Nhom6_IE303.pdf)
 
